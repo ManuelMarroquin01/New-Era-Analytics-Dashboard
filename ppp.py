@@ -6,7 +6,6 @@ import os
 import time
 import warnings
 import logging
-import hmac
 from typing import Dict, Optional, List, Tuple, Any
 from dataclasses import dataclass
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -19,34 +18,6 @@ from plotly.subplots import make_subplots
 # Configuración de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Password protection
-def check_password():
-    """Returns True if the user had the correct password."""
- 
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store the password.
-        else:
-            st.session_state["password_correct"] = False
- 
-    # Return True if the password is# validated.
-    if st.session_state.get("password_correct", False):
-        return True
- 
-    # Show input for password.
-    st.text_input(
-        "Password", type="password", on_change=password_entered, key="password"
-    )
-    if "password_correct" in st.session_state:
-        st.error("😕 Password incorrect")
-    return False
- 
- 
-if not check_password():
-    st.stop()  # Do not continue if check_password is not True.
 
 @dataclass
 class StockAnalysisConfig:
@@ -82,13 +53,6 @@ st.set_page_config(
         'About': "# New Era Stock Analytics Dashboard\nSistema profesional de análisis de inventario"
     }
 )
-
-# Clear cache button for debugging
-if st.button("🗑️ Clear Cache"):
-    st.cache_data.clear()
-    st.cache_resource.clear()
-    st.success("Cache cleared! Please refresh the page.")
-    st.rerun()
 
 # Instancia de configuración
 config = StockAnalysisConfig(fecha_reporte="", colores_semaforo={}, umbrales={})
@@ -145,51 +109,144 @@ class ProfessionalDesign:
             50% { transform: scale(1.05); }
         }
         
-        /* Header personalizado */
+        /* Header ultra moderno y cool */
         .main-header {
-            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
-            padding: 2rem 3rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(55, 65, 81, 0.3);
-            animation: slideInFromLeft 0.8s ease-out;
-            transition: all 0.3s ease;
+            background: linear-gradient(to right, #000000 0%, #1a1a1a 50%, #0a0a0a 100%);
+            padding: 3rem 0;
+            border-radius: 0;
+            margin: 0 -5rem 3rem -5rem;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.3),
+                0 10px 30px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: headerSlideIn 1s ease-out;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .main-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.08) 25%, 
+                rgba(255, 255, 255, 0.15) 50%, 
+                rgba(255, 255, 255, 0.08) 75%, 
+                transparent 100%
+            );
+            animation: headerShine 8s ease-in-out infinite;
+            z-index: 1;
+        }
+        
+        @keyframes headerShine {
+            0% { left: -100%; }
+            15% { left: -100%; }
+            50% { left: 100%; }
+            85% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        .main-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(209, 213, 219, 0.1) 0%, transparent 50%);
+            opacity: 0.6;
+            animation: floatingParticles 8s ease-in-out infinite;
+        }
+        
+        @keyframes headerSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes floatingParticles {
+            0%, 100% { 
+                background: radial-gradient(circle at 20% 80%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 20%, rgba(209, 213, 219, 0.1) 0%, transparent 50%);
+            }
+            50% { 
+                background: radial-gradient(circle at 30% 70%, rgba(156, 163, 175, 0.15) 0%, transparent 50%),
+                            radial-gradient(circle at 70% 30%, rgba(209, 213, 219, 0.15) 0%, transparent 50%);
+            }
         }
         
         .main-header:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(55, 65, 81, 0.4);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 
+                0 35px 80px rgba(0, 0, 0, 0.4),
+                0 15px 40px rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.15);
         }
+        
+        /* Efecto de luz continuo - removido hover para que sea automático */
         
         .header-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
+            z-index: 2;
+            padding: 0 4rem;
         }
         
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 3rem;
+            position: relative;
+            flex: 1;
+        }
+        
+        .logo-section::before {
+            content: '';
+            position: absolute;
+            left: -1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, #9ca3af, transparent);
+            border-radius: 2px;
         }
         
         .logo-icon {
-            font-size: 3rem;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+            font-size: 4rem;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
+            position: relative;
+            min-width: 140px;
+        }
+        
+        .logo-section > div {
+            margin-left: 1.5rem;
+            flex: 1;
         }
         
         .header-title {
             color: #ffffff !important;
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 3rem;
+            font-weight: 800;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
         
-        .header-title::before,
-        .header-title::after {
-            display: none !important;
-        }
         
         /* Ocultar cualquier icono o flecha que pueda aparecer */
         .main-header .header-title + *:not(.header-subtitle) {
@@ -202,10 +259,12 @@ class ProfessionalDesign:
         }
         
         .header-subtitle {
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1rem;
-            font-weight: 400;
-            margin: 0;
+            color: #ffffff !important;
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 0.5rem 0 0 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
         }
         
         .header-stats {
@@ -216,19 +275,20 @@ class ProfessionalDesign:
         
         .stat-item {
             text-align: center;
-            color: white;
+            color: #ffffff !important;
         }
         
         .stat-number {
             font-size: 1.8rem;
             font-weight: 700;
             display: block;
+            color: #ffffff !important;
         }
         
         .stat-label {
             font-size: 0.9rem;
-            opacity: 0.9;
             font-weight: 300;
+            color: #ffffff !important;
         }
         
         /* Pestañas profesionales */
@@ -260,75 +320,239 @@ class ProfessionalDesign:
             box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3) !important;
         }
         
-        /* Cards de bienvenida modernizadas */
-        .welcome-card {
-            background: #ffffff;
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 2rem 1.5rem;
+        /* Cards de bienvenida personalizadas por país con animaciones */
+        .country-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 3rem 2rem;
             text-align: center;
-            margin: 1rem 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
         
-        .welcome-card::before {
+        .country-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            transition: left 0.5s ease;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
         }
         
-        .welcome-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: #e2e8f0;
-        }
-        
-        .welcome-card:hover::before {
+        .country-card:hover::before {
             left: 100%;
         }
         
+        /* Guatemala - Celeste */
+        .country-card-gt {
+            border-top: 4px solid #0ea5e9;
+        }
+        
+        .country-card-gt:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.3), 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(14, 165, 233, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(186, 230, 253, 0.15) 100%);
+        }
+        
+        /* Panamá - Rojo */
+        .country-card-pa {
+            border-top: 4px solid #dc2626;
+        }
+        
+        .country-card-pa:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.3), 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(220, 38, 38, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(254, 202, 202, 0.15) 100%);
+        }
+        
+        /* Honduras - Azul */
+        .country-card-hn {
+            border-top: 4px solid #1e40af;
+        }
+        
+        .country-card-hn:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(30, 64, 175, 0.3), 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(30, 64, 175, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(191, 219, 254, 0.15) 100%);
+        }
+        
+        /* El Salvador - Azul oscuro */
+        .country-card-sv {
+            border-top: 4px solid #1e3a8a;
+        }
+        
+        .country-card-sv:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.3), 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(30, 58, 138, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(191, 219, 254, 0.15) 100%);
+        }
+        
+        /* Costa Rica - Verde */
+        .country-card-cr {
+            border-top: 4px solid #16a34a;
+        }
+        
+        .country-card-cr:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(22, 163, 74, 0.3), 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: rgba(22, 163, 74, 0.3);
+            background: linear-gradient(135deg, #ffffff 0%, rgba(187, 247, 208, 0.15) 100%);
+        }
+        
+        /* Efectos de hover para banderas */
         .country-flag {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
             display: block;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
         }
         
-        .welcome-card:hover .country-flag {
-            transform: scale(1.1);
+        .country-card:hover .country-flag {
+            transform: scale(1.15) rotate(5deg);
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
         }
         
+        /* Efectos de hover para títulos */
         .country-title {
-            color: #374151;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
             transition: all 0.3s ease;
         }
         
-        .welcome-card:hover .country-title {
-            color: #1f2937;
+        .country-card:hover .country-title {
+            transform: translateY(-2px);
         }
         
+        /* Efectos de hover para descripciones */
         .country-description {
-            color: #64748b;
-            font-size: 0.95rem;
-            font-weight: 400;
-            line-height: 1.5;
-            margin-bottom: 0;
             transition: all 0.3s ease;
         }
         
-        .welcome-card:hover .country-description {
-            color: #475569;
+        .country-card:hover .country-description {
+            transform: translateY(-1px);
+        }
+        
+        /* Pestañas minimalistas y elegantes */
+        .stTabs [data-baseweb="tab-list"] {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 6px;
+            margin: 2rem 0;
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.05),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 4px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin: 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            color: #64748b;
+            letter-spacing: 0.25px;
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .stTabs [data-baseweb="tab"]:hover {
+            background: rgba(248, 250, 252, 0.8) !important;
+            color: #334155 !important;
+            transform: translateY(-12px) scale(1.05) !important;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 12px 24px rgba(0, 0, 0, 0.12),
+                0 4px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+        
+        .stTabs [data-baseweb="tab"][aria-selected="true"] {
+            background: rgba(248, 250, 252, 0.2) !important;
+            color: #6b7280 !important;
+            font-weight: 520;
+            position: relative;
+        }
+        
+        .stTabs [data-baseweb="tab"][data-teststate="active"] {
+            background: rgba(248, 250, 252, 0.2) !important;
+            color: #6b7280 !important;
+        }
+        
+        .stTabs [data-baseweb="tab"]:focus {
+            background: rgba(248, 250, 252, 0.2) !important;
+            color: #6b7280 !important;
+        }
+        
+        .stTabs [data-baseweb="tab"][aria-selected="true"]:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 1px;
+            background: rgba(156, 163, 175, 0.25);
+            border-radius: 0.5px;
+            opacity: 1;
+        }
+        
+        .stTabs [data-baseweb="tab"][aria-selected="true"]:hover {
+            background: rgba(249, 250, 251, 0.4) !important;
+            transform: translateY(-8px) scale(1.04) !important;
+            color: #52525b !important;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.12),
+                0 8px 16px rgba(0, 0, 0, 0.08),
+                0 2px 4px rgba(0, 0, 0, 0.04) !important;
+        }
+        
+        .stTabs [data-baseweb="tab"][aria-selected="true"]:hover:after {
+            width: 16px;
+            background: rgba(156, 163, 175, 0.3);
+        }
+        
+        .stTabs [data-baseweb="tab-highlight"] {
+            display: none;
+        }
+        
+        .stTabs [data-baseweb="tab-panel"] {
+            padding: 2.5rem 0;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         /* Métricas KPI mejoradas */
@@ -506,15 +730,15 @@ class ProfessionalDesign:
         with header_container:
             # Cargar logo de New Era
             try:
-                logo_path = "LOGO_NEW_ERA.png"
+                logo_path = "LOGO NE NUEVO.png"
                 with open(logo_path, "rb") as logo_file:
                     logo_data = logo_file.read()
                 import base64
                 logo_base64 = base64.b64encode(logo_data).decode()
-                logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 100px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">'
+                logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 140px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));">'
             except FileNotFoundError:
                 # Fallback a corona si no encuentra la imagen
-                logo_html = '<span class="logo-icon">👑</span>'
+                logo_html = '<span class="logo-icon" style="font-size: 5rem; display: inline-block;">👑</span>'
             
             st.markdown(f"""
             <div class="main-header">
@@ -610,13 +834,13 @@ class ProfessionalDesign:
         .league-card {{
             background: #ffffff;
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 16px;
             text-align: center;
             cursor: pointer;
             position: relative;
             border: 1px solid #f1f5f9;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }}
         
@@ -627,40 +851,65 @@ class ProfessionalDesign:
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            transition: left 0.5s ease;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent);
+            transition: all 0.6s ease;
+        }}
+        
+        .league-card::after {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }}
         
         .league-card:hover {{
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-            border-color: #e2e8f0;
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.12),
+                0 8px 16px rgba(0, 0, 0, 0.08);
+            border-color: rgba(59, 130, 246, 0.3);
         }}
         
         .league-card:hover::before {{
             left: 100%;
         }}
         
+        .league-card:hover::after {{
+            opacity: 0.6;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+        }}
+        
         .league-card:active {{
-            transform: translateY(-2px) scale(1.01);
-            transition: all 0.15s ease;
+            transform: translateY(-4px) scale(1.02);
+            transition: all 0.2s ease;
         }}
         
         .league-card img {{
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: brightness(0.98);
         }}
         
         .league-card:hover img {{
-            transform: scale(1.05);
+            transform: scale(1.1);
+            filter: brightness(1.05) contrast(1.08) saturate(1.05);
         }}
         
         .league-card p {{
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 2;
         }}
         
         .league-card:hover p {{
-            color: #374151 !important;
+            color: #1e293b !important;
             font-weight: 600 !important;
+            transform: translateY(-2px);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }}
         
         /* Animaciones de entrada para las tarjetas */
@@ -994,18 +1243,54 @@ class ProfessionalDesign:
         st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
         
     
-    def create_welcome_card(self, country_flag: str, country_name: str, description: str, stores_count: int):
-        """Crea una card de bienvenida profesional"""
+    def create_welcome_card(self, country_flag: str, country_name: str, description: str, stores_count: int, country_code: str = ""):
+        """Crea una card de bienvenida profesional con colores personalizados por país"""
+        
+        # Determinar colores según el país
+        if "Panamá" in country_name or "PANAMA" in country_name:
+            # Rojo de la bandera de Panamá
+            primary_color = "#dc2626"
+            secondary_color = "#ef4444"
+            accent_color = "#fecaca"
+        elif "Honduras" in country_name or "HONDURAS" in country_name:
+            # Azul 
+            primary_color = "#1e40af"
+            secondary_color = "#3b82f6"
+            accent_color = "#bfdbfe"
+        elif "El Salvador" in country_name or "EL SALVADOR" in country_name:
+            # Azul oscuro de la bandera de El Salvador
+            primary_color = "#1e3a8a"
+            secondary_color = "#1d4ed8"
+            accent_color = "#bfdbfe"
+        elif "Costa Rica" in country_name or "COSTA RICA" in country_name:
+            # Verde reciclaje de Costa Rica
+            primary_color = "#16a34a"
+            secondary_color = "#22c55e"
+            accent_color = "#bbf7d0"
+        elif "Guatemala" in country_name or "GUATEMALA" in country_name:
+            # Celeste 
+            primary_color = "#0ea5e9"
+            secondary_color = "#38bdf8"
+            accent_color = "#bae6fd"
+        else:
+            # Azul medio por defecto
+            primary_color = "#1e40af"
+            secondary_color = "#3b82f6"
+            accent_color = "#bfdbfe"
+        
         return f"""
-        <div class="welcome-card">
-            <span class="country-flag">{country_flag}</span>
-            <h3 class="country-title">{country_name}</h3>
-            <p class="country-description">
-                {description}<br>
-                <strong>{stores_count} tiendas</strong> en operación
-            </p>
-        </div>
-        """
+<div class="welcome-card-{country_code.lower()}">
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, {primary_color}, {secondary_color}); border-radius: 24px 24px 0 0; opacity: 0.8;"></div>
+    
+    <span class="country-flag">{country_flag}</span>
+    
+    <h3 style="color: {primary_color}; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; transition: all 0.3s ease; text-shadow: 0 2px 4px rgba(0,0,0,0.02);">{country_name}</h3>
+    
+    <p style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; transition: all 0.3s ease; background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, {accent_color}20 100%); padding: 1rem; border-radius: 12px; border: 1px solid {accent_color}50;">
+        {description}<br>
+        <strong style="color: {primary_color};">{stores_count} tiendas</strong> en operación
+    </p>
+</div>"""
     
     def create_section_header(self, title: str, subtitle: str = "", icon: str = "📊"):
         """Crea un header de sección profesional con fondo degradado según el país"""
@@ -2612,11 +2897,11 @@ def main():
     
     # Crear pestañas para cada país con iconos mejorados
     tab_guatemala, tab_el_salvador, tab_honduras, tab_costa_rica, tab_panama = st.tabs([
-        "🇬🇹 Guatemala", 
-        "🇸🇻 El Salvador", 
-        "🇭🇳 Honduras", 
-        "🇨🇷 Costa Rica",
-        "🇵🇦 Panamá"
+        "Guatemala", 
+        "El Salvador", 
+        "Honduras", 
+        "Costa Rica",
+        "Panamá"
     ])
     
     # PESTAÑA GUATEMALA
@@ -2659,12 +2944,16 @@ def main():
                     exportar_excel_consolidado(tabla_guatemala, nombre_archivo_gt, "Guatemala")
         else:
             # Mensaje de bienvenida cuando no hay archivo
-            st.markdown(professional_design.create_welcome_card(
-                "🇬🇹", 
-                "Guatemala - Sistema de Stock",
-                "Selecciona tu archivo BASE_DE_DATOS.csv para comenzar el análisis completo del inventario",
-                24
-            ), unsafe_allow_html=True)
+            st.markdown("""
+            <div class="country-card country-card-gt">
+                <div class="country-flag">🇬🇹</div>
+                <h3 class="country-title" style="color: #0ea5e9; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(186, 230, 253, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(186, 230, 253, 0.3);">
+                    Selecciona tu archivo BASE_DE_DATOS.csv para comenzar el análisis completo del inventario<br>
+                    <strong style="color: #0ea5e9;">24 tiendas</strong> en operación
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
     # PESTAÑA PANAMA
     with tab_panama:
@@ -2707,11 +2996,12 @@ def main():
         else:
             # Mensaje de bienvenida cuando no hay archivo
             st.markdown("""
-            <div style="text-align: center; padding: 3rem 2rem; background-color: #f8f9fa; border-radius: 10px; margin: 2rem 0;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🇵🇦</div>
-                <h3 style="color: #495057; margin-bottom: 1rem;">PANAMA - Sistema de Stock</h3>
-                <p style="color: #6c757d; font-size: 1.1rem;">
-                    Selecciona tu archivo <strong>PANAMA.csv</strong> para comenzar el análisis de las 6 bodegas de Panamá.
+            <div class="country-card country-card-pa">
+                <div class="country-flag">🇵🇦</div>
+                <h3 class="country-title" style="color: #dc2626; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Panamá - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(254, 202, 202, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(254, 202, 202, 0.3);">
+                    Selecciona tu archivo PANAMA.csv para comenzar el análisis de las 6 bodegas de Panamá<br>
+                    <strong style="color: #dc2626;">6 tiendas</strong> en operación
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -2756,12 +3046,16 @@ def main():
                     exportar_excel_consolidado(tabla_honduras, nombre_archivo_hn, "Honduras")
         else:
             # Mensaje de bienvenida cuando no hay archivo
-            st.markdown(professional_design.create_welcome_card(
-                "🇭🇳", 
-                "Honduras - Sistema de Stock",
-                "Selecciona tu archivo HONDURAS.csv para comenzar el análisis completo del inventario",
-                5
-            ), unsafe_allow_html=True)
+            st.markdown("""
+            <div class="country-card country-card-hn">
+                <div class="country-flag">🇭🇳</div>
+                <h3 class="country-title" style="color: #1e40af; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Honduras - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                    Selecciona tu archivo HONDURAS.csv para comenzar el análisis completo del inventario<br>
+                    <strong style="color: #1e40af;">5 tiendas</strong> en operación
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
     
     # PESTAÑA EL SALVADOR
     with tab_el_salvador:
@@ -2804,11 +3098,12 @@ def main():
         else:
             # Mensaje de bienvenida cuando no hay archivo
             st.markdown("""
-            <div style="text-align: center; padding: 3rem 2rem; background-color: #f8f9fa; border-radius: 10px; margin: 2rem 0;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🇸🇻</div>
-                <h3 style="color: #495057; margin-bottom: 1rem;">El Salvador - Sistema de Stock</h3>
-                <p style="color: #6c757d; font-size: 1.1rem;">
-                    Selecciona tu archivo <strong>EL_SALVADOR.csv</strong> para comenzar el análisis de las 9 bodegas de El Salvador.
+            <div class="country-card country-card-sv">
+                <div class="country-flag">🇸🇻</div>
+                <h3 class="country-title" style="color: #1e3a8a; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                    Selecciona tu archivo EL_SALVADOR.csv para comenzar el análisis de las 9 bodegas de El Salvador<br>
+                    <strong style="color: #1e3a8a;">9 tiendas</strong> en operación
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -2854,11 +3149,12 @@ def main():
         else:
             # Mensaje de bienvenida cuando no hay archivo
             st.markdown("""
-            <div style="text-align: center; padding: 3rem 2rem; background-color: #f8f9fa; border-radius: 10px; margin: 2rem 0;">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🇨🇷</div>
-                <h3 style="color: #495057; margin-bottom: 1rem;">Costa Rica - Sistema de Stock</h3>
-                <p style="color: #6c757d; font-size: 1.1rem;">
-                    Selecciona tu archivo <strong>COSTA_RICA.csv</strong> para comenzar el análisis de las 2 bodegas de Costa Rica.
+            <div class="country-card country-card-cr">
+                <div class="country-flag">🇨🇷</div>
+                <h3 class="country-title" style="color: #16a34a; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Costa Rica - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(187, 247, 208, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(187, 247, 208, 0.3);">
+                    Selecciona tu archivo COSTA_RICA.csv para comenzar el análisis de las 2 bodegas de Costa Rica<br>
+                    <strong style="color: #16a34a;">2 tiendas</strong> en operación
                 </p>
             </div>
             """, unsafe_allow_html=True)
