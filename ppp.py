@@ -112,7 +112,7 @@ class ProfessionalDesign:
         /* Header ultra moderno y cool */
         .main-header {
             background: linear-gradient(to right, #000000 0%, #1a1a1a 50%, #0a0a0a 100%);
-            padding: 3rem 0;
+            padding: 5rem 0;
             border-radius: 0;
             margin: 0 -5rem 3rem -5rem;
             box-shadow: 
@@ -125,6 +125,7 @@ class ProfessionalDesign:
             overflow: hidden;
             border: none;
             backdrop-filter: blur(10px);
+            min-height: 260px;
         }
         
         .main-header::before {
@@ -188,13 +189,7 @@ class ProfessionalDesign:
             }
         }
         
-        .main-header:hover {
-            transform: translateY(-5px) scale(1.01);
-            box-shadow: 
-                0 35px 80px rgba(0, 0, 0, 0.4),
-                0 15px 40px rgba(0, 0, 0, 0.3),
-                inset 0 2px 0 rgba(255, 255, 255, 0.15);
-        }
+        /* Efecto hover removido para mantener encabezado fijo */
         
         /* Efecto de luz continuo - removido hover para que sea automático */
         
@@ -718,8 +713,9 @@ class ProfessionalDesign:
     
     def create_main_header(self):
         """Crea el header principal profesional con hora en tiempo real y última actividad"""
-        total_countries = 4
-        total_stores = 42  # Suma de todas las tiendas
+        # Obtener conteos dinámicos
+        total_countries = self._get_total_countries()
+        total_stores = self._get_total_stores()
         
         # Obtener fecha de último trabajo con stock
         last_work_date = self._get_last_stock_work_date()
@@ -735,7 +731,7 @@ class ProfessionalDesign:
                     logo_data = logo_file.read()
                 import base64
                 logo_base64 = base64.b64encode(logo_data).decode()
-                logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 140px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));">'
+                logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 100px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));">'
             except FileNotFoundError:
                 # Fallback a corona si no encuentra la imagen
                 logo_html = '<span class="logo-icon" style="font-size: 5rem; display: inline-block;">👑</span>'
@@ -820,8 +816,39 @@ class ProfessionalDesign:
             # Fallback al emoji si no encuentra la imagen
             return f'<span style="font-size: 1.5rem;">{fallback}</span>'
     
+    def _get_total_countries(self) -> int:
+        """Obtiene el número total de países dinámicamente desde CountryManager"""
+        global country_manager
+        if country_manager is None:
+            country_manager = CountryManager()
+        return len(country_manager.countries)
+    
+    def _get_total_stores(self) -> int:
+        """Obtiene el número total de tiendas excluyendo bodegas centrales"""
+        global country_manager
+        if country_manager is None:
+            country_manager = CountryManager()
+        
+        # Bodegas centrales a excluir
+        central_warehouses = {
+            "CENTRAL NEW ERA",  # Guatemala
+            "New Era Central",  # El Salvador  
+            "Bodega Central NEW ERA",  # Costa Rica
+            "Bodega Central Albrook",  # Panama
+            "Almacén general"  # Panama
+        }
+        
+        total_stores = 0
+        for country_name, country_data in country_manager.countries.items():
+            # Contar todas las bodegas menos las centrales
+            for bodega in country_data.bodegas:
+                if bodega not in central_warehouses:
+                    total_stores += 1
+        
+        return total_stores
+    
     def create_leagues_section(self):
-        """Crea la sección de ligas deportivas con logos"""
+        """Crea la sección de ligas deportivas con logos y estilo de pestañas de países"""
         # Cargar todos los logos
         mlb_logo = self._get_league_logo("LOGO_MLB.png", "MLB", "⚾")
         nba_logo = self._get_league_logo("LOGO_NBA.png", "NBA", "🏀")
@@ -829,203 +856,156 @@ class ProfessionalDesign:
         f1_logo = self._get_league_logo("LOGO_F1.png", "MOTORSPORT", "🏎️")
         ne_logo = self._get_league_logo("LOGO_NE 2.png", "NEW ERA", "👑")
         
-        st.markdown(f"""
+        # Estilos flotantes sin bordes para las tarjetas de ligas
+        st.markdown("""
         <style>
-        .league-card {{
-            background: #ffffff;
-            padding: 0.75rem;
-            border-radius: 16px;
+        .league-card {
+            background: transparent;
+            border-radius: 12px;
+            padding: 1.5rem 1rem 1rem 1rem;
             text-align: center;
             cursor: pointer;
-            position: relative;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }}
+            border: none;
+            margin-bottom: 0.5rem;
+            position: relative;
+            overflow: visible;
+        }
         
-        .league-card::before {{
+        .league-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent);
-            transition: all 0.6s ease;
-        }}
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, currentColor, transparent, currentColor);
+            border-radius: 14px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
         
-        .league-card::after {{
+        .league-card::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
             opacity: 0;
-            transition: opacity 0.4s ease;
-        }}
+            transition: all 0.4s ease;
+            z-index: -1;
+            backdrop-filter: blur(10px);
+        }
         
-        .league-card:hover {{
-            transform: translateY(-8px) scale(1.04);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.12),
-                0 8px 16px rgba(0, 0, 0, 0.08);
-            border-color: rgba(59, 130, 246, 0.3);
-        }}
+        .league-card:hover::before,
+        .league-card.selected::before {
+            opacity: 0.1;
+        }
         
-        .league-card:hover::before {{
-            left: 100%;
-        }}
+        .league-card:hover::after,
+        .league-card.selected::after {
+            opacity: 1;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
         
-        .league-card:hover::after {{
-            opacity: 0.6;
-            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
-        }}
+        .league-card:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
         
-        .league-card:active {{
-            transform: translateY(-4px) scale(1.02);
-            transition: all 0.2s ease;
-        }}
+        .league-card.selected {
+            transform: translateY(-4px) scale(1.01);
+        }
         
-        .league-card img {{
+        .league-card img {
+            height: 95px;
+            width: auto;
+            margin-bottom: 0.75rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: brightness(0.98);
-        }}
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            position: relative;
+            z-index: 1;
+        }
         
-        .league-card:hover img {{
+        .league-card:hover img {
             transform: scale(1.1);
-            filter: brightness(1.05) contrast(1.08) saturate(1.05);
-        }}
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+        }
         
-        .league-card p {{
+        .league-card.selected img {
+            transform: scale(1.05);
+            filter: drop-shadow(0 4px 8px currentColor);
+        }
+        
+        .league-card p {
+            margin: 0.75rem 0 0 0;
+            font-weight: 400;
+            color: #64748b;
+            font-size: 1.1rem;
             transition: all 0.4s ease;
             position: relative;
-            z-index: 2;
-        }}
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+            transform: scaleY(0.9);
+        }
         
-        .league-card:hover p {{
-            color: #1e293b !important;
-            font-weight: 600 !important;
-            transform: translateY(-2px);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }}
+        .league-card:hover p,
+        .league-card.selected p {
+            color: currentColor;
+            font-weight: 400;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9);
+        }
         
-        /* Animaciones de entrada para las tarjetas */
-        @keyframes cardFadeIn {{
-            from {{ 
-                opacity: 0; 
-                transform: translateY(20px) scale(0.95); 
-            }}
-            to {{ 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }}
-        }}
+        /* Colores específicos para cada liga */
+        .mlb-card {
+            color: #1e40af;
+        }
         
-        .league-card {{
-            animation: cardFadeIn 0.6s ease-out;
-        }}
+        .mlb-card.selected::after {
+            background: linear-gradient(135deg, rgba(191, 219, 254, 0.3), rgba(219, 234, 254, 0.3));
+        }
         
-        .card-1 {{ animation-delay: 0.1s; }}
-        .card-2 {{ animation-delay: 0.2s; }}
-        .card-3 {{ animation-delay: 0.3s; }}
-        .card-4 {{ animation-delay: 0.4s; }}
-        .card-5 {{ animation-delay: 0.5s; }}
+        .nba-card {
+            color: #ea580c;
+        }
         
-        /* Animación de brillo al hacer hover */
-        @keyframes shimmer {{
-            0% {{ transform: translateX(-100%); }}
-            100% {{ transform: translateX(100%); }}
-        }}
+        .nba-card.selected::after {
+            background: linear-gradient(135deg, rgba(254, 215, 170, 0.3), rgba(254, 243, 199, 0.3));
+        }
         
-        .league-card:hover::before {{
-            animation: shimmer 0.6s ease-out;
-        }}
+        .nfl-card {
+            color: #16a34a;
+        }
         
-        /* Estilos para tarjetas seleccionadas con colores sutiles de cada liga */
-        .league-card.selected {{
-            border-width: 2px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }}
+        .nfl-card.selected::after {
+            background: linear-gradient(135deg, rgba(187, 247, 208, 0.3), rgba(220, 252, 231, 0.3));
+        }
         
-        .mlb-card.selected {{
-            background: linear-gradient(135deg, #1e40af08, #dc262608);
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-        }}
+        .f1-card {
+            color: #dc2626;
+        }
         
-        .nba-card.selected {{
-            background: linear-gradient(135deg, #ea580c08, #1e40af08);
-            border-color: #f97316;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-        }}
+        .f1-card.selected::after {
+            background: linear-gradient(135deg, rgba(254, 202, 202, 0.3), rgba(254, 226, 226, 0.3));
+        }
         
-        .nfl-card.selected {{
-            background: linear-gradient(135deg, #16a34a08, #dc262608);
-            border-color: #22c55e;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-        }}
+        .newera-card {
+            color: #7c3aed;
+        }
         
-        .f1-card.selected {{
-            background: linear-gradient(135deg, #dc262608, #1e40af08);
-            border-color: #ef4444;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }}
+        .newera-card.selected::after {
+            background: linear-gradient(135deg, rgba(221, 214, 254, 0.3), rgba(237, 233, 254, 0.3));
+        }
         
-        .newera-card.selected {{
-            background: linear-gradient(135deg, #7c3aed08, #1e40af08);
-            border-color: #8b5cf6;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
-        }}
-        
-        /* Animación suave al seleccionar */
-        .league-card.selected {{
-            animation: selectedPulse 0.4s ease-out;
-        }}
-        
-        @keyframes selectedPulse {{
-            0% {{ transform: translateY(-2px) scale(1); }}
-            50% {{ transform: translateY(-4px) scale(1.03); }}
-            100% {{ transform: translateY(-2px) scale(1); }}
-        }}
-        
-        /* Estilo para los botones de formulario (selección de liga) */
-        .stForm > div > div > div > button {{
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
-            border: none !important;
-            color: white !important;
-            padding: 0.75rem 1rem !important;
-            border-radius: 10px !important;
-            font-weight: 600 !important;
-            font-size: 0.9rem !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
-            margin-top: 0.5rem !important;
-        }}
-        
-        .stForm > div > div > div > button:hover {{
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4) !important;
-        }}
-        
-        
-        /* Hacer que las tarjetas tengan efecto hover cuando el botón está encima */
-        .stButton:hover + * .league-card,
-        .stButton > button:hover ~ * .league-card {{
-            transform: translateY(-4px) !important;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-        }}
-        
-        /* Estilo ultra minimalista para el selectbox de ligas */
-        [data-testid="league_selector"] {{
+        /* Estilo minimalista para el selectbox */
+        [data-testid="league_selector"] {
             margin: 0.25rem 0 !important;
-        }}
+        }
         
-        [data-testid="league_selector"] select {{
+        [data-testid="league_selector"] select {
             background: #fafafa !important;
             border: none !important;
             border-radius: 6px !important;
@@ -1035,52 +1015,75 @@ class ProfessionalDesign:
             color: #6b7280 !important;
             box-shadow: none !important;
             transition: all 0.15s ease !important;
-            appearance: none !important;
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-            background-position: right 0.5rem center !important;
-            background-repeat: no-repeat !important;
-            background-size: 1rem !important;
-            padding-right: 2rem !important;
-        }}
+        }
         
-        [data-testid="league_selector"] select:hover {{
-            background: #f5f5f5 !important;
-        }}
-        
-        [data-testid="league_selector"] select:focus {{
-            outline: none !important;
-            background: #f0f0f0 !important;
-        }}
-        
-        [data-testid="league_selector"] label {{
+        [data-testid="league_selector"] label {
             display: none !important;
-        }}
-        
-        .mlb-card:hover {{
-            background: linear-gradient(135deg, #1e40af08, #dc262608);
-        }}
-        .nba-card:hover {{
-            background: linear-gradient(135deg, #ea580c08, #1e40af08);
-        }}
-        .nfl-card:hover {{
-            background: linear-gradient(135deg, #16a34a08, #eab30808);
-        }}
-        .f1-card:hover {{
-            background: linear-gradient(135deg, #dc262608, #1f1f1f08);
-        }}
-        .newera-card:hover {{
-            background: linear-gradient(135deg, #1f1f1f08, #fbbf2408);
-        }}
+        }
         </style>
-        <div style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-            <h3 style="color: #374151; font-weight: 600; margin-bottom: 1rem;">Análisis Integral de Inventario</h3>
-            <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
-                Sistema profesional de análisis de stock por bodega, categorizado por ligas deportivas principales:
-            </p>
-        </div>
         """, unsafe_allow_html=True)
+        
+        # Descripción del sistema con imagen de fondo
+        # Cargar imagen de fondo IMAGEN_NE
+        try:
+            with open("IMAGEN_NE.png", "rb") as bg_file:
+                bg_data = bg_file.read()
+            import base64
+            bg_base64 = base64.b64encode(bg_data).decode()
+            bg_image = f"data:image/png;base64,{bg_base64}"
+        except FileNotFoundError:
+            try:
+                with open("IMAGEN_NE.jpg", "rb") as bg_file:
+                    bg_data = bg_file.read()
+                import base64
+                bg_base64 = base64.b64encode(bg_data).decode()
+                bg_image = f"data:image/jpeg;base64,{bg_base64}"
+            except FileNotFoundError:
+                # Si no encuentra la imagen, usar fondo blanco
+                bg_image = None
+        
+        if bg_image:
+            st.markdown(f"""
+            <div style="
+                position: relative;
+                border-radius: 16px; 
+                padding: 2rem; 
+                margin-bottom: 2rem; 
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                background-image: url('{bg_image}');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                overflow: hidden;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(255, 255, 255, 0.85);
+                    border-radius: 16px;
+                    z-index: 1;
+                "></div>
+                <div style="position: relative; z-index: 2;">
+                    <h3 style="color: #374151; font-weight: 600; margin-bottom: 1rem;">Análisis Integral de Inventario</h3>
+                    <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                        Sistema profesional de análisis de stock por bodega, categorizado por ligas deportivas principales:
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Fallback si no encuentra la imagen
+            st.markdown("""
+            <div style="background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <h3 style="color: #374151; font-weight: 600; margin-bottom: 1rem;">Análisis Integral de Inventario</h3>
+                <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    Sistema profesional de análisis de stock por bodega, categorizado por ligas deportivas principales:
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
         
         # Inicializar session state para la liga seleccionada
         if 'selected_league' not in st.session_state:
@@ -1103,47 +1106,13 @@ class ProfessionalDesign:
         else:
             st.session_state.selected_league = league_selection
         
-        # JavaScript simplificado solo para el placeholder
-        st.markdown("""
-        <script>
-        setTimeout(function() {
-            const select = document.querySelector('[data-testid="league_selector"] select');
-            if (select) {
-                function updatePlaceholderStyle() {
-                    if (select.value === 'Selecciona la Liga') {
-                        select.style.color = '#9ca3af';
-                        select.style.fontStyle = 'italic';
-                        select.style.fontWeight = '300';
-                        select.style.opacity = '0.8';
-                    } else {
-                        select.style.color = '#6b7280';
-                        select.style.fontStyle = 'normal';
-                        select.style.fontWeight = '400';
-                        select.style.opacity = '1';
-                    }
-                }
-                
-                updatePlaceholderStyle();
-                select.addEventListener('change', updatePlaceholderStyle);
-            }
-        }, 100);
-        </script>
-        """, unsafe_allow_html=True)
-        
-        # Crear tarjetas clickeables que actualicen el selectbox
+        # Crear tarjetas clickeables con estilo de pestañas
         col1, col2, col3, col4, col5 = st.columns(5)
         
         with col1:
-            # Determinar si esta tarjeta está seleccionada
             selected_class = "selected" if st.session_state.selected_league == "MLB" else ""
-            card_style = ""
-            if st.session_state.selected_league == "MLB":
-                card_style = "background: linear-gradient(135deg, #1e40af08, #dc262608); border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transform: translateY(-2px);"
-            else:
-                card_style = "background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                
             st.markdown(f"""
-            <div class="league-card mlb-card card-1 {selected_class}" style="{card_style} padding: 0.75rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="
+            <div class="league-card mlb-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
                 if (selectbox) {{
                     selectbox.value = 'MLB';
@@ -1151,21 +1120,14 @@ class ProfessionalDesign:
                 }}
             ">
                 {mlb_logo}
-                <p style="margin: 0.5rem 0 0 0; font-weight: 500; color: #64748b; font-size: 0.9rem;">MLB</p>
+                <p>MLB</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col2:
-            # Determinar si esta tarjeta está seleccionada
             selected_class = "selected" if st.session_state.selected_league == "NBA" else ""
-            card_style = ""
-            if st.session_state.selected_league == "NBA":
-                card_style = "background: linear-gradient(135deg, #ea580c08, #1e40af08); border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transform: translateY(-2px);"
-            else:
-                card_style = "background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                
             st.markdown(f"""
-            <div class="league-card nba-card card-2 {selected_class}" style="{card_style} padding: 0.75rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="
+            <div class="league-card nba-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
                 if (selectbox) {{
                     selectbox.value = 'NBA';
@@ -1173,21 +1135,14 @@ class ProfessionalDesign:
                 }}
             ">
                 {nba_logo}
-                <p style="margin: 0.5rem 0 0 0; font-weight: 500; color: #64748b; font-size: 0.9rem;">NBA</p>
+                <p>NBA</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col3:
-            # Determinar si esta tarjeta está seleccionada
             selected_class = "selected" if st.session_state.selected_league == "NFL" else ""
-            card_style = ""
-            if st.session_state.selected_league == "NFL":
-                card_style = "background: linear-gradient(135deg, #16a34a08, #dc262608); border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transform: translateY(-2px);"
-            else:
-                card_style = "background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                
             st.markdown(f"""
-            <div class="league-card nfl-card card-3 {selected_class}" style="{card_style} padding: 0.75rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="
+            <div class="league-card nfl-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
                 if (selectbox) {{
                     selectbox.value = 'NFL';
@@ -1195,19 +1150,14 @@ class ProfessionalDesign:
                 }}
             ">
                 {nfl_logo}
-                <p style="margin: 0.5rem 0 0 0; font-weight: 500; color: #64748b; font-size: 0.9rem;">NFL</p>
+                <p>NFL</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col4:
-            # Determinar si esta tarjeta está seleccionada
-            if st.session_state.selected_league == "MOTORSPORT":
-                card_style = "background: linear-gradient(135deg, #dc262608, #1e40af08); border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transform: translateY(-2px);"
-            else:
-                card_style = "background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                
+            selected_class = "selected" if st.session_state.selected_league == "MOTORSPORT" else ""
             st.markdown(f"""
-            <div class="league-card f1-card card-4" style="{card_style} padding: 0.75rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="
+            <div class="league-card f1-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
                 if (selectbox) {{
                     selectbox.value = 'MOTORSPORT';
@@ -1215,19 +1165,14 @@ class ProfessionalDesign:
                 }}
             ">
                 {f1_logo}
-                <p style="margin: 0.5rem 0 0 0; font-weight: 500; color: #64748b; font-size: 0.9rem;">MOTORSPORT</p>
+                <p>MOTORSPORT</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col5:
-            # Determinar si esta tarjeta está seleccionada
-            if st.session_state.selected_league == "ENTERTAINMENT":
-                card_style = "background: linear-gradient(135deg, #7c3aed08, #1e40af08); border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transform: translateY(-2px);"
-            else:
-                card_style = "background: #ffffff; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                
+            selected_class = "selected" if st.session_state.selected_league == "ENTERTAINMENT" else ""
             st.markdown(f"""
-            <div class="league-card newera-card card-5" style="{card_style} padding: 0.75rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="
+            <div class="league-card newera-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
                 if (selectbox) {{
                     selectbox.value = 'ENTERTAINMENT';
@@ -1235,11 +1180,11 @@ class ProfessionalDesign:
                 }}
             ">
                 {ne_logo}
-                <p style="margin: 0.5rem 0 0 0; font-weight: 500; color: #64748b; font-size: 0.9rem;">ENTERTAINMENT</p>
+                <p>ENTERTAINMENT</p>
             </div>
             """, unsafe_allow_html=True)
         
-        # Agregar espacio entre las tarjetas de las ligas y las tarjetas de los países
+        # Agregar espacio entre las tarjetas de ligas y las pestañas de países
         st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
         
     
