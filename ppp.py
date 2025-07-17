@@ -462,9 +462,9 @@ class ProfessionalDesign:
             border-radius: 12px;
             padding: 12px 20px;
             margin: 0;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 400;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
             z-index: 1;
@@ -479,11 +479,16 @@ class ProfessionalDesign:
             justify-content: center;
             cursor: pointer;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+            transform: scaleY(0.9);
+            text-transform: uppercase;
         }
         
         .stTabs [data-baseweb="tab"]:hover {
             background: rgba(248, 250, 252, 0.8) !important;
-            color: #334155 !important;
+            color: currentColor !important;
+            font-weight: 400 !important;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9) !important;
             transform: translateY(-12px) scale(1.05) !important;
             box-shadow: 
                 0 25px 50px rgba(0, 0, 0, 0.15),
@@ -493,19 +498,24 @@ class ProfessionalDesign:
         
         .stTabs [data-baseweb="tab"][aria-selected="true"] {
             background: rgba(248, 250, 252, 0.2) !important;
-            color: #6b7280 !important;
-            font-weight: 520;
+            color: currentColor !important;
+            font-weight: 400 !important;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9) !important;
             position: relative;
         }
         
         .stTabs [data-baseweb="tab"][data-teststate="active"] {
             background: rgba(248, 250, 252, 0.2) !important;
-            color: #6b7280 !important;
+            color: currentColor !important;
+            font-weight: 400 !important;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9) !important;
         }
         
         .stTabs [data-baseweb="tab"]:focus {
             background: rgba(248, 250, 252, 0.2) !important;
-            color: #6b7280 !important;
+            color: currentColor !important;
+            font-weight: 400 !important;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.9) !important;
         }
         
         .stTabs [data-baseweb="tab"][aria-selected="true"]:after {
@@ -665,12 +675,37 @@ class ProfessionalDesign:
         /* Animaciones para elementos de entrada */
         .stFileUploader {
             animation: slideInFromRight 0.6s ease-out;
-            transition: all 0.3s ease !important;
         }
         
-        .stFileUploader:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important;
+        /* Contenedor de archivo subido */
+        .stFileUploader .uploadedFile {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0284c7;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-top: 1rem;
+            color: #0284c7;
+            font-weight: 500;
+        }
+        
+        /* Mensajes de éxito mejorados */
+        .stSuccess {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #16a34a;
+            border-radius: 12px;
+            padding: 1rem;
+            color: #16a34a;
+            font-weight: 500;
+        }
+        
+        /* Mensajes de error mejorados */
+        .stError {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #dc2626;
+            border-radius: 12px;
+            padding: 1rem;
+            color: #dc2626;
+            font-weight: 500;
         }
         
         /* Tablas mejoradas */
@@ -685,22 +720,65 @@ class ProfessionalDesign:
             background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
         }
         
-        /* File uploader mejorado */
+        /* File uploader minimalista mejorado */
         .stFileUploader {
-            border: 2px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 2rem;
-            transition: all 0.3s ease;
+            border: 2px dashed #e5e7eb;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stFileUploader::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .stFileUploader:hover::before {
+            left: 100%;
         }
         
         .stFileUploader:hover {
-            border-color: #6b7280;
-            background: #f9fafb;
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
         }
         
-        /* Spinner personalizado */
+        .stFileUploader > div {
+            text-align: center;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .stFileUploader:hover > div {
+            color: #3b82f6;
+        }
+        
+        /* Spinner personalizado minimalista */
         .stSpinner {
-            color: #6b7280 !important;
+            color: #3b82f6 !important;
+        }
+        
+        .stSpinner > div {
+            border-color: #3b82f6 !important;
+        }
+        
+        /* Contenedor de loading mejorado */
+        .stSpinner {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
         /* Ocultar elementos de Streamlit */
@@ -1528,7 +1606,37 @@ class DataLoader:
     
     def cargar_archivo(self, label_texto: str, pais: str) -> Optional[pd.DataFrame]:
         """Carga y valida el archivo CSV con manejo robusto"""
-        archivo = st.file_uploader(label_texto, type=["csv"], key=f"uploader_{pais}")
+        # Crear una etiqueta más elegante y minimalista
+        with st.container():
+            st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                    border: 1px solid #e5e7eb;
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    margin: 1rem 0;
+                    text-align: center;
+                ">
+                    <h4 style="
+                        color: #374151;
+                        font-weight: 600;
+                        margin: 0 0 0.5rem 0;
+                        font-size: 1.1rem;
+                    ">{label_texto}</h4>
+                    <p style="
+                        color: #6b7280;
+                        font-size: 0.9rem;
+                        margin: 0;
+                    ">Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            archivo = st.file_uploader(
+                label="",
+                type=["csv"],
+                key=f"uploader_{pais}",
+                label_visibility="collapsed"
+            )
         
         if archivo is None:
             return None
