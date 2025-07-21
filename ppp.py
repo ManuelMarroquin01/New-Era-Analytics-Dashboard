@@ -950,52 +950,14 @@ class ProfessionalDesign:
             overflow: visible;
         }
         
-        .league-card::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(135deg, currentColor, transparent, currentColor);
-            border-radius: 14px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            z-index: -1;
-        }
-        
-        .league-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            opacity: 0;
-            transition: all 0.4s ease;
-            z-index: -1;
-            backdrop-filter: blur(10px);
-        }
-        
-        .league-card:hover::before,
-        .league-card.selected::before {
-            opacity: 0.1;
-        }
-        
-        .league-card:hover::after,
-        .league-card.selected::after {
-            opacity: 1;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-        }
+        /* Elementos ::before y ::after removidos para eliminar iluminación de toda la tarjeta */
         
         .league-card:hover {
-            transform: translateY(-8px) scale(1.02);
+            /* Solo iluminación, sin movimiento */
         }
         
         .league-card.selected {
-            transform: translateY(-4px) scale(1.01);
+            /* Solo mantener la iluminación cuando esté seleccionada */
         }
         
         .league-card img {
@@ -1039,43 +1001,23 @@ class ProfessionalDesign:
         
         /* Colores específicos para cada liga */
         .mlb-card {
-            color: #1e40af;
-        }
-        
-        .mlb-card.selected::after {
-            background: linear-gradient(135deg, rgba(191, 219, 254, 0.3), rgba(219, 234, 254, 0.3));
+            color: #1e3a8a;
         }
         
         .nba-card {
             color: #ea580c;
         }
         
-        .nba-card.selected::after {
-            background: linear-gradient(135deg, rgba(254, 215, 170, 0.3), rgba(254, 243, 199, 0.3));
-        }
-        
         .nfl-card {
             color: #16a34a;
-        }
-        
-        .nfl-card.selected::after {
-            background: linear-gradient(135deg, rgba(187, 247, 208, 0.3), rgba(220, 252, 231, 0.3));
         }
         
         .f1-card {
             color: #dc2626;
         }
         
-        .f1-card.selected::after {
-            background: linear-gradient(135deg, rgba(254, 202, 202, 0.3), rgba(254, 226, 226, 0.3));
-        }
-        
         .newera-card {
-            color: #7c3aed;
-        }
-        
-        .newera-card.selected::after {
-            background: linear-gradient(135deg, rgba(221, 214, 254, 0.3), rgba(237, 233, 254, 0.3));
+            color: #000000;
         }
         
         /* Estilo minimalista para el selectbox */
@@ -1180,7 +1122,7 @@ class ProfessionalDesign:
         if league_selection == "Selecciona la Liga":
             st.session_state.selected_league = None
         elif league_selection == "Todas":
-            st.session_state.selected_league = None
+            st.session_state.selected_league = "Todas"
         else:
             st.session_state.selected_league = league_selection
         
@@ -1188,7 +1130,7 @@ class ProfessionalDesign:
         col1, col2, col3, col4, col5 = st.columns(5)
         
         with col1:
-            selected_class = "selected" if st.session_state.selected_league == "MLB" else ""
+            selected_class = "selected" if (st.session_state.selected_league == "MLB" or st.session_state.selected_league == "Todas") else ""
             st.markdown(f"""
             <div class="league-card mlb-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
@@ -1203,7 +1145,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         with col2:
-            selected_class = "selected" if st.session_state.selected_league == "NBA" else ""
+            selected_class = "selected" if (st.session_state.selected_league == "NBA" or st.session_state.selected_league == "Todas") else ""
             st.markdown(f"""
             <div class="league-card nba-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
@@ -1218,7 +1160,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         with col3:
-            selected_class = "selected" if st.session_state.selected_league == "NFL" else ""
+            selected_class = "selected" if (st.session_state.selected_league == "NFL" or st.session_state.selected_league == "Todas") else ""
             st.markdown(f"""
             <div class="league-card nfl-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
@@ -1233,7 +1175,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         with col4:
-            selected_class = "selected" if st.session_state.selected_league == "MOTORSPORT" else ""
+            selected_class = "selected" if (st.session_state.selected_league == "MOTORSPORT" or st.session_state.selected_league == "Todas") else ""
             st.markdown(f"""
             <div class="league-card f1-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
@@ -1248,7 +1190,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         with col5:
-            selected_class = "selected" if st.session_state.selected_league == "ENTERTAINMENT" else ""
+            selected_class = "selected" if (st.session_state.selected_league == "ENTERTAINMENT" or st.session_state.selected_league == "Todas") else ""
             st.markdown(f"""
             <div class="league-card newera-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector('[data-testid=\\"league_selector\\"] select');
