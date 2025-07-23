@@ -2315,6 +2315,9 @@ class ChartVisualizer:
         logger.info(f"Generando gráfica comparativa para {pais}")
         
         selected_league = st.session_state.get('selected_league', None)
+        # Convertir "Todas" a None para mostrar todas las ligas
+        if selected_league == "Todas":
+            selected_league = None
         
         if selected_league:
             st.markdown(f"#### 📊 Stock por Bodega - {selected_league} - {pais}")
@@ -2383,6 +2386,9 @@ class ChartVisualizer:
         fig = go.Figure()
         
         selected_league = st.session_state.get('selected_league', None)
+        # Convertir "Todas" a None para mostrar todas las ligas
+        if selected_league == "Todas":
+            selected_league = None
         
         # Barras de Capacidad - diseño minimalista (solo si no hay liga específica)
         if not selected_league and any(cap > 0 for cap in df_grafica['Capacidad']):
@@ -2830,6 +2836,9 @@ class ChartVisualizer:
     def _show_performance_analysis(self, df_grafica: pd.DataFrame, pais: str) -> None:
         """Muestra análisis de performance con diseño profesional"""
         selected_league = st.session_state.get('selected_league', None)
+        # Convertir "Todas" a None para mostrar todas las ligas
+        if selected_league == "Todas":
+            selected_league = None
         
         # Header profesional con colores según el país
         st.markdown("---")
@@ -2884,6 +2893,9 @@ class ChartVisualizer:
         """, unsafe_allow_html=True)
         
         selected_league = st.session_state.get('selected_league', None)
+        # Convertir "Todas" a None para mostrar todas las ligas
+        if selected_league == "Todas":
+            selected_league = None
         
         if selected_league:
             # Para liga específica, usar todos los datos sin filtrar por capacidad
@@ -3167,6 +3179,9 @@ def mostrar_tabla_consolidada(tabla, pais):
     
     # Mostrar métricas resumidas mejoradas
     selected_league = st.session_state.get('selected_league', None)
+    # Convertir "Todas" a None para mostrar todas las ligas
+    if selected_league == "Todas":
+        selected_league = None
     
     if selected_league:
         professional_design.create_section_header(
@@ -3235,6 +3250,9 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
     
     try:
         selected_league = st.session_state.get('selected_league', None)
+        # Convertir "Todas" a None para mostrar todas las ligas
+        if selected_league == "Todas":
+            selected_league = None
         
         if selected_league:
             logger.info(f"Iniciando exportación a Excel para {selected_league} - {pais}")
@@ -3438,6 +3456,9 @@ def main():
             
             # Procesar datos Guatemala (con cache)
             selected_league = st.session_state.get('selected_league', None)
+            # Convertir "Todas" a None para mostrar todas las ligas
+            if selected_league == "Todas":
+                selected_league = None
             df_ventas_hash = archivo_ventas_guatemala.to_dict('records') if archivo_ventas_guatemala is not None else None
             
             # Limpiar cache si hay cambios
@@ -3514,6 +3535,9 @@ def main():
             
             # Procesar datos Panamá (con cache)
             selected_league = st.session_state.get('selected_league', None)
+            # Convertir "Todas" a None para mostrar todas las ligas
+            if selected_league == "Todas":
+                selected_league = None
             tabla_panama = data_processor.procesar_datos_consolidados(df_hash, "PANAMA", selected_league)
             
             # Mostrar resultados Panamá
@@ -3565,6 +3589,9 @@ def main():
             
             # Procesar datos Honduras (con cache)
             selected_league = st.session_state.get('selected_league', None)
+            # Convertir "Todas" a None para mostrar todas las ligas
+            if selected_league == "Todas":
+                selected_league = None
             tabla_honduras = data_processor.procesar_datos_consolidados(df_hash, "Honduras", selected_league)
             
             # Mostrar resultados Honduras
@@ -3616,6 +3643,9 @@ def main():
             
             # Procesar datos El Salvador (con cache)
             selected_league = st.session_state.get('selected_league', None)
+            # Convertir "Todas" a None para mostrar todas las ligas
+            if selected_league == "Todas":
+                selected_league = None
             tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league)
             
             # Mostrar resultados El Salvador
@@ -3667,6 +3697,9 @@ def main():
             
             # Procesar datos Costa Rica (con cache)
             selected_league = st.session_state.get('selected_league', None)
+            # Convertir "Todas" a None para mostrar todas las ligas
+            if selected_league == "Todas":
+                selected_league = None
             tabla_costa_rica = data_processor.procesar_datos_consolidados(df_hash, "Costa Rica", selected_league)
             
             # Mostrar resultados Costa Rica
