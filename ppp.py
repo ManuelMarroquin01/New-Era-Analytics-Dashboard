@@ -1910,52 +1910,30 @@ class DataProcessor:
             # Agregar columnas de ventas si hay datos de ventas para Guatemala
             if df_ventas_hash is not None and pais == "Guatemala":
                 df_ventas = pd.DataFrame(df_ventas_hash)
-                tabla_final = _self._add_sales_columns(tabla_final, df_ventas)
+                tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league)
             
-            # Calcular TOTAL (USD) usando USD_Total_SI_CD del archivo de ventas
+            # Calcular TOTAL (USD) SOLO si hay archivo de ventas cargado
             if df_ventas_hash is not None and pais == "Guatemala":
-                df_ventas = pd.DataFrame(df_ventas_hash)
+                if selected_league:
+                    # Para liga específica, solo sumar columnas de ventas de esa liga
+                    columnas_usd = [col for col in tabla_final.columns if 
+                                   ('Ventas (USD)' in col or ('Ventas' in col and 'Stock' not in col)) and 
+                                   selected_league in col]
+                    logger.info(f"TOTAL (USD) calculado solo para liga: {selected_league}")
+                else:
+                    # Para todas las ligas, sumar todas las columnas de ventas
+                    columnas_usd = [col for col in tabla_final.columns if 'Ventas (USD)' in col or ('Ventas' in col and 'Stock' not in col)]
+                    logger.info("TOTAL (USD) calculado para todas las ligas")
                 
-                # Filtrar por marca NEW ERA y mapear tiendas a bodegas
-                df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
-                
-                # Buscar columna de tienda
-                columna_tienda = None
-                for col in df_ventas.columns:
-                    if 'tienda' in col.lower() or 'store' in col.lower() or 'bodega' in col.lower():
-                        columna_tienda = col
-                        break
-                
-                if columna_tienda is not None and 'USD_Total_SI_CD' in df_ventas.columns:
-                    # Debug: Ver las columnas disponibles en tabla_final
-                    print(f"Columnas en tabla_final: {list(tabla_final.columns)}")
-                    
-                    # Mapear tiendas a bodegas usando el mapeo existente
-                    sales_processor = SalesProcessor()
-                    mapeo_inverso = {v: k for k, v in sales_processor.tienda_mapping.items()}
-                    df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
-                    
-                    # Agrupar por bodega y sumar USD_Total_SI_CD
-                    ventas_por_bodega = df_new_era.groupby('Bodega_Mapeada')['USD_Total_SI_CD'].sum()
-                    
-                    # Buscar la columna correcta para Bodega
-                    columna_bodega = None
-                    for col in tabla_final.columns:
-                        if 'bodega' in str(col).lower() or col == 'Bodega':
-                            columna_bodega = col
-                            break
-                    
-                    if columna_bodega is not None:
-                        tabla_final['TOTAL (USD)'] = tabla_final[columna_bodega].map(ventas_por_bodega).fillna(0.0)
-                    else:
-                        print("No se encontró columna de bodega")
-                        tabla_final['TOTAL (USD)'] = 0.0
+                if columnas_usd:
+                    tabla_final['TOTAL (USD)'] = tabla_final[columnas_usd].sum(axis=1)
                 else:
                     tabla_final['TOTAL (USD)'] = 0.0
-            else:
-                tabla_final['TOTAL (USD)'] = 0.0
+            # Si no hay archivo de ventas, NO crear la columna TOTAL (USD)
             
-            tabla_final = _self._format_table(tabla_final)
+            # Determinar si hay datos de ventas para pasarlo a _format_table
+            hay_ventas = df_ventas_hash is not None and pais == "Guatemala"
+            tabla_final = _self._format_table(tabla_final, selected_league, hay_ventas)
             
             logger.info(f"Procesamiento completado para {pais}")
             return tabla_final
@@ -1984,15 +1962,9 @@ class DataProcessor:
         """Procesa cada categoría de liga"""
         # Usar el parámetro pasado en lugar de session_state para compatibilidad con cache
         
-        if selected_league:
-            # Filtrar solo por la liga seleccionada
-            categorias_a_procesar = {selected_league: self.league_categories.get_category_values(selected_league)}
-            logger.info(f"Filtrado por liga específica: {selected_league}")
-            logger.info(f"Valores de la liga: {categorias_a_procesar[selected_league]}")
-        else:
-            # Procesar todas las categorías
-            categorias_a_procesar = self.league_categories.get_all_categories()
-            logger.info("Procesando todas las categorías")
+        # SIEMPRE procesar todas las categorías para generar tabla completa
+        categorias_a_procesar = self.league_categories.get_all_categories()
+        logger.info("Procesando todas las categorías para tabla completa")
         
         for categoria, valores in categorias_a_procesar.items():
             if categoria == 'ACCESSORIES':
@@ -2028,28 +2000,15 @@ class DataProcessor:
             # Combinar resultados
             pivot = pivot.join(apparel, how='left').fillna(0)
             
-            if selected_league:
-                # Para liga específica, usar nombres simplificados
-                pivot.columns = [f"TOTAL {col.upper()}" if col in ['Planas', 'Curvas'] 
-                               else f"TOTAL {col.upper()}" for col in pivot.columns]
-                logger.info(f"Columnas generadas para liga específica: {list(pivot.columns)}")
-            else:
-                # Para todas las ligas, usar el formato original
-                pivot.columns = [f"{categoria} - {col}" for col in pivot.columns]
-                logger.info(f"Columnas generadas para todas las ligas: {list(pivot.columns)}")
+            # SIEMPRE usar el formato original para tabla completa
+            pivot.columns = [f"{categoria} - {col}" for col in pivot.columns]
+            logger.info(f"Columnas generadas: {list(pivot.columns)}")
             
             tabla_final = tabla_final.join(pivot, how='left')
         
-        # Procesar Accessories solo si no hay liga específica o si la liga específica aplica
-        if not selected_league:
-            accessories = self._process_accessories(df)
-            tabla_final = tabla_final.join(accessories, how='left').fillna(0)
-        else:
-            # Para liga específica, procesar accessories solo de esa liga
-            df_league = df[df['U_Liga'].str.upper().isin([v.upper() for v in categorias_a_procesar[selected_league]])]
-            accessories = self._process_accessories(df_league)
-            accessories = accessories.rename('TOTAL ACCESSORIES')
-            tabla_final = tabla_final.join(accessories, how='left').fillna(0)
+        # SIEMPRE procesar Accessories para tabla completa
+        accessories = self._process_accessories(df)
+        tabla_final = tabla_final.join(accessories, how='left').fillna(0)
         
         return tabla_final.fillna(0).astype(int)
     
@@ -2086,27 +2045,26 @@ class DataProcessor:
     def _calculate_totals(self, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Calcula totales y métricas"""
         
+        # Calcular totales según el filtro aplicado
         if selected_league:
-            # Para liga específica, los totales ya están calculados con nombres TOTAL
-            if 'TOTAL PLANAS' not in tabla_final.columns:
-                tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'PLANAS' in col.upper()]].sum(axis=1)
-            if 'TOTAL CURVAS' not in tabla_final.columns:
-                tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'CURVAS' in col.upper()]].sum(axis=1)
-            
-            tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
-            
-            if 'TOTAL APPAREL' not in tabla_final.columns:
-                tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'APPAREL' in col.upper()]].sum(axis=1)
-            
-            # No calcular % DE CUMPLIMIENTO para liga específica
-            tabla_final['TOTAL STOCK'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL']].sum(axis=1)
-            
+            # Para liga específica, calcular totales SOLO de esa liga
+            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col and selected_league in col]].sum(axis=1)
+            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col and selected_league in col]].sum(axis=1)
+            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col and selected_league in col]].sum(axis=1)
+            logger.info(f"Calculando totales solo para liga: {selected_league}")
         else:
-            # Lógica original para todas las ligas
+            # Para todas las ligas, calcular totales de todas las columnas
             tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col]].sum(axis=1)
             tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col]].sum(axis=1)
-            tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
-            
+            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
+            logger.info("Calculando totales de todas las ligas")
+        
+        # TOTAL HEADWEAR y TOTAL STOCK se calculan igual en ambos casos
+        tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
+        tabla_final['TOTAL STOCK'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL']].sum(axis=1)
+        
+        # Solo calcular capacidad y % cumplimiento cuando NO hay selected_league
+        if not selected_league:
             # Agregar capacidad
             capacidades = self.country_manager.get_capacidades(pais)
             tabla_final['CAPACIDAD EN TIENDA'] = tabla_final.index.map(lambda x: capacidades.get(x, 0))
@@ -2114,9 +2072,6 @@ class DataProcessor:
             # Calcular % DE CUMPLIMIENTO
             tabla_final['% DE CUMPLIMIENTO'] = (((tabla_final['TOTAL HEADWEAR'] / tabla_final['CAPACIDAD EN TIENDA']) * 100) - 100).replace([np.inf, -np.inf], 0).fillna(0)
             tabla_final['% DE CUMPLIMIENTO'] = tabla_final['% DE CUMPLIMIENTO'].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) and x != 0 else "N/A")
-            
-            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
-            tabla_final['TOTAL STOCK'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL']].sum(axis=1)
             
         
         # Ordenar por TOTAL STOCK
@@ -2143,13 +2098,14 @@ class DataProcessor:
         
         return tabla_final
     
-    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame) -> pd.DataFrame:
+    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None) -> pd.DataFrame:
         """Agrega las columnas de ventas desglosadas por liga y subcategoría"""
         # Procesar datos de ventas usando el SalesProcessor
         ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
         
-        # Definir las categorías de ligas en el mismo orden que la tabla
+        # SIEMPRE procesar todas las categorías para generar tabla completa
         categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT", "ACCESSORIES"]
+        logger.info("Agregando columnas de ventas para todas las ligas (tabla completa)")
         subcategorias = ["Planas", "Curvas", "Apparel"]
         
         # Agregar columnas de ventas para cada combinación liga-subcategoría
@@ -2157,6 +2113,7 @@ class DataProcessor:
             if categoria == 'ACCESSORIES':
                 # Para ACCESSORIES, solo agregar columnas Stock y Ventas (USD)
                 for subcategoria in ['Stock', 'Ventas (USD)']:
+                    # SIEMPRE usar formato original para tabla completa
                     col_name = f"{categoria} - {subcategoria}"
                     tabla_final[col_name] = 0.0
                     
@@ -2182,8 +2139,9 @@ class DataProcessor:
                                     total_categoria_subcategoria += ventas_bodega[categoria]['Ventas']
                         tabla_final.loc['TOTAL', col_name] = total_categoria_subcategoria
             else:
-                # Lógica original para otras ligas
+                # Lógica para otras ligas - SIEMPRE generar tabla completa
                 for subcategoria in subcategorias:
+                    # SIEMPRE usar formato original para tabla completa
                     col_name = f"{categoria} - {subcategoria} - Ventas"
                     tabla_final[col_name] = 0.0
                     
@@ -2204,7 +2162,7 @@ class DataProcessor:
         
         return tabla_final
     
-    def _format_table(self, tabla_final: pd.DataFrame) -> pd.DataFrame:
+    def _format_table(self, tabla_final: pd.DataFrame, selected_league: str = None, hay_ventas: bool = False) -> pd.DataFrame:
         """Formatea la tabla final con MultiIndex de 3 niveles: Liga → Subcategoría → Stock/Ventas"""
         tabla_final.reset_index(inplace=True)
         tabla_final.rename(columns={'index': 'Bodega'}, inplace=True)
@@ -2212,8 +2170,16 @@ class DataProcessor:
         # Crear MultiIndex para columnas con 3 niveles
         columnas_multi = [('INFO', 'INFO', 'Bodega')]
         
+        # Definir qué categorías incluir según el filtro
+        if selected_league:
+            # Solo incluir la liga seleccionada
+            categorias_para_multiindex = {selected_league: self.league_categories.get_category_values(selected_league)}
+        else:
+            # Incluir todas las categorías
+            categorias_para_multiindex = self.league_categories.get_all_categories()
+            
         # Para cada liga y subcategoría, crear columnas Stock y Ventas
-        for categoria in self.league_categories.get_all_categories().keys():
+        for categoria in categorias_para_multiindex.keys():
             if categoria == 'ACCESSORIES':
                 # Para ACCESSORIES, crear columnas Stock y Ventas (USD) directamente
                 columnas_multi.extend([
@@ -2229,22 +2195,50 @@ class DataProcessor:
                     ])
         
         # Columnas de totales 
-        columnas_multi.extend([
-            ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
-            ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
-            ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
-            ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
-            ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
-            ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
-            ('TOTALES', 'RESUMEN', 'TOTAL STOCK'),
-            ('TOTALES', 'RESUMEN', 'TOTAL (USD)')
-        ])
+        if selected_league:
+            # Para liga específica, NO incluir CAPACIDAD EN TIENDA ni % DE CUMPLIMIENTO
+            columnas_totales = [
+                ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
+                ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
+                ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
+                ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
+                ('TOTALES', 'RESUMEN', 'TOTAL STOCK')
+            ]
+            # Solo agregar TOTAL (USD) si hay datos de ventas
+            if hay_ventas:
+                columnas_totales.append(('TOTALES', 'RESUMEN', 'TOTAL (USD)'))
+            columnas_multi.extend(columnas_totales)
+        else:
+            # Para todas las ligas, incluir columnas según disponibilidad
+            columnas_totales = [
+                ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
+                ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
+                ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
+                ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
+                ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
+                ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
+                ('TOTALES', 'RESUMEN', 'TOTAL STOCK')
+            ]
+            # Solo agregar TOTAL (USD) si hay datos de ventas
+            if hay_ventas:
+                columnas_totales.append(('TOTALES', 'RESUMEN', 'TOTAL (USD)'))
+            columnas_multi.extend(columnas_totales)
         
         # Crear diccionario de mapeo de nombres de columnas
         mapeo_columnas = {'Bodega': ('INFO', 'INFO', 'Bodega')}
         
+        # Definir qué categorías incluir según el filtro
+        if selected_league:
+            # Solo incluir la liga seleccionada
+            categorias_a_incluir = {selected_league: self.league_categories.get_category_values(selected_league)}
+            logger.info(f"Filtrando tabla para mostrar solo: {selected_league}")
+        else:
+            # Incluir todas las categorías
+            categorias_a_incluir = self.league_categories.get_all_categories()
+            logger.info("Mostrando tabla completa con todas las ligas")
+        
         # Mapear columnas de stock y ventas existentes
-        for categoria in self.league_categories.get_all_categories().keys():
+        for categoria in categorias_a_incluir.keys():
             if categoria == 'ACCESSORIES':
                 # Para ACCESSORIES, mapear columnas Stock y Ventas (USD)
                 nombre_stock = f"{categoria} - Stock"
@@ -3053,16 +3047,16 @@ def mostrar_tabla_consolidada(tabla, pais):
                     subcategoria_counts[key] = 0
                 subcategoria_counts[key] += 1
         
-        # Crear HTML de la tabla - Volver a tamaño más pequeño
-        html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
+        # Crear HTML de la tabla - Tamaño más compacto
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 10px; width: 100%;">'
         
         # Fila 1: Ligas (con colspan)
         html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
-        html += '<td rowspan="3" style="border: 1px solid #ddd; padding: 4px; vertical-align: middle; font-size: 11px; width: 70px;">Bodega</td>'
+        html += '<td rowspan="3" style="border: 1px solid #ddd; padding: 3px; vertical-align: middle; font-size: 10px; width: 60px;">Bodega</td>'
         
         for liga, count in liga_counts.items():
             if liga != 'INFO':  # Skip INFO column
-                html += f'<td colspan="{count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{liga}</td>'
+                html += f'<td colspan="{count}" style="border: 1px solid #ddd; padding: 3px; font-size: 10px;">{liga}</td>'
         
         html += '</tr>'
         
@@ -3079,7 +3073,7 @@ def mostrar_tabla_consolidada(tabla, pais):
                 if key not in processed_subcategorias:
                     processed_subcategorias.add(key)
                     sub_count = subcategoria_counts.get(key, 1)
-                    html += f'<td colspan="{sub_count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{subcategoria}</td>'
+                    html += f'<td colspan="{sub_count}" style="border: 1px solid #ddd; padding: 3px; font-size: 10px;">{subcategoria}</td>'
         
         html += '</tr>'
         
@@ -3091,7 +3085,7 @@ def mostrar_tabla_consolidada(tabla, pais):
                 liga, subcategoria, tipo = col
                 # Cambiar "Ventas" por "Ventas (USD)"
                 tipo_display = "Ventas (USD)" if tipo == "Ventas" else tipo
-                html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px; width: 50px;">{tipo_display}</td>'
+                html += f'<td style="border: 1px solid #ddd; padding: 3px; font-size: 10px; width: 45px;">{tipo_display}</td>'
         
         html += '</tr>'
         
@@ -3104,7 +3098,7 @@ def mostrar_tabla_consolidada(tabla, pais):
             
             for col in df.columns:
                 value = row[col]
-                html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{value}</td>'
+                html += f'<td style="border: 1px solid #ddd; padding: 3px; font-size: 10px;">{value}</td>'
             
             html += '</tr>'
         
@@ -3157,12 +3151,13 @@ def mostrar_tabla_consolidada(tabla, pais):
         overflow-y: auto; 
         width: 100%; 
         max-width: 100%; 
-        max-height: 500px; 
+        max-height: 400px; 
         border: 2px solid #333; 
         background: white; 
         margin: 0; 
         border-radius: 8px; 
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        font-size: 12px;
     """
     
     st.markdown(f'<div style="{container_style}">', unsafe_allow_html=True)
