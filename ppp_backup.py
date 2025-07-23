@@ -48,9 +48,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://www.newera.com/support',
-        'Report a bug': "https://www.newera.com/support",
-        'About': "# New Era Stock Analytics Dashboard\nSistema profesional de análisis de inventario"
+        \Get Help\: \https://www.newera.com/support\,
+        \Report a bug\: "https://www.newera.com/support",
+        \About\: "# New Era Stock Analytics Dashboard\
+Sistema profesional de análisis de inventario"
     }
 )
 
@@ -809,10 +810,10 @@ class ProfessionalDesign:
                     logo_data = logo_file.read()
                 import base64
                 logo_base64 = base64.b64encode(logo_data).decode()
-                logo_html = f'<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 100px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));">'
+                logo_html = f\<img src="data:image/png;base64,{logo_base64}" class="logo-icon" style="height: 100px; width: auto; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3));">\
             except FileNotFoundError:
                 # Fallback a corona si no encuentra la imagen
-                logo_html = '<span class="logo-icon" style="font-size: 5rem; display: inline-block;">👑</span>'
+                logo_html = \<span class="logo-icon" style="font-size: 5rem; display: inline-block;">👑</span>\
             
             st.markdown(f"""
             <div class="main-header">
@@ -834,7 +835,7 @@ class ProfessionalDesign:
                             <span class="stat-label">Tiendas</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-number" id="current-time">{datetime.now().strftime('%H:%M')}</span>
+                            <span class="stat-number" id="current-time">{datetime.now().strftime(\%H:%M\)}</span>
                             <span class="stat-label">Hora actual</span>
                         </div>
                         <div class="stat-item">
@@ -870,7 +871,7 @@ class ProfessionalDesign:
     def _get_last_stock_work_date(self):
         """Obtiene la fecha del último trabajo con stock"""
         # Verificar si hay registro de última actividad en session_state
-        if 'last_stock_work_date' in st.session_state:
+        if \last_stock_work_date\ in st.session_state:
             return st.session_state.last_stock_work_date
         else:
             # Si no hay actividad previa, mostrar "Sin actividad"
@@ -878,7 +879,7 @@ class ProfessionalDesign:
     
     def _update_last_stock_work_date(self):
         """Actualiza la fecha del último trabajo con stock"""
-        current_date = datetime.now().strftime('%d/%m/%Y')
+        current_date = datetime.now().strftime(\%d/%m/%Y\)
         st.session_state.last_stock_work_date = current_date
         return current_date
     
@@ -889,10 +890,10 @@ class ProfessionalDesign:
                 logo_data = logo_file.read()
             import base64
             logo_base64 = base64.b64encode(logo_data).decode()
-            return f'<img src="data:image/png;base64,{logo_base64}" alt="{league_name}" style="height: 75px; width: auto; margin-bottom: 0.5rem;">'
+            return f\<img src="data:image/png;base64,{logo_base64}" alt="{league_name}" style="height: 75px; width: auto; margin-bottom: 0.5rem;">\
         except FileNotFoundError:
             # Fallback al emoji si no encuentra la imagen
-            return f'<span style="font-size: 1.5rem;">{fallback}</span>'
+            return f\<span style="font-size: 1.5rem;">{fallback}</span>\
     
     def _get_total_countries(self) -> int:
         """Obtiene el número total de países dinámicamente desde CountryManager"""
@@ -1106,7 +1107,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         # Inicializar session state para la liga seleccionada
-        if 'selected_league' not in st.session_state:
+        if \selected_league\ not in st.session_state:
             st.session_state.selected_league = None
         
         # Selectbox con placeholder para manejar la selección
@@ -1135,8 +1136,8 @@ class ProfessionalDesign:
             <div class="league-card mlb-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector(\[data-testid=\\\"league_selector\\\"] select\);
                 if (selectbox) {{
-                    selectbox.value = MLB;
-                    selectbox.dispatchEvent(new Event(change, {{ bubbles: true }}));
+                    selectbox.value = \MLB\;
+                    selectbox.dispatchEvent(new Event(\change\, {{ bubbles: true }}));
                 }}
             ">
                 {mlb_logo}
@@ -1150,8 +1151,8 @@ class ProfessionalDesign:
             <div class="league-card nba-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector(\[data-testid=\\\"league_selector\\\"] select\);
                 if (selectbox) {{
-                    selectbox.value = NBA;
-                    selectbox.dispatchEvent(new Event(change, {{ bubbles: true }}));
+                    selectbox.value = \NBA\;
+                    selectbox.dispatchEvent(new Event(\change\, {{ bubbles: true }}));
                 }}
             ">
                 {nba_logo}
@@ -1165,8 +1166,8 @@ class ProfessionalDesign:
             <div class="league-card nfl-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector(\[data-testid=\\\"league_selector\\\"] select\);
                 if (selectbox) {{
-                    selectbox.value = NFL;
-                    selectbox.dispatchEvent(new Event(change, {{ bubbles: true }}));
+                    selectbox.value = \NFL\;
+                    selectbox.dispatchEvent(new Event(\change\, {{ bubbles: true }}));
                 }}
             ">
                 {nfl_logo}
@@ -1180,8 +1181,8 @@ class ProfessionalDesign:
             <div class="league-card f1-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector(\[data-testid=\\\"league_selector\\\"] select\);
                 if (selectbox) {{
-                    selectbox.value = MOTORSPORT;
-                    selectbox.dispatchEvent(new Event(change, {{ bubbles: true }}));
+                    selectbox.value = \MOTORSPORT\;
+                    selectbox.dispatchEvent(new Event(\change\, {{ bubbles: true }}));
                 }}
             ">
                 {f1_logo}
@@ -1195,8 +1196,8 @@ class ProfessionalDesign:
             <div class="league-card newera-card {selected_class}" onclick="
                 const selectbox = window.parent.document.querySelector(\[data-testid=\\\"league_selector\\\"] select\);
                 if (selectbox) {{
-                    selectbox.value = ENTERTAINMENT;
-                    selectbox.dispatchEvent(new Event(change, {{ bubbles: true }}));
+                    selectbox.value = \ENTERTAINMENT\;
+                    selectbox.dispatchEvent(new Event(\change\, {{ bubbles: true }}));
                 }}
             ">
                 {ne_logo}
@@ -1205,7 +1206,7 @@ class ProfessionalDesign:
             """, unsafe_allow_html=True)
         
         # Agregar espacio entre las tarjetas de ligas y las pestañas de países
-        st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style=\margin-bottom: 2rem;\></div>", unsafe_allow_html=True)
         
     
     def create_welcome_card(self, country_flag: str, country_name: str, description: str, stores_count: int, country_code: str = ""):
@@ -1259,7 +1260,7 @@ class ProfessionalDesign:
     
     def create_section_header(self, title: str, subtitle: str = "", icon: str = "📊"):
         """Crea un header de sección profesional con fondo degradado según el país"""
-        subtitle_html = f"<p style='color: #d1d5db; margin: 0.5rem 0 0 0; font-size: 1.1rem;'>{subtitle}</p>" if subtitle else ""
+        subtitle_html = f"<p style=\color: #d1d5db; margin: 0.5rem 0 0 0; font-size: 1.1rem;\>{subtitle}</p>" if subtitle else ""
         
         # Determinar colores según el país
         if "Panamá" in title or "PANAMA" in title:
@@ -1336,9 +1337,9 @@ class ProductClassification:
         
         silueta_upper = str(silueta).strip().upper()
         if silueta_upper in self.siluetas_planas:
-            return 'Planas'
+            return \Planas\
         elif silueta_upper in self.siluetas_curvas:
-            return 'Curvas'
+            return \Curvas\
         return None
 
 # Instancia de clasificación
@@ -1500,12 +1501,12 @@ class SalesProcessor:
         print(f"Columnas disponibles en archivo de ventas: {list(df_ventas.columns)}")
         
         # Verificar columnas necesarias
-        columnas_necesarias = ['U_Marca', 'U_Segmento', 'U_Liga', 'USD_Total_SI_CD']
+        columnas_necesarias = [\U_Marca\, \U_Segmento\, \U_Liga\, \USD_Total_SI_CD\]
         columna_tienda = None
         
         # Buscar columna de tienda
         for col in df_ventas.columns:
-            if 'tienda' in col.lower() or 'store' in col.lower() or 'bodega' in col.lower():
+            if 	ienda\ in col.lower() or \store\ in col.lower() or \bodega\ in col.lower():
                 columna_tienda = col
                 break
         
@@ -1524,22 +1525,22 @@ class SalesProcessor:
         print(f"Usando columna de tienda: {columna_tienda}")
         
         # Filtrar por marca NEW ERA
-        df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
+        df_new_era = df_ventas[df_ventas[\U_Marca\].str.upper() == \NEW ERA\].copy()
         
         # Mapear tiendas a bodegas
         mapeo_inverso = {v: k for k, v in self.tienda_mapping.items()}
-        df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
+        df_new_era[\Bodega_Mapeada\] = df_new_era[columna_tienda].map(mapeo_inverso)
         
         # Intentar mapeo normalizado para no mapeadas
-        tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
+        tiendas_no_mapeadas = df_new_era[df_new_era[\Bodega_Mapeada\].isna()]
         if len(tiendas_no_mapeadas) > 0:
-            df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
-                df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
+            df_new_era.loc[df_new_era[\Bodega_Mapeada\].isna(), \Bodega_Mapeada\] = \\
+                df_new_era.loc[df_new_era[\Bodega_Mapeada\].isna(), columna_tienda].apply(
                     lambda x: self.tienda_mapping_normalizado.get(self._normalize_text(x))
                 )
         
         # Filtrar solo registros mapeados
-        df_mapeado = df_new_era[df_new_era['Bodega_Mapeada'].notna()].copy()
+        df_mapeado = df_new_era[df_new_era[\Bodega_Mapeada\].notna()].copy()
         
         if len(df_mapeado) == 0:
             print("No hay registros mapeados para procesar")
@@ -1561,9 +1562,9 @@ class SalesProcessor:
         product_classifier = ProductClassification(siluetas_planas=[], siluetas_curvas=[])
         
         # Clasificar siluetas solo para HEADWEAR
-        df_mapeado['Tipo'] = df_mapeado.apply(
-            lambda row: product_classifier.clasificar_silueta(row['U_Silueta']) 
-            if row['U_Segmento'] == 'HEADWEAR' else None, 
+        df_mapeado[\Tipo\] = df_mapeado.apply(
+            lambda row: product_classifier.clasificar_silueta(row[\U_Silueta\]) 
+            if row[\U_Segmento\] == \HEADWEAR\ else None, 
             axis=1
         )
         
@@ -1571,26 +1572,26 @@ class SalesProcessor:
         ventas_desglosadas = {}
         
         # Procesar por bodega
-        for bodega in df_mapeado['Bodega_Mapeada'].unique():
-            df_bodega = df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega]
+        for bodega in df_mapeado[\Bodega_Mapeada\].unique():
+            df_bodega = df_mapeado[df_mapeado[\Bodega_Mapeada\] == bodega]
             ventas_desglosadas[bodega] = {}
             
             # Procesar por liga
             for categoria, ligas in categorias_ligas.items():
-                df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
+                df_liga = df_bodega[df_bodega[\U_Liga\].isin(ligas)]
                 ventas_desglosadas[bodega][categoria] = {}
                 
                 # Planas (HEADWEAR + Planas)
-                df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
-                ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
+                df_planas = df_liga[(df_liga[\U_Segmento\] == \HEADWEAR\) & (df_liga[\Tipo\] == \Planas\)]
+                ventas_desglosadas[bodega][categoria][\Planas\] = df_planas[\USD_Total_SI_CD\].sum()
                 
                 # Curvas (HEADWEAR + Curvas)  
-                df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
-                ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
+                df_curvas = df_liga[(df_liga[\U_Segmento\] == \HEADWEAR\) & (df_liga[\Tipo\] == \Curvas\)]
+                ventas_desglosadas[bodega][categoria][\Curvas\] = df_curvas[\USD_Total_SI_CD\].sum()
                 
                 # Apparel
-                df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
-                ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
+                df_apparel = df_liga[df_liga[\U_Segmento\] == \APPAREL\]
+                ventas_desglosadas[bodega][categoria][\Apparel\] = df_apparel[\USD_Total_SI_CD\].sum()
         
         print(f"Ventas desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
         return ventas_desglosadas
@@ -1663,29 +1664,29 @@ class StockAnalyzer:
         if not stock_data:
             return {}
         
-        total_stock = sum(item.get('stock', 0) for item in stock_data)
-        total_capacity = sum(item.get('capacity', 0) for item in stock_data if item.get('capacity', 0) > 0)
+        total_stock = sum(item.get(\stock\, 0) for item in stock_data)
+        total_capacity = sum(item.get(\capacity\, 0) for item in stock_data if item.get(\capacity\, 0) > 0)
         
         return {
-            'total_stock': total_stock,
-            'total_capacity': total_capacity,
-            'capacity_utilization': total_stock / total_capacity if total_capacity > 0 else 0,
-            'low_stock_stores': len([item for item in stock_data if self._is_low_stock(item)]),
-            'overstock_stores': len([item for item in stock_data if self._is_overstock(item)])
+            	otal_stock\: total_stock,
+            	otal_capacity\: total_capacity,
+            \capacity_utilization\: total_stock / total_capacity if total_capacity > 0 else 0,
+            \low_stock_stores\: len([item for item in stock_data if self._is_low_stock(item)]),
+            \overstock_stores\: len([item for item in stock_data if self._is_overstock(item)])
         }
     
     def _is_low_stock(self, item: Dict) -> bool:
         """Verifica si una tienda tiene stock bajo"""
-        capacity = item.get('capacity', 0)
-        stock = item.get('stock', 0)
+        capacity = item.get(\capacity\, 0)
+        stock = item.get(\stock\, 0)
         if capacity == 0:
             return False
         return stock < (capacity * 0.95)
     
     def _is_overstock(self, item: Dict) -> bool:
         """Verifica si una tienda tiene sobrestock"""
-        capacity = item.get('capacity', 0)
-        stock = item.get('stock', 0)
+        capacity = item.get(\capacity\, 0)
+        stock = item.get(\stock\, 0)
         if capacity == 0:
             return False
         return stock > capacity
@@ -1698,7 +1699,7 @@ class DataLoader:
     
     def __init__(self, country_manager: CountryManager):
         self.country_manager = country_manager
-        self.required_columns = ['U_Marca', 'U_Silueta', 'Stock_Actual', 'Bodega', 'U_Liga', 'U_Segmento']
+        self.required_columns = [\U_Marca\, \U_Silueta\, \Stock_Actual\, \Bodega\, \U_Liga\, \U_Segmento\]
     
     def cargar_archivo(self, label_texto: str, pais: str) -> Optional[pd.DataFrame]:
         """Carga y valida el archivo CSV con manejo robusto"""
@@ -1756,7 +1757,7 @@ class DataLoader:
             self._validate_columns(df, pais)
             
             # Actualizar la fecha del último trabajo con stock
-            current_date = datetime.now().strftime('%d/%m/%Y')
+            current_date = datetime.now().strftime(\%d/%m/%Y\)
             st.session_state.last_stock_work_date = current_date
             
             elapsed_time = time.time() - start_time
@@ -1792,7 +1793,7 @@ class DataLoader:
             
             archivo = st.file_uploader(
                 "Seleccionar archivo",
-                type=['csv'],
+                type=[\csv\],
                 key=key,
                 label_visibility="collapsed"
             )
@@ -1806,10 +1807,10 @@ class DataLoader:
                 # Leer CSV sin validaciones específicas de stock
                 df = pd.read_csv(
                     archivo,
-                    encoding='utf-8',
-                    delimiter=';',
+                    encoding=\utf-8\,
+                    delimiter=\;\,
                     low_memory=False,
-                    on_bad_lines='skip'
+                    on_bad_lines=\skip\
                 )
                 
                 # Limpieza básica sin columnas específicas
@@ -1827,24 +1828,24 @@ class DataLoader:
         """Lee el archivo CSV con configuración optimizada"""
         return pd.read_csv(
             archivo,
-            encoding='utf-8',
-            delimiter=';',
-            dtype={'U_Silueta': str, 'Stock_Actual': str, 'Bodega': str, 'U_Liga': str, 'U_Segmento': str},
+            encoding=\utf-8\,
+            delimiter=\;\,
+            dtype={\U_Silueta\: str, \Stock_Actual\: str, \Bodega\: str, \U_Liga\: str, \U_Segmento\: str},
             low_memory=False,
-            on_bad_lines='skip'
+            on_bad_lines=\skip\
         )
     
     def _clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Limpia y normaliza los datos"""
         df.columns = df.columns.str.strip()
-        df['Bodega'] = df['Bodega'].astype(str).str.strip()
-        df['U_Liga'] = df['U_Liga'].astype(str).str.strip().str.upper()
-        df['U_Segmento'] = df['U_Segmento'].astype(str).str.strip().str.upper()
+        df[\Bodega\] = df[\Bodega\].astype(str).str.strip()
+        df[\U_Liga\] = df[\U_Liga\].astype(str).str.strip().str.upper()
+        df[\U_Segmento\] = df[\U_Segmento\].astype(str).str.strip().str.upper()
         
         # Conversión segura de stock a numérico
-        df['Stock_Actual'] = pd.to_numeric(
-            df['Stock_Actual'].str.replace(',', ''),
-            errors='coerce'
+        df[\Stock_Actual\] = pd.to_numeric(
+            df[\Stock_Actual\].str.replace(\,\, \\),
+            errors=\coerce\
         ).fillna(0)
         
         return df
@@ -1852,11 +1853,11 @@ class DataLoader:
     def _filter_by_country(self, df: pd.DataFrame, pais: str) -> pd.DataFrame:
         """Filtra datos por país y marca NEW ERA"""
         # Primero filtrar por marca NEW ERA
-        df_new_era = df[df['U_Marca'].str.upper() == 'NEW ERA']
+        df_new_era = df[df[\U_Marca\].str.upper() == \NEW ERA\]
         
         # Luego filtrar por bodegas del país
         bodegas = self.country_manager.get_bodegas(pais)
-        return df_new_era[df_new_era['Bodega'].isin(bodegas)] if bodegas else df_new_era
+        return df_new_era[df_new_era[\Bodega\].isin(bodegas)] if bodegas else df_new_era
     
     def _validate_columns(self, df: pd.DataFrame, pais: str) -> None:
         """Valida que existan las columnas requeridas"""
@@ -1905,17 +1906,17 @@ class DataProcessor:
     def _prepare_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """Prepara los datos para el procesamiento"""
         # Asegurar que U_Silueta sea string y manejar valores NaN
-        df['U_Silueta'] = df['U_Silueta'].astype(str).fillna('').str.strip().str.upper()
+        df[\U_Silueta\] = df[\U_Silueta\].astype(str).fillna(\\).str.strip().str.upper()
         
         # Clasificar solo productos HEADWEAR por silueta
-        df['Tipo'] = df.apply(
-            lambda row: self.product_classifier.clasificar_silueta(row['U_Silueta']) 
-            if row['U_Segmento'] == 'HEADWEAR' else None, 
+        df[\Tipo\] = df.apply(
+            lambda row: self.product_classifier.clasificar_silueta(row[\U_Silueta\]) 
+            if row[\U_Segmento\] == \HEADWEAR\ else None, 
             axis=1
         )
         
         # Filtrar solo siluetas válidas de HEADWEAR, Apparel y Accessories
-        return df[(df['Tipo'].notna()) | (df['U_Segmento'] == 'APPAREL') | (df['U_Segmento'] == 'ACCESSORIES')].copy()
+        return df[(df[\Tipo\].notna()) | (df[\U_Segmento\] == \APPAREL\) | (df[\U_Segmento\] == \ACCESSORIES\)].copy()
     
     def _create_base_table(self, pais: str) -> pd.DataFrame:
         """Crea la tabla base con las bodegas del país"""
@@ -1937,7 +1938,7 @@ class DataProcessor:
             logger.info("Procesando todas las categorías")
         
         for categoria, valores in categorias_a_procesar.items():
-            df_cat = df[df['U_Liga'].str.upper().isin([v.upper() for v in valores])]
+            df_cat = df[df[\U_Liga\].str.upper().isin([v.upper() for v in valores])]
             logger.info(f"Categoría: {categoria}, Registros filtrados: {len(df_cat)}")
             
             if len(df_cat) == 0:
@@ -1951,11 +1952,11 @@ class DataProcessor:
             apparel = self._process_apparel(df_cat)
             
             # Combinar resultados
-            pivot = pivot.join(apparel, how='left').fillna(0)
+            pivot = pivot.join(apparel, how=\left\).fillna(0)
             
             if selected_league:
                 # Para liga específica, usar nombres simplificados
-                pivot.columns = [f"TOTAL {col.upper()}" if col in ['Planas', 'Curvas'] 
+                pivot.columns = [f"TOTAL {col.upper()}" if col in [\Planas\, \Curvas\] 
                                else f"TOTAL {col.upper()}" for col in pivot.columns]
                 logger.info(f"Columnas generadas para liga específica: {list(pivot.columns)}")
             else:
@@ -1963,75 +1964,75 @@ class DataProcessor:
                 pivot.columns = [f"{categoria} - {col}" for col in pivot.columns]
                 logger.info(f"Columnas generadas para todas las ligas: {list(pivot.columns)}")
             
-            tabla_final = tabla_final.join(pivot, how='left')
+            tabla_final = tabla_final.join(pivot, how=\left\)
         
         # Procesar Accessories solo si no hay liga específica o si la liga específica aplica
         if not selected_league:
             accessories = self._process_accessories(df)
-            tabla_final = tabla_final.join(accessories, how='left').fillna(0)
+            tabla_final = tabla_final.join(accessories, how=\left\).fillna(0)
         else:
             # Para liga específica, procesar accessories solo de esa liga
-            df_league = df[df['U_Liga'].str.upper().isin([v.upper() for v in categorias_a_procesar[selected_league]])]
+            df_league = df[df[\U_Liga\].str.upper().isin([v.upper() for v in categorias_a_procesar[selected_league]])]
             accessories = self._process_accessories(df_league)
-            accessories = accessories.rename('TOTAL ACCESSORIES')
-            tabla_final = tabla_final.join(accessories, how='left').fillna(0)
+            accessories = accessories.rename(\TOTAL ACCESSORIES\)
+            tabla_final = tabla_final.join(accessories, how=\left\).fillna(0)
         
         return tabla_final.fillna(0).astype(int)
     
     def _process_headwear_types(self, df_cat: pd.DataFrame) -> pd.DataFrame:
         """Procesa tipos de headwear (planas y curvas)"""
-        return df_cat[df_cat['Tipo'].notna()].pivot_table(
-            index='Bodega',
-            columns='Tipo',
-            values='Stock_Actual',
-            aggfunc='sum',
+        return df_cat[df_cat[\Tipo\].notna()].pivot_table(
+            index=\Bodega\,
+            columns=\Tipo\,
+            values=\Stock_Actual\,
+            aggfunc=\sum\,
             fill_value=0
         )
     
     def _process_apparel(self, df_cat: pd.DataFrame) -> pd.Series:
         """Procesa datos de apparel"""
-        return df_cat[df_cat['U_Segmento'] == 'APPAREL'].groupby('Bodega')['Stock_Actual'].sum().rename('Apparel')
+        return df_cat[df_cat[\U_Segmento\] == \APPAREL\].groupby(\Bodega\)[\Stock_Actual\].sum().rename(\Apparel\)
     
     def _process_accessories(self, df: pd.DataFrame) -> pd.Series:
         """Procesa datos de accessories"""
-        return df[df['U_Segmento'] == 'ACCESSORIES'].groupby('Bodega')['Stock_Actual'].sum().rename('TOTAL ACCESSORIES')
+        return df[df[\U_Segmento\] == \ACCESSORIES\].groupby(\Bodega\)[\Stock_Actual\].sum().rename(\TOTAL ACCESSORIES\)
     
     def _calculate_totals(self, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Calcula totales y métricas"""
         
         if selected_league:
             # Para liga específica, los totales ya están calculados con nombres TOTAL
-            if 'TOTAL PLANAS' not in tabla_final.columns:
-                tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'PLANAS' in col.upper()]].sum(axis=1)
-            if 'TOTAL CURVAS' not in tabla_final.columns:
-                tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'CURVAS' in col.upper()]].sum(axis=1)
+            if \TOTAL PLANAS\ not in tabla_final.columns:
+                tabla_final[\TOTAL PLANAS\] = tabla_final[[col for col in tabla_final.columns if \PLANAS\ in col.upper()]].sum(axis=1)
+            if \TOTAL CURVAS\ not in tabla_final.columns:
+                tabla_final[\TOTAL CURVAS\] = tabla_final[[col for col in tabla_final.columns if \CURVAS\ in col.upper()]].sum(axis=1)
             
-            tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
+            tabla_final[\TOTAL HEADWEAR\] = tabla_final[\TOTAL PLANAS\] + tabla_final[\TOTAL CURVAS\]
             
-            if 'TOTAL APPAREL' not in tabla_final.columns:
-                tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'APPAREL' in col.upper()]].sum(axis=1)
+            if \TOTAL APPAREL\ not in tabla_final.columns:
+                tabla_final[\TOTAL APPAREL\] = tabla_final[[col for col in tabla_final.columns if \APPAREL\ in col.upper()]].sum(axis=1)
             
             # No calcular % DE CUMPLIMIENTO para liga específica
-            tabla_final['TOTAL GENERAL'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL', 'TOTAL ACCESSORIES']].sum(axis=1)
+            tabla_final[\TOTAL GENERAL\] = tabla_final[[\TOTAL HEADWEAR\, \TOTAL APPAREL\, \TOTAL ACCESSORIES\]].sum(axis=1)
         else:
             # Lógica original para todas las ligas
-            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col]].sum(axis=1)
-            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col]].sum(axis=1)
-            tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
+            tabla_final[\TOTAL PLANAS\] = tabla_final[[col for col in tabla_final.columns if \Planas\ in col]].sum(axis=1)
+            tabla_final[\TOTAL CURVAS\] = tabla_final[[col for col in tabla_final.columns if \Curvas\ in col]].sum(axis=1)
+            tabla_final[\TOTAL HEADWEAR\] = tabla_final[\TOTAL PLANAS\] + tabla_final[\TOTAL CURVAS\]
             
             # Agregar capacidad
             capacidades = self.country_manager.get_capacidades(pais)
-            tabla_final['CAPACIDAD EN TIENDA'] = tabla_final.index.map(lambda x: capacidades.get(x, 0))
+            tabla_final[\CAPACIDAD EN TIENDA\] = tabla_final.index.map(lambda x: capacidades.get(x, 0))
             
             # Calcular % DE CUMPLIMIENTO
-            tabla_final['% DE CUMPLIMIENTO'] = (((tabla_final['TOTAL HEADWEAR'] / tabla_final['CAPACIDAD EN TIENDA']) * 100) - 100).replace([np.inf, -np.inf], 0).fillna(0)
-            tabla_final['% DE CUMPLIMIENTO'] = tabla_final['% DE CUMPLIMIENTO'].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) and x != 0 else "N/A")
+            tabla_final[\% DE CUMPLIMIENTO\] = (((tabla_final[\TOTAL HEADWEAR\] / tabla_final[\CAPACIDAD EN TIENDA\]) * 100) - 100).replace([np.inf, -np.inf], 0).fillna(0)
+            tabla_final[\% DE CUMPLIMIENTO\] = tabla_final[\% DE CUMPLIMIENTO\].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) and x != 0 else "N/A")
             
-            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
-            tabla_final['TOTAL GENERAL'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL', 'TOTAL ACCESSORIES']].sum(axis=1)
+            tabla_final[\TOTAL APPAREL\] = tabla_final[[col for col in tabla_final.columns if \Apparel\ in col]].sum(axis=1)
+            tabla_final[\TOTAL GENERAL\] = tabla_final[[\TOTAL HEADWEAR\, \TOTAL APPAREL\, \TOTAL ACCESSORIES\]].sum(axis=1)
         
         # Ordenar por TOTAL GENERAL
-        tabla_final = tabla_final.sort_values('TOTAL GENERAL', ascending=False)
+        tabla_final = tabla_final.sort_values(\TOTAL GENERAL\, ascending=False)
         
         # Agregar fila de TOTALES
         return self._add_totals_row(tabla_final, pais)
@@ -2041,16 +2042,16 @@ class DataProcessor:
         fila_totales = tabla_final.sum()
         
         capacidad_total = self.country_manager.get_country_data(pais).get_total_capacity()
-        total_headwear_suma = fila_totales['TOTAL HEADWEAR']
+        total_headwear_suma = fila_totales[\TOTAL HEADWEAR\]
         
         if capacidad_total > 0:
             porcentaje_total = ((total_headwear_suma / capacidad_total) * 100) - 100
-            fila_totales['% DE CUMPLIMIENTO'] = f"{porcentaje_total:.2f}%"
+            fila_totales[\% DE CUMPLIMIENTO\] = f"{porcentaje_total:.2f}%"
         else:
-            fila_totales['% DE CUMPLIMIENTO'] = "N/A"
+            fila_totales[\% DE CUMPLIMIENTO\] = "N/A"
         
-        fila_totales['CAPACIDAD EN TIENDA'] = capacidad_total
-        tabla_final.loc['TOTAL'] = fila_totales
+        fila_totales[\CAPACIDAD EN TIENDA\] = capacidad_total
+        tabla_final.loc[\TOTAL\] = fila_totales
         
         return tabla_final
     
@@ -2071,74 +2072,74 @@ class DataProcessor:
                 
                 # Llenar valores por bodega
                 for bodega in tabla_final.index:
-                    if bodega != 'TOTAL' and bodega in ventas_desglosadas:
+                    if bodega != \TOTAL\ and bodega in ventas_desglosadas:
                         ventas_bodega = ventas_desglosadas[bodega]
                         if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
                             tabla_final.loc[bodega, col_name] = ventas_bodega[categoria][subcategoria]
                 
                 # Calcular total para la fila TOTAL
-                if 'TOTAL' in tabla_final.index:
+                if \TOTAL\ in tabla_final.index:
                     total_categoria_subcategoria = 0
                     for bodega, ventas_bodega in ventas_desglosadas.items():
                         if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
                             total_categoria_subcategoria += ventas_bodega[categoria][subcategoria]
-                    tabla_final.loc['TOTAL', col_name] = total_categoria_subcategoria
+                    tabla_final.loc[\TOTAL\, col_name] = total_categoria_subcategoria
         
         return tabla_final
     
     def _format_table(self, tabla_final: pd.DataFrame) -> pd.DataFrame:
         """Formatea la tabla final con MultiIndex de 3 niveles: Liga → Subcategoría → Stock/Ventas"""
         tabla_final.reset_index(inplace=True)
-        tabla_final.rename(columns={'index': 'Bodega'}, inplace=True)
+        tabla_final.rename(columns={\index\: \Bodega\}, inplace=True)
         
         # Crear MultiIndex para columnas con 3 niveles
-        columnas_multi = [('INFO', 'INFO', 'Bodega')]
+        columnas_multi = [(\INFO\, \INFO\, \Bodega\)]
         
         # Para cada liga y subcategoría, crear columnas Stock y Ventas
         for categoria in self.league_categories.get_all_categories().keys():
-            for subcategoria in ['Planas', 'Curvas', 'Apparel']:
+            for subcategoria in [\Planas\, \Curvas\, \Apparel\]:
                 # Stock y Ventas para cada subcategoría
                 columnas_multi.extend([
-                    (categoria, subcategoria, 'Stock'),
-                    (categoria, subcategoria, 'Ventas')
+                    (categoria, subcategoria, \Stock\),
+                    (categoria, subcategoria, \Ventas\)
                 ])
         
         # Columnas de totales 
         columnas_multi.extend([
-            ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
-            ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
-            ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
-            ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
-            ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
-            ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
-            ('TOTALES', 'RESUMEN', 'TOTAL ACCESSORIES'),
-            ('TOTALES', 'RESUMEN', 'TOTAL GENERAL')
+            (\TOTALES\, \RESUMEN\, \TOTAL PLANAS\),
+            (\TOTALES\, \RESUMEN\, \TOTAL CURVAS\),
+            (\TOTALES\, \RESUMEN\, \TOTAL HEADWEAR\),
+            (\TOTALES\, \RESUMEN\, \CAPACIDAD EN TIENDA\),
+            (\TOTALES\, \RESUMEN\, \% DE CUMPLIMIENTO\),
+            (\TOTALES\, \RESUMEN\, \TOTAL APPAREL\),
+            (\TOTALES\, \RESUMEN\, \TOTAL ACCESSORIES\),
+            (\TOTALES\, \RESUMEN\, \TOTAL GENERAL\)
         ])
         
         # Crear diccionario de mapeo de nombres de columnas
-        mapeo_columnas = {'Bodega': ('INFO', 'INFO', 'Bodega')}
+        mapeo_columnas = {\Bodega\: (\INFO\, \INFO\, \Bodega\)}
         
         # Mapear columnas de stock y ventas existentes
         for categoria in self.league_categories.get_all_categories().keys():
-            for subcategoria in ['Planas', 'Curvas', 'Apparel']:
+            for subcategoria in [\Planas\, \Curvas\, \Apparel\]:
                 nombre_stock = f"{categoria} - {subcategoria}"
                 nombre_ventas = f"{categoria} - {subcategoria} - Ventas"
                 
                 if nombre_stock in tabla_final.columns:
-                    mapeo_columnas[nombre_stock] = (categoria, subcategoria, 'Stock')
+                    mapeo_columnas[nombre_stock] = (categoria, subcategoria, \Stock\)
                 if nombre_ventas in tabla_final.columns:
-                    mapeo_columnas[nombre_ventas] = (categoria, subcategoria, 'Ventas')
+                    mapeo_columnas[nombre_ventas] = (categoria, subcategoria, \Ventas\)
         
         # Mapear columnas de totales
         totales_mapping = {
-            'TOTAL PLANAS': ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
-            'TOTAL CURVAS': ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
-            'TOTAL HEADWEAR': ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
-            'CAPACIDAD EN TIENDA': ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
-            '% DE CUMPLIMIENTO': ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
-            'TOTAL APPAREL': ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
-            'TOTAL ACCESSORIES': ('TOTALES', 'RESUMEN', 'TOTAL ACCESSORIES'),
-            'TOTAL GENERAL': ('TOTALES', 'RESUMEN', 'TOTAL GENERAL')
+            \TOTAL PLANAS\: (\TOTALES\, \RESUMEN\, \TOTAL PLANAS\),
+            \TOTAL CURVAS\: (\TOTALES\, \RESUMEN\, \TOTAL CURVAS\),
+            \TOTAL HEADWEAR\: (\TOTALES\, \RESUMEN\, \TOTAL HEADWEAR\),
+            \CAPACIDAD EN TIENDA\: (\TOTALES\, \RESUMEN\, \CAPACIDAD EN TIENDA\),
+            \% DE CUMPLIMIENTO\: (\TOTALES\, \RESUMEN\, \% DE CUMPLIMIENTO\),
+            \TOTAL APPAREL\: (\TOTALES\, \RESUMEN\, \TOTAL APPAREL\),
+            \TOTAL ACCESSORIES\: (\TOTALES\, \RESUMEN\, \TOTAL ACCESSORIES\),
+            \TOTAL GENERAL\: (\TOTALES\, \RESUMEN\, \TOTAL GENERAL\)
         }
         
         for col_original, col_multi in totales_mapping.items():
@@ -2162,7 +2163,7 @@ class DataProcessor:
         # Crear MultiIndex con 3 niveles explícitamente nombrados
         multi_index = pd.MultiIndex.from_tuples(
             tuples_ordenadas,
-            names=['Liga', 'Subcategoría', 'Tipo']
+            names=[\Liga\, \Subcategoría\, \Tipo\]
         )
         tabla_final.columns = multi_index
         
@@ -2185,7 +2186,7 @@ class ChartVisualizer:
         
         logger.info(f"Generando gráfica comparativa para {pais}")
         
-        selected_league = st.session_state.get('selected_league', None)
+        selected_league = st.session_state.get(\selected_league\, None)
         
         if selected_league:
             st.markdown(f"#### 📊 Stock por Bodega - {selected_league} - {pais}")
@@ -2212,27 +2213,27 @@ class ChartVisualizer:
         capacidad_col = None
         
         for col in tabla.columns:
-            if len(col) == 3 and col[2] == 'Bodega':
+            if len(col) == 3 and col[2] == \Bodega\:
                 bodega_col = col
-            elif len(col) == 3 and col[2] == 'TOTAL HEADWEAR':
+            elif len(col) == 3 and col[2] == \TOTAL HEADWEAR\:
                 total_headwear_col = col
-            elif len(col) == 3 and col[2] == 'CAPACIDAD EN TIENDA':
+            elif len(col) == 3 and col[2] == \CAPACIDAD EN TIENDA\:
                 capacidad_col = col
         
         if bodega_col is None or total_headwear_col is None:
             return pd.DataFrame()  # Return empty if can	 find required columns
             
-        datos_grafica = tabla[tabla[bodega_col] != 'TOTAL'].copy()
+        datos_grafica = tabla[tabla[bodega_col] != \TOTAL\].copy()
         
         # Excluir bodegas específicas de las gráficas por país
         if pais == "Guatemala":
-            datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'CENTRAL NEW ERA'].copy()
+            datos_grafica = datos_grafica[datos_grafica[bodega_col] != \CENTRAL NEW ERA\].copy()
         elif pais == "El Salvador":
-            datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'New Era Central'].copy()
+            datos_grafica = datos_grafica[datos_grafica[bodega_col] != \New Era Central\].copy()
         elif pais == "PANAMA":
-            datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'Almacén general'].copy()
+            datos_grafica = datos_grafica[datos_grafica[bodega_col] != \Almacén general\].copy()
         elif pais == "Costa Rica":
-            datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'Bodega Central NEW ERA'].copy()
+            datos_grafica = datos_grafica[datos_grafica[bodega_col] != \Bodega Central NEW ERA\].copy()
         
         # Verificar si existe la columna CAPACIDAD EN TIENDA
         if capacidad_col is not None and capacidad_col in datos_grafica.columns:
@@ -2242,34 +2243,34 @@ class ChartVisualizer:
             capacidad_data = [0] * len(datos_grafica)
         
         df_grafica = pd.DataFrame({
-            'Bodega': datos_grafica[bodega_col].tolist(),
-            'Stock': datos_grafica[total_headwear_col].tolist(),
-            'Capacidad': capacidad_data
+            \Bodega\: datos_grafica[bodega_col].tolist(),
+            \Stock\: datos_grafica[total_headwear_col].tolist(),
+            \Capacidad\: capacidad_data
         })
         
-        return df_grafica.sort_values('Stock', ascending=True)
+        return df_grafica.sort_values(\Stock\, ascending=True)
     
     def _create_chart(self, df_grafica: pd.DataFrame) -> go.Figure:
         """Crea una gráfica ultra minimalista y limpia"""
         fig = go.Figure()
         
-        selected_league = st.session_state.get('selected_league', None)
+        selected_league = st.session_state.get(\selected_league\, None)
         
         # Barras de Capacidad - diseño minimalista (solo si no hay liga específica)
-        if not selected_league and any(cap > 0 for cap in df_grafica['Capacidad']):
+        if not selected_league and any(cap > 0 for cap in df_grafica[\Capacidad\]):
             fig.add_trace(go.Bar(
-                y=df_grafica['Bodega'],
-                x=df_grafica['Capacidad'],
-                name='Capacidad Máxima',
-                orientation='h',
+                y=df_grafica[\Bodega\],
+                x=df_grafica[\Capacidad\],
+                name=\Capacidad Máxima\,
+                orientation=\h\,
                 marker=dict(
-                    color='rgba(0, 0, 0, 0.8)',
+                    color=gba(0, 0, 0, 0.8)\,
                     line=dict(width=0)  # Sin bordes para look minimalista
                 ),
-                text=[f"{x:,}" if x > 0 else "N/A" for x in df_grafica['Capacidad']],
-                textposition='outside',
-                textfont=dict(size=12, color='rgba(0, 0, 0, 0.8)'),
-                hovertemplate='<b>%{y}</b><br>Capacidad: %{x:,}<extra></extra>',
+                text=[f"{x:,}" if x > 0 else "N/A" for x in df_grafica[\Capacidad\]],
+                textposition=\outside\,
+                textfont=dict(size=12, color=gba(0, 0, 0, 0.8)\),
+                hovertemplate=\<b>%{y}</b><br>Capacidad: %{x:,}<extra></extra>\,
                 hoverlabel=dict(
                     bgcolor="white",
                     bordercolor="rgba(0, 0, 0, 0.1)",
@@ -2279,18 +2280,18 @@ class ChartVisualizer:
         
         # Barras de Stock - diseño minimalista
         fig.add_trace(go.Bar(
-            y=df_grafica['Bodega'],
-            x=df_grafica['Stock'],
-            name='Stock Actual',
-            orientation='h',
+            y=df_grafica[\Bodega\],
+            x=df_grafica[\Stock\],
+            name=\Stock Actual\,
+            orientation=\h\,
             marker=dict(
-                color='rgba(107, 114, 128, 0.8)',
+                color=gba(107, 114, 128, 0.8)\,
                 line=dict(width=0)  # Sin bordes
             ),
-            text=[f"{x:,}" for x in df_grafica['Stock']],
-            textposition='outside',
-            textfont=dict(size=12, color='rgba(107, 114, 128, 0.8)'),
-            hovertemplate='<b>%{y}</b><br>Stock: %{x:,}<extra></extra>',
+            text=[f"{x:,}" for x in df_grafica[\Stock\]],
+            textposition=\outside\,
+            textfont=dict(size=12, color=gba(107, 114, 128, 0.8)\),
+            hovertemplate=\<b>%{y}</b><br>Stock: %{x:,}<extra></extra>\,
             hoverlabel=dict(
                 bgcolor="white",
                 bordercolor="rgba(107, 114, 128, 0.1)",
@@ -2306,7 +2307,7 @@ class ChartVisualizer:
             # Sin títulos de ejes para máximo minimalismo
             xaxis_title="",
             yaxis_title="",
-            barmode='group',
+            barmode=\group\,
             height=max(600, len(df_grafica) * 45),
             margin=dict(l=20, r=20, t=20, b=20),
             
@@ -2317,8 +2318,8 @@ class ChartVisualizer:
                 y=1.02,
                 xanchor="center",
                 x=0.5,
-                font=dict(size=12, color='#6b7280'),
-                bgcolor='rgba(0,0,0,0)',  # Transparente
+                font=dict(size=12, color=\#6b7280\),
+                bgcolor=gba(0,0,0,0)\,  # Transparente
                 borderwidth=0  # Sin borde
             ),
             
@@ -2326,68 +2327,68 @@ class ChartVisualizer:
             xaxis=dict(
                 showgrid=True,
                 gridwidth=0.5,
-                gridcolor='rgba(0, 0, 0, 0.05)',  # Grillas casi invisibles
-                tickformat=',',
-                tickfont=dict(size=11, color='#9ca3af'),
+                gridcolor=gba(0, 0, 0, 0.05)\,  # Grillas casi invisibles
+                tickformat=\,\,
+                tickfont=dict(size=11, color=\#9ca3af\),
                 showline=False,  # Sin líneas de ejes
                 zeroline=False,  # Sin línea de cero
                 ticks=""  # Sin marcas de tick
             ),
             yaxis=dict(
                 showgrid=False,
-                tickfont=dict(size=12, color='#374151'),
+                tickfont=dict(size=12, color=\#374151\),
                 showline=False,
                 zeroline=False,
                 ticks=""
             ),
             
             # Fondo completamente limpio
-            plot_bgcolor='white',
-            paper_bgcolor='white',
+            plot_bgcolor=\white\,
+            paper_bgcolor=\white\,
             
             # Sin marcos ni decoraciones
             showlegend=True,
-            hovermode='closest'
+            hovermode=\closest\
         )
         
         return fig
     
     def _add_overstock_annotations(self, fig: go.Figure, df_grafica: pd.DataFrame) -> None:
         """Agrega anotaciones de sobrestock y faltante de stock"""
-        if not any(cap > 0 for cap in df_grafica['Capacidad']):
+        if not any(cap > 0 for cap in df_grafica[\Capacidad\]):
             return
         
         # Calcular distancia de referencia
         distancia_referencia = self._calculate_reference_distance(df_grafica)
         
         for _, row in df_grafica.iterrows():
-            if row['Capacidad'] > 0:
-                max_value_bodega = max(row['Stock'], row['Capacidad'])
+            if row[\Capacidad\] > 0:
+                max_value_bodega = max(row[\Stock\], row[\Capacidad\])
                 annotation_position = max_value_bodega + (distancia_referencia * 0.3)
                 
                 # SOBRESTOCK (Stock > Capacidad) - Color amarillo dorado
-                if row['Stock'] > row['Capacidad']:
+                if row[\Stock\] > row[\Capacidad\]:
                     fig.add_annotation(
                         x=annotation_position,
-                        y=row['Bodega'],
+                        y=row[\Bodega\],
                         text="SOBRESTOCK",
                         showarrow=False,
-                        font=dict(size=9, color='#f59e0b', family='Arial Black'),  # Amarillo dorado
-                        bgcolor='rgba(255,255,255,0.9)',
-                        bordercolor='#f59e0b',  # Amarillo dorado
+                        font=dict(size=9, color=\#f59e0b\, family=\Arial Black\),  # Amarillo dorado
+                        bgcolor=gba(255,255,255,0.9)\,
+                        bordercolor=\#f59e0b\,  # Amarillo dorado
                         borderwidth=1
                     )
                 
                 # FALTANTE DE STOCK (Stock < Capacidad) - Color rojo
-                elif row['Stock'] < row['Capacidad']:
+                elif row[\Stock\] < row[\Capacidad\]:
                     fig.add_annotation(
                         x=annotation_position,
-                        y=row['Bodega'],
+                        y=row[\Bodega\],
                         text="FALTANTE DE STOCK",
                         showarrow=False,
-                        font=dict(size=9, color='#ef4444', family='Arial Black'),  # Rojo
-                        bgcolor='rgba(255,255,255,0.9)',
-                        bordercolor='#ef4444',  # Rojo
+                        font=dict(size=9, color=\#ef4444\, family=\Arial Black\),  # Rojo
+                        bgcolor=gba(255,255,255,0.9)\,
+                        bordercolor=\#ef4444\,  # Rojo
                         borderwidth=1
                     )
     
@@ -2396,8 +2397,8 @@ class ChartVisualizer:
         referencia_bodega = "NE Cayala"
         
         for _, row in df_grafica.iterrows():
-            if row['Bodega'] == referencia_bodega and row['Capacidad'] > 0:
-                max_value_cayala = max(row['Stock'], row['Capacidad'])
+            if row[\Bodega\] == referencia_bodega and row[\Capacidad\] > 0:
+                max_value_cayala = max(row[\Stock\], row[\Capacidad\])
                 return (max_value_cayala * 0.40) + (max_value_cayala * 0.10)
         
         return 1000  # Valor por defecto
@@ -2411,22 +2412,22 @@ class ChartVisualizer:
         
         # Buscar todas las bodegas que tienen FALTANTE DE STOCK (Stock < Capacidad)
         for _, row in df_grafica.iterrows():
-            bodega = row['Bodega']
-            stock_actual = row['Stock']
-            capacidad = row['Capacidad']
+            bodega = row[\Bodega\]
+            stock_actual = row[\Stock\]
+            capacidad = row[\Capacidad\]
             
             # Condición para FALTANTE DE STOCK: Stock < Capacidad y Capacidad > 0
             if capacidad > 0 and stock_actual < capacidad:
                 faltante = capacidad - stock_actual
                 alertas.append({
-                    'bodega': bodega,
-                    'stock': stock_actual,
-                    'capacidad': capacidad,
-                    'faltante': faltante
+                    \bodega\: bodega,
+                    \stock\: stock_actual,
+                    \capacidad\: capacidad,
+                    \faltante\: faltante
                 })
         
         if alertas:
-            alertas.sort(key=lambda x: x['faltante'], reverse=True)
+            alertas.sort(key=lambda x: x[\faltante\], reverse=True)
             
             # Crear recuadros compactos - hasta 3 por fila
             for i in range(0, len(alertas), 3):
@@ -2535,7 +2536,7 @@ class ChartVisualizer:
     def _create_compact_alert_card(self, alerta: dict) -> None:
         """Crea una card moderna usando componentes mixtos"""
         # Determinar severidad y colores
-        porcentaje_faltante = (alerta['faltante'] / alerta['capacidad']) * 100
+        porcentaje_faltante = (alerta[\faltante\] / alerta[\capacidad\]) * 100
         
         if porcentaje_faltante >= 50:
             color_principal = "#dc2626"
@@ -2600,7 +2601,7 @@ class ChartVisualizer:
                     color: #000000; 
                     font-size: 1.2rem; 
                     font-weight: 700;
-                ">{alerta['bodega']}</span>
+                ">{alerta[\bodega\]}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2619,7 +2620,7 @@ class ChartVisualizer:
                 margin: 5px;
             ">
                 <div style="color: {color_principal}; font-size: 2rem; font-weight: 800; margin-bottom: 8px;">
-                    {alerta['faltante']:,}
+                    {alerta[\faltante\]:,}
                 </div>
                 <div style="color: #6b7280; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;">
                     Faltante
@@ -2638,7 +2639,7 @@ class ChartVisualizer:
                 margin: 5px;
             ">
                 <div style="color: #374151; font-size: 2rem; font-weight: 800; margin-bottom: 8px;">
-                    {alerta['stock']:,}
+                    {alerta[\stock\]:,}
                 </div>
                 <div style="color: #6b7280; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;">
                     Stock
@@ -2657,7 +2658,7 @@ class ChartVisualizer:
                 margin: 5px;
             ">
                 <div style="color: #374151; font-size: 2rem; font-weight: 800; margin-bottom: 8px;">
-                    {alerta['capacidad']:,}
+                    {alerta[\capacidad\]:,}
                 </div>
                 <div style="color: #6b7280; font-size: 0.9rem; font-weight: 600; text-transform: uppercase;">
                     Capacidad
@@ -2700,7 +2701,7 @@ class ChartVisualizer:
     
     def _show_performance_analysis(self, df_grafica: pd.DataFrame, pais: str) -> None:
         """Muestra análisis de performance con diseño profesional"""
-        selected_league = st.session_state.get('selected_league', None)
+        selected_league = st.session_state.get(\selected_league\, None)
         
         # Header profesional con colores según el país
         st.markdown("---")
@@ -2754,7 +2755,7 @@ class ChartVisualizer:
         </div>
         """, unsafe_allow_html=True)
         
-        selected_league = st.session_state.get('selected_league', None)
+        selected_league = st.session_state.get(\selected_league\, None)
         
         if selected_league:
             # Para liga específica, usar todos los datos sin filtrar por capacidad
@@ -2762,17 +2763,17 @@ class ChartVisualizer:
             # No calcular porcentaje de cumplimiento para liga específica
         else:
             # Para vista completa, filtrar por capacidad como antes
-            if not any(cap > 0 for cap in df_grafica['Capacidad']):
+            if not any(cap > 0 for cap in df_grafica[\Capacidad\]):
                 return
             
-            df_analisis = df_grafica[df_grafica['Capacidad'] > 0].copy()
-            df_analisis['Porcentaje_Cumplimiento'] = (df_analisis['Stock'] / df_analisis['Capacidad']) * 100
+            df_analisis = df_grafica[df_grafica[\Capacidad\] > 0].copy()
+            df_analisis[\Porcentaje_Cumplimiento\] = (df_analisis[\Stock\] / df_analisis[\Capacidad\]) * 100
         
         # Calcular métricas siempre que haya datos
         if len(df_analisis) > 0:
-            max_stock = df_analisis.loc[df_analisis['Stock'].idxmax()]
-            min_stock = df_analisis.loc[df_analisis['Stock'].idxmin()]
-            promedio_stock = df_analisis['Stock'].mean()
+            max_stock = df_analisis.loc[df_analisis[\Stock\].idxmax()]
+            min_stock = df_analisis.loc[df_analisis[\Stock\].idxmin()]
+            promedio_stock = df_analisis[\Stock\].mean()
         else:
             return
         
@@ -2781,14 +2782,14 @@ class ChartVisualizer:
         
         if selected_league:
             metricas_performance = [
-                (max_stock['Bodega'], f"{max_stock['Stock']:,}", f"Mayor Stock {selected_league}", "🏆", "#10b981"),
-                (min_stock['Bodega'], f"{min_stock['Stock']:,}", f"Menor Stock {selected_league}", "📊", "#ef4444"),
+                (max_stock[\Bodega\], f"{max_stock[\Stock\]:,}", f"Mayor Stock {selected_league}", "🏆", "#10b981"),
+                (min_stock[\Bodega\], f"{min_stock[\Stock\]:,}", f"Menor Stock {selected_league}", "📊", "#ef4444"),
                 (f"{promedio_stock:,.0f}", "unidades", f"Promedio {selected_league}", "📈", "#6b7280")
             ]
         else:
             metricas_performance = [
-                (max_stock['Bodega'], f"{max_stock['Stock']:,}", "Mayor Stock", "🏆", "#10b981"),
-                (min_stock['Bodega'], f"{min_stock['Stock']:,}", "Menor Stock", "📊", "#ef4444"),
+                (max_stock[\Bodega\], f"{max_stock[\Stock\]:,}", "Mayor Stock", "🏆", "#10b981"),
+                (min_stock[\Bodega\], f"{min_stock[\Stock\]:,}", "Menor Stock", "📊", "#ef4444"),
                 (f"{promedio_stock:,.0f}", "unidades", "Promedio General", "📈", "#6b7280")
             ]
         
@@ -2837,7 +2838,7 @@ def mostrar_tabla_consolidada(tabla, pais):
     col_cumplimiento_index = None
     for idx, col in enumerate(tabla.columns):
         # Manejar estructura de 3 niveles para totales
-        if len(col) == 3 and col[2] == '% DE CUMPLIMIENTO':
+        if len(col) == 3 and col[2] == \% DE CUMPLIMIENTO\:
             col_cumplimiento_index = idx + 1  # +1 porque CSS es 1-based
             break
     
@@ -2851,15 +2852,15 @@ def mostrar_tabla_consolidada(tabla, pais):
         total_headwear = None
         
         for col in tabla.columns:
-            if len(col) == 3 and col[2] == 'Bodega':
+            if len(col) == 3 and col[2] == \Bodega\:
                 bodega = fila[col]
-            elif len(col) == 3 and col[2] == 'TOTAL HEADWEAR':
+            elif len(col) == 3 and col[2] == \TOTAL HEADWEAR\:
                 total_headwear = fila[col]
         
         if bodega is None or total_headwear is None:
             continue
         
-        if bodega == 'TOTAL':
+        if bodega == \TOTAL\:
             capacidad = country_manager.get_country_data(pais).get_total_capacity()
         else:
             capacidad = capacidades.get(bodega, 0)
@@ -2889,11 +2890,11 @@ def mostrar_tabla_consolidada(tabla, pais):
     tabla_formateada = tabla.copy()
     for col in tabla_formateada.columns:
         # Formato especial para columnas de ventas (MultiIndex con 3 niveles) - SIN USD
-        if len(col) == 3 and col[2] == 'Ventas':  # Nueva estructura: (Liga, Subcategoría, 'Ventas')
+        if len(col) == 3 and col[2] == \Ventas\:  # Nueva estructura: (Liga, Subcategoría, \Ventas\)
             tabla_formateada[col] = tabla_formateada[col].apply(lambda x: f"{int(x):,}" if pd.notnull(x) and x > 0 else "0")
-        elif len(col) >= 2 and col[-1] not in ['Bodega', '% DE CUMPLIMIENTO']:  # Stock y otros números
+        elif len(col) >= 2 and col[-1] not in [\Bodega\, \% DE CUMPLIMIENTO\]:  # Stock y otros números
             tabla_formateada[col] = tabla_formateada[col].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "0")
-        elif len(col) >= 2 and col[-1] == '% DE CUMPLIMIENTO':  # Porcentajes
+        elif len(col) >= 2 and col[-1] == \% DE CUMPLIMIENTO\:  # Porcentajes
             tabla_formateada[col] = tabla_formateada[col].astype(str)  # Ya está formateado
     
     # Convertir tabla a HTML con celdas combinadas en MultiIndex
@@ -2919,24 +2920,24 @@ def mostrar_tabla_consolidada(tabla, pais):
                 subcategoria_counts[key] += 1
         
         # Crear HTML de la tabla - Volver a tamaño más pequeño
-        html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
+        html = \<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">\
         
         # Fila 1: Ligas (con colspan)
-        html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
-        html += '<td rowspan="3" style="border: 1px solid #ddd; padding: 4px; vertical-align: middle; font-size: 11px; width: 70px;">Bodega</td>'
+        html += \<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">\
+        html += \<td rowspan="3" style="border: 1px solid #ddd; padding: 4px; vertical-align: middle; font-size: 11px; width: 70px;">Bodega</td>\
         
         for liga, count in liga_counts.items():
-            if liga != 'INFO':  # Skip INFO column
-                html += f'<td colspan="{count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{liga}</td>'
+            if liga != \INFO\:  # Skip INFO column
+                html += f\<td colspan="{count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{liga}</td>\
         
-        html += '</tr>'
+        html += \</tr>\
         
         # Fila 2: Subcategorías (con colspan)
-        html += '<tr style="background-color: #f0f0f0; font-weight: bold;">'
+        html += \<tr style="background-color: #f0f0f0; font-weight: bold;">\
         
         processed_subcategorias = set()
         for col in df.columns:
-            if len(col) == 3 and col[0] != 'INFO':
+            if len(col) == 3 and col[0] != \INFO\:
                 liga, subcategoria, tipo = col
                 key = (liga, subcategoria)
                 
@@ -2944,36 +2945,36 @@ def mostrar_tabla_consolidada(tabla, pais):
                 if key not in processed_subcategorias:
                     processed_subcategorias.add(key)
                     sub_count = subcategoria_counts.get(key, 1)
-                    html += f'<td colspan="{sub_count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{subcategoria}</td>'
+                    html += f\<td colspan="{sub_count}" style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{subcategoria}</td>\
         
-        html += '</tr>'
+        html += \</tr>\
         
         # Fila 3: Tipos (Stock/Ventas)
-        html += '<tr style="background-color: #e8e8e8; font-weight: bold;">'
+        html += \<tr style="background-color: #e8e8e8; font-weight: bold;">\
         
         for col in df.columns:
-            if len(col) == 3 and col[0] != 'INFO':
+            if len(col) == 3 and col[0] != \INFO\:
                 liga, subcategoria, tipo = col
                 # Cambiar "Ventas" por "Ventas (USD)"
                 tipo_display = "Ventas (USD)" if tipo == "Ventas" else tipo
-                html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px; width: 50px;">{tipo_display}</td>'
+                html += f\<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px; width: 50px;">{tipo_display}</td>\
         
-        html += '</tr>'
+        html += \</tr>\
         
         # Filas de datos
         for idx, row in df.iterrows():
             if idx == len(df) - 1:  # Fila TOTAL
-                html += '<tr style="background-color: #d35400; color: white; font-weight: bold;">'
+                html += \<tr style="background-color: #d35400; color: white; font-weight: bold;">\
             else:
-                html += '<tr>'
+                html += \<tr>\
             
             for col in df.columns:
                 value = row[col]
-                html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{value}</td>'
+                html += f\<td style="border: 1px solid #ddd; padding: 4px; font-size: 11px;">{value}</td>\
             
-            html += '</tr>'
+            html += \</tr>\
         
-        html += '</table>'
+        html += \</table>\
         return html
     
     # CSS para tabla con ancho igual a títulos y scroll interno
@@ -3030,13 +3031,13 @@ def mostrar_tabla_consolidada(tabla, pais):
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     """
     
-    st.markdown(f'<div style="{container_style}">', unsafe_allow_html=True)
+    st.markdown(f\<div style="{container_style}">\, unsafe_allow_html=True)
     tabla_html = crear_tabla_html_con_celdas_combinadas(tabla_formateada)
     st.markdown(tabla_html, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(\</div>\, unsafe_allow_html=True)
     
     # Mostrar métricas resumidas mejoradas
-    selected_league = st.session_state.get('selected_league', None)
+    selected_league = st.session_state.get(\selected_league\, None)
     
     if selected_league:
         professional_design.create_section_header(
@@ -3054,10 +3055,10 @@ def mostrar_tabla_consolidada(tabla, pais):
     cols = st.columns(4)
     
     metricas = [
-        ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
-        ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
-        ('TOTAL ACCESSORIES', 'Accessories Total', "🧦", "#374151"),
-        ('TOTAL GENERAL', 'Inventario Total', "📦", "#4b5563")
+        (\TOTAL HEADWEAR\, \Headwear Total\, "🧢", "#6b7280"),
+        (\TOTAL APPAREL\, \Apparel Total\, "👕", "#9ca3af"),
+        (\TOTAL ACCESSORIES\, \Accessories Total\, "🧦", "#374151"),
+        (\TOTAL GENERAL\, \Inventario Total\, "📦", "#4b5563")
     ]
     
     for i, (col, nombre, emoji, color) in enumerate(metricas):
@@ -3105,7 +3106,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         return
     
     try:
-        selected_league = st.session_state.get('selected_league', None)
+        selected_league = st.session_state.get(\selected_league\, None)
         
         if selected_league:
             logger.info(f"Iniciando exportación a Excel para {selected_league} - {pais}")
@@ -3114,14 +3115,14 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         
         # Crear copia del DataFrame para exportación
         df_export = tabla.copy()
-        df_export.columns = [' - '.join(col).strip(' - ') for col in df_export.columns.values]
+        df_export.columns = [\ - \.join(col).strip(\ - \) for col in df_export.columns.values]
         
         # Crear archivo Excel
         if selected_league:
-            nombre_excel = f"stock_{selected_league.lower()}_{pais.lower().replace(' ', '_')}.xlsx"
+            nombre_excel = f"stock_{selected_league.lower()}_{pais.lower().replace(\ \, \_\)}.xlsx"
         else:
-            nombre_excel = f"stock_consolidado_{pais.lower().replace(' ', '_')}.xlsx"
-        output = pd.ExcelWriter(nombre_excel, engine='openpyxl')
+            nombre_excel = f"stock_consolidado_{pais.lower().replace(\ \, \_\)}.xlsx"
+        output = pd.ExcelWriter(nombre_excel, engine=\openpyxl\)
         
         if selected_league:
             sheet_name = f"{selected_league} {pais}"
@@ -3135,28 +3136,28 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         worksheet = output.sheets[sheet_name]
         
         # Estilos
-        header_fill = PatternFill(start_color='4a7a8c', end_color='4a7a8c', fill_type='solid')
-        header_font = Font(color='FFFFFF', bold=True, size=14)
+        header_fill = PatternFill(start_color=\4a7a8c\, end_color=\4a7a8c\, fill_type=\solid\)
+        header_font = Font(color=\FFFFFF\, bold=True, size=14)
         
-        total_fill = PatternFill(start_color='d35400', end_color='d35400', fill_type='solid')
-        total_font = Font(color='FFFFFF', bold=True, size=14)
+        total_fill = PatternFill(start_color=\d35400\, end_color=\d35400\, fill_type=\solid\)
+        total_font = Font(color=\FFFFFF\, bold=True, size=14)
         
-        normal_font = Font(color='000000', size=10)
+        normal_font = Font(color=\000000\, size=10)
         
         # Colores para el semáforo
-        verde_fill = PatternFill(start_color='28a745', end_color='28a745', fill_type='solid')
-        amarillo_fill = PatternFill(start_color='ffc107', end_color='ffc107', fill_type='solid')
-        rojo_fill = PatternFill(start_color='dc3545', end_color='dc3545', fill_type='solid')
-        gris_fill = PatternFill(start_color='6c757d', end_color='6c757d', fill_type='solid')
-        semaforo_font = Font(color='FFFFFF', bold=True, size=10)
+        verde_fill = PatternFill(start_color=\28a745\, end_color=\28a745\, fill_type=\solid\)
+        amarillo_fill = PatternFill(start_color=\ffc107\, end_color=\ffc107\, fill_type=\solid\)
+        rojo_fill = PatternFill(start_color=\dc3545\, end_color=\dc3545\, fill_type=\solid\)
+        gris_fill = PatternFill(start_color=\6c757d\, end_color=\6c757d\, fill_type=\solid\)
+        semaforo_font = Font(color=\FFFFFF\, bold=True, size=10)
         
         border = Border(
-            left=Side(style='thin'), 
-            right=Side(style='thin'), 
-            top=Side(style='thin'), 
-            bottom=Side(style='thin')
+            left=Side(style=	hin\), 
+            right=Side(style=	hin\), 
+            top=Side(style=	hin\), 
+            bottom=Side(style=	hin\)
         )
-        center_alignment = Alignment(horizontal='center', vertical='center')
+        center_alignment = Alignment(horizontal=\center\, vertical=\center\)
         
         # Aplicar formatos
         for row in worksheet.iter_rows():
@@ -3193,7 +3194,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
                         total_headwear = worksheet.cell(row=row, column=col).value or 0
                         break
                 
-                if bodega == 'TOTAL':
+                if bodega == \TOTAL\:
                     capacidad = country_manager.get_country_data(pais).get_total_capacity()
                 else:
                     capacidad = capacidades.get(bodega, 0)
@@ -3212,7 +3213,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
                     cell.fill = gris_fill
                 
                 if row == worksheet.max_row:
-                    cell.font = Font(color='FFFFFF', bold=True, size=14)
+                    cell.font = Font(color=\FFFFFF\, bold=True, size=14)
                 else:
                     cell.font = semaforo_font
         
@@ -3225,7 +3226,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         # Agregar información adicional
         info_row = worksheet.max_row + 2
         worksheet.cell(row=info_row, column=1, value="Fecha:").font = Font(bold=True)
-        worksheet.cell(row=info_row, column=2, value=datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
+        worksheet.cell(row=info_row, column=2, value=datetime.now().strftime(\%d/%m/%Y %H:%M:%S\))
         
         worksheet.cell(row=info_row+1, column=1, value="Archivo origen:").font = Font(bold=True)
         worksheet.cell(row=info_row+1, column=2, value=nombre_archivo)
@@ -3251,7 +3252,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
             st.download_button(
                 label=f"📤 Descargar Reporte {pais}",
                 data=f,
-                file_name=f"STOCK_CONSOLIDADO_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
+                file_name=f"STOCK_CONSOLIDADO_{pais.upper().replace(\ \, \_\)}_{config.fecha_reporte}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 key=f"download_{pais}"
             )
@@ -3305,14 +3306,14 @@ def main():
         
         if archivo_guatemala is not None:
             # Crear hash del DataFrame para cache
-            df_hash = archivo_guatemala.to_dict('records')
+            df_hash = archivo_guatemala.to_dict(ecords\)
             
             # Procesar datos Guatemala (con cache)
-            selected_league = st.session_state.get('selected_league', None)
-            df_ventas_hash = archivo_ventas_guatemala.to_dict('records') if archivo_ventas_guatemala is not None else None
+            selected_league = st.session_state.get(\selected_league\, None)
+            df_ventas_hash = archivo_ventas_guatemala.to_dict(ecords\) if archivo_ventas_guatemala is not None else None
             
             # Limpiar cache si hay cambios
-            if 'cache_cleared' not in st.session_state:
+            if \cache_cleared\ not in st.session_state:
                 st.cache_data.clear()
                 st.session_state.cache_cleared = True
                 
@@ -3331,7 +3332,8 @@ def main():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                nombre_original_gt = archivo_guatemala.name if hasattr(archivo_guatemala, 'name') else "GUATEMALA.csv"
+                nombre_original_gt = archivo_guatemala.name if hasattr(archivo_guatemala, 
+ame\) else "GUATEMALA.csv"
                 nombre_archivo_gt = st.text_input("📝 Nombre del archivo origen", nombre_original_gt, key="nombre_gt")
             
             with col2:
@@ -3382,10 +3384,10 @@ def main():
         
         if archivo_panama is not None:
             # Crear hash del DataFrame para cache
-            df_hash = archivo_panama.to_dict('records')
+            df_hash = archivo_panama.to_dict(ecords\)
             
             # Procesar datos Panamá (con cache)
-            selected_league = st.session_state.get('selected_league', None)
+            selected_league = st.session_state.get(\selected_league\, None)
             tabla_panama = data_processor.procesar_datos_consolidados(df_hash, "PANAMA", selected_league)
             
             # Mostrar resultados Panamá
@@ -3401,7 +3403,8 @@ def main():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                nombre_original_pa = archivo_panama.name if hasattr(archivo_panama, 'name') else "PANAMA.csv"
+                nombre_original_pa = archivo_panama.name if hasattr(archivo_panama, 
+ame\) else "PANAMA.csv"
                 nombre_archivo_pa = st.text_input("📝 Nombre del archivo origen", nombre_original_pa, key="nombre_pa")
             
             with col2:
@@ -3433,10 +3436,10 @@ def main():
         
         if archivo_honduras is not None:
             # Crear hash del DataFrame para cache
-            df_hash = archivo_honduras.to_dict('records')
+            df_hash = archivo_honduras.to_dict(ecords\)
             
             # Procesar datos Honduras (con cache)
-            selected_league = st.session_state.get('selected_league', None)
+            selected_league = st.session_state.get(\selected_league\, None)
             tabla_honduras = data_processor.procesar_datos_consolidados(df_hash, "Honduras", selected_league)
             
             # Mostrar resultados Honduras
@@ -3452,7 +3455,8 @@ def main():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                nombre_original_hn = archivo_honduras.name if hasattr(archivo_honduras, 'name') else "HONDURAS.csv"
+                nombre_original_hn = archivo_honduras.name if hasattr(archivo_honduras, 
+ame\) else "HONDURAS.csv"
                 nombre_archivo_hn = st.text_input("📝 Nombre del archivo origen", nombre_original_hn, key="nombre_hn")
             
             with col2:
@@ -3484,10 +3488,10 @@ def main():
         
         if archivo_el_salvador is not None:
             # Crear hash del DataFrame para cache
-            df_hash = archivo_el_salvador.to_dict('records')
+            df_hash = archivo_el_salvador.to_dict(ecords\)
             
             # Procesar datos El Salvador (con cache)
-            selected_league = st.session_state.get('selected_league', None)
+            selected_league = st.session_state.get(\selected_league\, None)
             tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league)
             
             # Mostrar resultados El Salvador
@@ -3503,7 +3507,8 @@ def main():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                nombre_original_sv = archivo_el_salvador.name if hasattr(archivo_el_salvador, 'name') else "EL_SALVADOR.csv"
+                nombre_original_sv = archivo_el_salvador.name if hasattr(archivo_el_salvador, 
+ame\) else "EL_SALVADOR.csv"
                 nombre_archivo_sv = st.text_input("📝 Nombre del archivo origen", nombre_original_sv, key="nombre_sv")
             
             with col2:
@@ -3535,10 +3540,10 @@ def main():
         
         if archivo_costa_rica is not None:
             # Crear hash del DataFrame para cache
-            df_hash = archivo_costa_rica.to_dict('records')
+            df_hash = archivo_costa_rica.to_dict(ecords\)
             
             # Procesar datos Costa Rica (con cache)
-            selected_league = st.session_state.get('selected_league', None)
+            selected_league = st.session_state.get(\selected_league\, None)
             tabla_costa_rica = data_processor.procesar_datos_consolidados(df_hash, "Costa Rica", selected_league)
             
             # Mostrar resultados Costa Rica
@@ -3554,7 +3559,8 @@ def main():
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                nombre_original_cr = archivo_costa_rica.name if hasattr(archivo_costa_rica, 'name') else "COSTA_RICA.csv"
+                nombre_original_cr = archivo_costa_rica.name if hasattr(archivo_costa_rica, 
+ame\) else "COSTA_RICA.csv"
                 nombre_archivo_cr = st.text_input("📝 Nombre del archivo origen", nombre_original_cr, key="nombre_cr")
             
             with col2:
