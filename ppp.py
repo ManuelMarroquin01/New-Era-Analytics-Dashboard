@@ -1070,7 +1070,7 @@ class ProfessionalDesign:
                 padding: 2rem; 
                 margin-bottom: 2rem; 
                 box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                background-image: url(\{bg_image}\);
+                background-image: url({bg_image});
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -1554,7 +1554,8 @@ class SalesProcessor:
             "ENTERTAINMENT": [
                 "NEW ERA BRANDED", "ENTERTAINMENT", "MARCA PAIS", "WARNER BROS",
                 "DISNEY", "LOONEY TUNES", "MARVEL", "DC", "UNIVERSAL", "PARAMOUNT"
-            ]
+            ],
+            "ACCESSORIES": ["ACCESSORIES"]
         }
         
         # Importar ProductClassification para clasificar siluetas
@@ -1577,20 +1578,28 @@ class SalesProcessor:
             
             # Procesar por liga
             for categoria, ligas in categorias_ligas.items():
-                df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
                 ventas_desglosadas[bodega][categoria] = {}
                 
-                # Planas (HEADWEAR + Planas)
-                df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
-                ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
-                
-                # Curvas (HEADWEAR + Curvas)  
-                df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
-                ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
-                
-                # Apparel
-                df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
-                ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
+                if categoria == 'ACCESSORIES':
+                    # Para ACCESSORIES, filtrar directamente por segmento
+                    df_accessories = df_bodega[df_bodega['U_Segmento'] == 'ACCESSORIES']
+                    ventas_desglosadas[bodega][categoria]['Stock'] = df_accessories['USD_Total_SI_CD'].sum()
+                    ventas_desglosadas[bodega][categoria]['Ventas'] = df_accessories['USD_Total_SI_CD'].sum()
+                else:
+                    # Lógica original para otras ligas
+                    df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
+                    
+                    # Planas (HEADWEAR + Planas)
+                    df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
+                    ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
+                    
+                    # Curvas (HEADWEAR + Curvas)  
+                    df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
+                    ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
+                    
+                    # Apparel
+                    df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
+                    ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
         
         print(f"Ventas desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
         return ventas_desglosadas
@@ -1623,7 +1632,8 @@ class LeagueCategories:
                 "FEDERACION DE BASEBALL PUERTO RICO",
                 "FEDERACION DOMINICANA DE BASEBALL",
                 "BASEBALL FEDERATION"
-            ]
+            ],
+            "ACCESSORIES": ["ACCESSORIES"]
         }
     
     def get_category_values(self, category: str) -> List[str]:
@@ -1786,7 +1796,7 @@ class DataLoader:
                         color: #6b7280;
                         font-size: 0.9rem;
                         margin: 0;
-                    ">Formato CSV con delimitador \;\</p>
+                    ">Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
                 </div>
             """, unsafe_allow_html=True)
             
@@ -1893,10 +1903,58 @@ class DataProcessor:
             tabla_final = _self._process_categories(df, tabla_final, pais, selected_league)
             tabla_final = _self._calculate_totals(tabla_final, pais, selected_league)
             
+            # Agregar columna Ventas (USD) para ACCESSORIES siempre
+            if 'ACCESSORIES - Stock' in tabla_final.columns and 'ACCESSORIES - Ventas (USD)' not in tabla_final.columns:
+                tabla_final['ACCESSORIES - Ventas (USD)'] = 0.0
+            
             # Agregar columnas de ventas si hay datos de ventas para Guatemala
             if df_ventas_hash is not None and pais == "Guatemala":
                 df_ventas = pd.DataFrame(df_ventas_hash)
                 tabla_final = _self._add_sales_columns(tabla_final, df_ventas)
+            
+            # Calcular TOTAL (USD) usando USD_Total_SI_CD del archivo de ventas
+            if df_ventas_hash is not None and pais == "Guatemala":
+                df_ventas = pd.DataFrame(df_ventas_hash)
+                
+                # Filtrar por marca NEW ERA y mapear tiendas a bodegas
+                df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
+                
+                # Buscar columna de tienda
+                columna_tienda = None
+                for col in df_ventas.columns:
+                    if 'tienda' in col.lower() or 'store' in col.lower() or 'bodega' in col.lower():
+                        columna_tienda = col
+                        break
+                
+                if columna_tienda is not None and 'USD_Total_SI_CD' in df_ventas.columns:
+                    # Debug: Ver las columnas disponibles en tabla_final
+                    print(f"Columnas en tabla_final: {list(tabla_final.columns)}")
+                    
+                    # Mapear tiendas a bodegas usando el mapeo existente
+                    sales_processor = SalesProcessor()
+                    mapeo_inverso = {v: k for k, v in sales_processor.tienda_mapping.items()}
+                    df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
+                    
+                    # Agrupar por bodega y sumar USD_Total_SI_CD
+                    ventas_por_bodega = df_new_era.groupby('Bodega_Mapeada')['USD_Total_SI_CD'].sum()
+                    
+                    # Buscar la columna correcta para Bodega
+                    columna_bodega = None
+                    for col in tabla_final.columns:
+                        if 'bodega' in str(col).lower() or col == 'Bodega':
+                            columna_bodega = col
+                            break
+                    
+                    if columna_bodega is not None:
+                        tabla_final['TOTAL (USD)'] = tabla_final[columna_bodega].map(ventas_por_bodega).fillna(0.0)
+                    else:
+                        print("No se encontró columna de bodega")
+                        tabla_final['TOTAL (USD)'] = 0.0
+                else:
+                    tabla_final['TOTAL (USD)'] = 0.0
+            else:
+                tabla_final['TOTAL (USD)'] = 0.0
+            
             tabla_final = _self._format_table(tabla_final)
             
             logger.info(f"Procesamiento completado para {pais}")
@@ -1937,18 +1995,35 @@ class DataProcessor:
             logger.info("Procesando todas las categorías")
         
         for categoria, valores in categorias_a_procesar.items():
-            df_cat = df[df['U_Liga'].str.upper().isin([v.upper() for v in valores])]
-            logger.info(f"Categoría: {categoria}, Registros filtrados: {len(df_cat)}")
-            
-            if len(df_cat) == 0:
-                logger.warning(f"No se encontraron datos para la categoría {categoria}")
-                continue
-            
-            # Procesar Planas y Curvas
-            pivot = self._process_headwear_types(df_cat)
-            
-            # Procesar Apparel
-            apparel = self._process_apparel(df_cat)
+            if categoria == 'ACCESSORIES':
+                # Para ACCESSORIES, filtrar por segmento en lugar de liga
+                df_cat = df[df['U_Segmento'].str.upper() == 'ACCESSORIES']
+                logger.info(f"Categoría: {categoria}, Registros filtrados por segmento: {len(df_cat)}")
+                
+                if len(df_cat) == 0:
+                    logger.warning(f"No se encontraron datos para la categoría {categoria}")
+                    continue
+                
+                # Para ACCESSORIES, crear directamente las columnas Stock y Ventas (sin Planas/Curvas)
+                accessories_stock = self._process_accessories_stock(df_cat)
+                
+                # Agregar las columnas al DataFrame final
+                for col in accessories_stock.columns:
+                    tabla_final[f"{categoria} - {col}"] = accessories_stock[col]
+            else:
+                # Lógica original para otras ligas
+                df_cat = df[df['U_Liga'].str.upper().isin([v.upper() for v in valores])]
+                logger.info(f"Categoría: {categoria}, Registros filtrados: {len(df_cat)}")
+                
+                if len(df_cat) == 0:
+                    logger.warning(f"No se encontraron datos para la categoría {categoria}")
+                    continue
+                
+                # Procesar Planas y Curvas
+                pivot = self._process_headwear_types(df_cat)
+                
+                # Procesar Apparel
+                apparel = self._process_apparel(df_cat)
             
             # Combinar resultados
             pivot = pivot.join(apparel, how='left').fillna(0)
@@ -1996,6 +2071,18 @@ class DataProcessor:
         """Procesa datos de accessories"""
         return df[df['U_Segmento'] == 'ACCESSORIES'].groupby('Bodega')['Stock_Actual'].sum().rename('TOTAL ACCESSORIES')
     
+    def _process_accessories_stock(self, df_cat: pd.DataFrame) -> pd.DataFrame:
+        """Procesa datos de stock para ACCESSORIES como columnas independientes"""
+        # Crear DataFrame con Stock para ACCESSORIES
+        accessories_data = df_cat.groupby('Bodega')['Stock_Actual'].sum()
+        
+        # Crear DataFrame con columnas Stock y Ventas (USD)
+        result = pd.DataFrame(index=accessories_data.index)
+        result['Stock'] = accessories_data
+        result['Ventas (USD)'] = 0.0  # Inicializar con 0, se llenará con datos reales si están disponibles
+        
+        return result
+    
     def _calculate_totals(self, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Calcula totales y métricas"""
         
@@ -2012,7 +2099,8 @@ class DataProcessor:
                 tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'APPAREL' in col.upper()]].sum(axis=1)
             
             # No calcular % DE CUMPLIMIENTO para liga específica
-            tabla_final['TOTAL GENERAL'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL', 'TOTAL ACCESSORIES']].sum(axis=1)
+            tabla_final['TOTAL STOCK'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL']].sum(axis=1)
+            
         else:
             # Lógica original para todas las ligas
             tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col]].sum(axis=1)
@@ -2028,10 +2116,11 @@ class DataProcessor:
             tabla_final['% DE CUMPLIMIENTO'] = tabla_final['% DE CUMPLIMIENTO'].apply(lambda x: f"{x:.2f}%" if pd.notnull(x) and x != 0 else "N/A")
             
             tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
-            tabla_final['TOTAL GENERAL'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL', 'TOTAL ACCESSORIES']].sum(axis=1)
+            tabla_final['TOTAL STOCK'] = tabla_final[['TOTAL HEADWEAR', 'TOTAL APPAREL']].sum(axis=1)
+            
         
-        # Ordenar por TOTAL GENERAL
-        tabla_final = tabla_final.sort_values('TOTAL GENERAL', ascending=False)
+        # Ordenar por TOTAL STOCK
+        tabla_final = tabla_final.sort_values('TOTAL STOCK', ascending=False)
         
         # Agregar fila de TOTALES
         return self._add_totals_row(tabla_final, pais)
@@ -2060,29 +2149,58 @@ class DataProcessor:
         ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
         
         # Definir las categorías de ligas en el mismo orden que la tabla
-        categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT"]
+        categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT", "ACCESSORIES"]
         subcategorias = ["Planas", "Curvas", "Apparel"]
         
         # Agregar columnas de ventas para cada combinación liga-subcategoría
         for categoria in categorias_ligas:
-            for subcategoria in subcategorias:
-                col_name = f"{categoria} - {subcategoria} - Ventas"
-                tabla_final[col_name] = 0.0
-                
-                # Llenar valores por bodega
-                for bodega in tabla_final.index:
-                    if bodega != 'TOTAL' and bodega in ventas_desglosadas:
-                        ventas_bodega = ventas_desglosadas[bodega]
-                        if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
-                            tabla_final.loc[bodega, col_name] = ventas_bodega[categoria][subcategoria]
-                
-                # Calcular total para la fila TOTAL
-                if 'TOTAL' in tabla_final.index:
-                    total_categoria_subcategoria = 0
-                    for bodega, ventas_bodega in ventas_desglosadas.items():
-                        if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
-                            total_categoria_subcategoria += ventas_bodega[categoria][subcategoria]
-                    tabla_final.loc['TOTAL', col_name] = total_categoria_subcategoria
+            if categoria == 'ACCESSORIES':
+                # Para ACCESSORIES, solo agregar columnas Stock y Ventas (USD)
+                for subcategoria in ['Stock', 'Ventas (USD)']:
+                    col_name = f"{categoria} - {subcategoria}"
+                    tabla_final[col_name] = 0.0
+                    
+                    # Llenar valores por bodega
+                    for bodega in tabla_final.index:
+                        if bodega != 'TOTAL' and bodega in ventas_desglosadas:
+                            ventas_bodega = ventas_desglosadas[bodega]
+                            if categoria in ventas_bodega:
+                                # Para ventas usar el valor, para stock usar el mismo valor
+                                if subcategoria == 'Stock' and 'Stock' in ventas_bodega[categoria]:
+                                    tabla_final.loc[bodega, col_name] = ventas_bodega[categoria]['Stock']
+                                elif subcategoria == 'Ventas (USD)' and 'Ventas' in ventas_bodega[categoria]:
+                                    tabla_final.loc[bodega, col_name] = ventas_bodega[categoria]['Ventas']
+                    
+                    # Calcular total para la fila TOTAL
+                    if 'TOTAL' in tabla_final.index:
+                        total_categoria_subcategoria = 0
+                        for bodega, ventas_bodega in ventas_desglosadas.items():
+                            if categoria in ventas_bodega:
+                                if subcategoria == 'Stock' and 'Stock' in ventas_bodega[categoria]:
+                                    total_categoria_subcategoria += ventas_bodega[categoria]['Stock']
+                                elif subcategoria == 'Ventas (USD)' and 'Ventas' in ventas_bodega[categoria]:
+                                    total_categoria_subcategoria += ventas_bodega[categoria]['Ventas']
+                        tabla_final.loc['TOTAL', col_name] = total_categoria_subcategoria
+            else:
+                # Lógica original para otras ligas
+                for subcategoria in subcategorias:
+                    col_name = f"{categoria} - {subcategoria} - Ventas"
+                    tabla_final[col_name] = 0.0
+                    
+                    # Llenar valores por bodega
+                    for bodega in tabla_final.index:
+                        if bodega != 'TOTAL' and bodega in ventas_desglosadas:
+                            ventas_bodega = ventas_desglosadas[bodega]
+                            if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
+                                tabla_final.loc[bodega, col_name] = ventas_bodega[categoria][subcategoria]
+                    
+                    # Calcular total para la fila TOTAL
+                    if 'TOTAL' in tabla_final.index:
+                        total_categoria_subcategoria = 0
+                        for bodega, ventas_bodega in ventas_desglosadas.items():
+                            if categoria in ventas_bodega and subcategoria in ventas_bodega[categoria]:
+                                total_categoria_subcategoria += ventas_bodega[categoria][subcategoria]
+                        tabla_final.loc['TOTAL', col_name] = total_categoria_subcategoria
         
         return tabla_final
     
@@ -2096,23 +2214,30 @@ class DataProcessor:
         
         # Para cada liga y subcategoría, crear columnas Stock y Ventas
         for categoria in self.league_categories.get_all_categories().keys():
-            for subcategoria in ['Planas', 'Curvas', 'Apparel']:
-                # Stock y Ventas para cada subcategoría
+            if categoria == 'ACCESSORIES':
+                # Para ACCESSORIES, crear columnas Stock y Ventas (USD) directamente
                 columnas_multi.extend([
-                    (categoria, subcategoria, 'Stock'),
-                    (categoria, subcategoria, 'Ventas')
+                    (categoria, 'ACCESSORIES', 'Stock'),
+                    (categoria, 'ACCESSORIES', 'Ventas (USD)')
                 ])
+            else:
+                for subcategoria in ['Planas', 'Curvas', 'Apparel']:
+                    # Stock y Ventas para cada subcategoría
+                    columnas_multi.extend([
+                        (categoria, subcategoria, 'Stock'),
+                        (categoria, subcategoria, 'Ventas')
+                    ])
         
         # Columnas de totales 
         columnas_multi.extend([
             ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
             ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
+            ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
             ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
             ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
             ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
-            ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
-            ('TOTALES', 'RESUMEN', 'TOTAL ACCESSORIES'),
-            ('TOTALES', 'RESUMEN', 'TOTAL GENERAL')
+            ('TOTALES', 'RESUMEN', 'TOTAL STOCK'),
+            ('TOTALES', 'RESUMEN', 'TOTAL (USD)')
         ])
         
         # Crear diccionario de mapeo de nombres de columnas
@@ -2120,25 +2245,35 @@ class DataProcessor:
         
         # Mapear columnas de stock y ventas existentes
         for categoria in self.league_categories.get_all_categories().keys():
-            for subcategoria in ['Planas', 'Curvas', 'Apparel']:
-                nombre_stock = f"{categoria} - {subcategoria}"
-                nombre_ventas = f"{categoria} - {subcategoria} - Ventas"
+            if categoria == 'ACCESSORIES':
+                # Para ACCESSORIES, mapear columnas Stock y Ventas (USD)
+                nombre_stock = f"{categoria} - Stock"
+                nombre_ventas = f"{categoria} - Ventas (USD)"
                 
                 if nombre_stock in tabla_final.columns:
-                    mapeo_columnas[nombre_stock] = (categoria, subcategoria, 'Stock')
+                    mapeo_columnas[nombre_stock] = (categoria, 'ACCESSORIES', 'Stock')
                 if nombre_ventas in tabla_final.columns:
-                    mapeo_columnas[nombre_ventas] = (categoria, subcategoria, 'Ventas')
+                    mapeo_columnas[nombre_ventas] = (categoria, 'ACCESSORIES', 'Ventas (USD)')
+            else:
+                for subcategoria in ['Planas', 'Curvas', 'Apparel']:
+                    nombre_stock = f"{categoria} - {subcategoria}"
+                    nombre_ventas = f"{categoria} - {subcategoria} - Ventas"
+                    
+                    if nombre_stock in tabla_final.columns:
+                        mapeo_columnas[nombre_stock] = (categoria, subcategoria, 'Stock')
+                    if nombre_ventas in tabla_final.columns:
+                        mapeo_columnas[nombre_ventas] = (categoria, subcategoria, 'Ventas')
         
         # Mapear columnas de totales
         totales_mapping = {
             'TOTAL PLANAS': ('TOTALES', 'RESUMEN', 'TOTAL PLANAS'),
             'TOTAL CURVAS': ('TOTALES', 'RESUMEN', 'TOTAL CURVAS'),
+            'TOTAL APPAREL': ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
             'TOTAL HEADWEAR': ('TOTALES', 'RESUMEN', 'TOTAL HEADWEAR'),
             'CAPACIDAD EN TIENDA': ('TOTALES', 'RESUMEN', 'CAPACIDAD EN TIENDA'),
             '% DE CUMPLIMIENTO': ('TOTALES', 'RESUMEN', '% DE CUMPLIMIENTO'),
-            'TOTAL APPAREL': ('TOTALES', 'RESUMEN', 'TOTAL APPAREL'),
-            'TOTAL ACCESSORIES': ('TOTALES', 'RESUMEN', 'TOTAL ACCESSORIES'),
-            'TOTAL GENERAL': ('TOTALES', 'RESUMEN', 'TOTAL GENERAL')
+            'TOTAL STOCK': ('TOTALES', 'RESUMEN', 'TOTAL STOCK'),
+            'TOTAL (USD)': ('TOTALES', 'RESUMEN', 'TOTAL (USD)')
         }
         
         for col_original, col_multi in totales_mapping.items():
@@ -3051,13 +3186,12 @@ def mostrar_tabla_consolidada(tabla, pais):
             "📈"
         )
     
-    cols = st.columns(4)
+    cols = st.columns(3)
     
     metricas = [
         ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
         ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
-        ('TOTAL ACCESSORIES', 'Accessories Total', "🧦", "#374151"),
-        ('TOTAL GENERAL', 'Inventario Total', "📦", "#4b5563")
+        ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
     ]
     
     for i, (col, nombre, emoji, color) in enumerate(metricas):
@@ -3374,8 +3508,7 @@ def main():
     with tab_panama:
         professional_design.create_section_header(
             "Análisis de Stock - Panamá", 
-            "Gestión de inventario para 6 tiendas estratégicas en Panamá",
-            "PA"
+            "Gestión de inventario para 6 tiendas estratégicas en Panamá"
         )
         
         archivo_panama = data_loader.cargar_archivo("📁 Subir archivo PANAMA.csv", "PANAMA")
