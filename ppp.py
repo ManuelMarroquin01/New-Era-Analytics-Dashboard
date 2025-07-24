@@ -2950,6 +2950,395 @@ class ChartVisualizer:
                 </div>
                 """, unsafe_allow_html=True)
 
+def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> None:
+    """Muestra la distribución porcentual de ligas por bodega en gráfica de barras verticales"""
+    if tabla is None or len(tabla) == 0:
+        return
+    
+    logger.info(f"Generando distribución de ligas por bodega para {pais}")
+    
+    # DEBUG: Mostrar información de la tabla
+    logger.info(f"Columnas disponibles: {list(tabla.columns)}")
+    logger.info(f"Índices (bodegas): {list(tabla.index)}")
+    
+    # Buscar la columna que contiene los nombres de las bodegas
+    nombre_columna_bodega = None
+    if isinstance(tabla.columns, pd.MultiIndex):
+        # Para MultiIndex, buscar columna con nombres de bodegas
+        for col in tabla.columns:
+            if len(col) >= 3 and col[2] == 'Bodega':
+                nombre_columna_bodega = col
+                break
+        # Si no encuentra "Bodega" en nivel 2, buscar en otros niveles
+        if nombre_columna_bodega is None:
+            for col in tabla.columns:
+                if 'INFO' in str(col) and 'Bodega' in str(col):
+                    nombre_columna_bodega = col
+                    break
+    
+    logger.info(f"Columna de nombres de bodega encontrada: {nombre_columna_bodega}")
+    
+    # Filtrar solo las bodegas (excluir fila TOTAL)
+    df_bodegas = tabla[tabla.index != 'TOTAL'].copy()
+    
+    if len(df_bodegas) == 0:
+        st.warning("No se encontraron bodegas en los datos")
+        return
+    
+    # Obtener nombres reales de bodegas
+    if nombre_columna_bodega is not None:
+        nombres_reales_bodegas = df_bodegas[nombre_columna_bodega].tolist()
+        logger.info(f"Nombres reales de bodegas: {nombres_reales_bodegas}")
+    else:
+        # Fallback: usar índices si no encuentra la columna de nombres
+        nombres_reales_bodegas = list(df_bodegas.index)
+        logger.info(f"Usando índices como nombres de bodegas: {nombres_reales_bodegas}")
+        st.warning("No se pudo encontrar la columna de nombres de bodegas, usando índices")
+        st.write("Estructura de columnas:")
+        st.write(tabla.columns.tolist()[:5])
+    
+    # Definir las ligas a analizar
+    ligas = ['MLB', 'NBA', 'NFL', 'MOTORSPORT', 'ENTERTAINMENT']
+    
+    # Verificar si la tabla tiene columnas MultiIndex
+    es_multiindex = isinstance(df_bodegas.columns, pd.MultiIndex)
+    logger.info(f"Es MultiIndex: {es_multiindex}")
+    
+    # DEBUG: Verificar qué columnas de ligas existen (para MultiIndex)
+    columnas_encontradas = []
+    if es_multiindex:
+        for liga in ligas:
+            # Buscar columnas con estructura (Liga, Tipo, 'Stock')
+            col_planas = (liga, 'Planas', 'Stock')
+            col_curvas = (liga, 'Curvas', 'Stock')
+            
+            if col_planas in df_bodegas.columns:
+                columnas_encontradas.append(col_planas)
+            if col_curvas in df_bodegas.columns:
+                columnas_encontradas.append(col_curvas)
+    else:
+        for liga in ligas:
+            col_planas = f"{liga} - Planas"
+            col_curvas = f"{liga} - Curvas"
+            if col_planas in df_bodegas.columns:
+                columnas_encontradas.append(col_planas)
+            if col_curvas in df_bodegas.columns:
+                columnas_encontradas.append(col_curvas)
+    
+    logger.info(f"Columnas de ligas encontradas: {columnas_encontradas}")
+    
+    if not columnas_encontradas:
+        st.warning("No se encontraron columnas de stock por liga")
+        # Mostrar algunas columnas de ejemplo
+        st.write("Columnas disponibles en la tabla:")
+        st.write(list(tabla.columns)[:10])  # Mostrar primeras 10 columnas
+        return
+    
+    # Calcular stock de planas + curvas por liga para cada bodega
+    distribucion_data = []
+    
+    for i, bodega_idx in enumerate(df_bodegas.index):
+        # Usar nombre real de bodega si está disponible
+        nombre_bodega = nombres_reales_bodegas[i] if i < len(nombres_reales_bodegas) else bodega_idx
+        bodega_data = {'Bodega': nombre_bodega}
+        total_stock_bodega = 0
+        
+        # Calcular stock por liga (planas + curvas)
+        for liga in ligas:
+            if es_multiindex:
+                # Para columnas MultiIndex: (Liga, Tipo, 'Stock')
+                col_planas = (liga, 'Planas', 'Stock')
+                col_curvas = (liga, 'Curvas', 'Stock')
+                
+                stock_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
+                stock_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
+            else:
+                # Para columnas simples: "LIGA - Tipo"
+                col_planas = f"{liga} - Planas"
+                col_curvas = f"{liga} - Curvas"
+                
+                stock_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
+                stock_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
+            
+            # Asegurar que son números
+            try:
+                stock_planas = float(stock_planas) if stock_planas != 0 else 0
+                stock_curvas = float(stock_curvas) if stock_curvas != 0 else 0
+            except:
+                stock_planas = 0
+                stock_curvas = 0
+            
+            stock_liga = stock_planas + stock_curvas
+            bodega_data[liga] = stock_liga
+            total_stock_bodega += stock_liga
+            
+            # DEBUG: Mostrar stock por liga y bodega
+            if stock_liga > 0:
+                logger.info(f"Bodega {nombre_bodega}, Liga {liga}: Planas={stock_planas}, Curvas={stock_curvas}, Total={stock_liga}")
+        
+        # DEBUG: Mostrar totales por bodega
+        logger.info(f"Bodega {nombre_bodega}: Total stock = {total_stock_bodega}")
+        
+        # Calcular porcentajes
+        if total_stock_bodega > 0:
+            for liga in ligas:
+                bodega_data[f"{liga}_porcentaje"] = (bodega_data[liga] / total_stock_bodega) * 100
+        else:
+            for liga in ligas:
+                bodega_data[f"{liga}_porcentaje"] = 0
+        
+        bodega_data['Total'] = total_stock_bodega
+        distribucion_data.append(bodega_data)
+    
+    # Convertir a DataFrame
+    df_distribucion = pd.DataFrame(distribucion_data)
+    
+    if len(df_distribucion) == 0:
+        return
+    
+    # Filtrar CENTRAL NEW ERA y TOTAL del gráfico
+    df_distribucion = df_distribucion[
+        ~df_distribucion['Bodega'].isin(['CENTRAL NEW ERA', 'TOTAL'])
+    ].copy()
+    
+    if len(df_distribucion) == 0:
+        return
+    
+    # DEBUG: Verificar contenido del DataFrame
+    logger.info(f"DataFrame de distribución creado con {len(df_distribucion)} filas (sin CENTRAL NEW ERA y TOTAL)")
+    logger.info(f"Bodegas encontradas: {df_distribucion['Bodega'].tolist()}")
+    
+    # Definir bodegas principales y secundarias
+    bodegas_principales = [
+        'NE Oakland', 'NE Cayala', 'NE Miraflores', 'NE Portales', 'NE Concepcion', 
+        'NE Naranjo', 'NE Vistares', 'NE Peri Roosvelt', 'NE Plaza Videre'
+    ]
+    
+    # Separar los datos en dos grupos
+    df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
+    df_secundarias = df_distribucion[~df_distribucion['Bodega'].isin(bodegas_principales)].copy()
+    
+    # DEBUG: Verificar separación de datos
+    logger.info(f"Bodegas principales encontradas: {df_principales['Bodega'].tolist() if len(df_principales) > 0 else 'NINGUNA'}")
+    logger.info(f"Total bodegas principales: {len(df_principales)}")
+    logger.info(f"Bodegas secundarias encontradas: {df_secundarias['Bodega'].tolist() if len(df_secundarias) > 0 else 'NINGUNA'}")
+    logger.info(f"Total bodegas secundarias: {len(df_secundarias)}")
+    
+    # Crear header de sección
+    professional_design.create_section_header(
+        f"Distribución de Ligas por Bodega - {pais}",
+        "Porcentaje de stock (planas + curvas) por liga en cada bodega",
+        "📊"
+    )
+    
+    # Función auxiliar para crear gráfico
+    def crear_grafico_distribucion(df_data, titulo_grafico, ligas):
+        if len(df_data) == 0:
+            return None
+            
+        fig = go.Figure()
+        
+        # Colores para cada liga
+        colores_ligas = {
+            'MLB': '#1f77b4',      # Azul
+            'NBA': '#ff7f0e',      # Naranja
+            'NFL': '#2ca02c',      # Verde
+            'MOTORSPORT': '#d62728', # Rojo
+            'ENTERTAINMENT': '#9467bd' # Púrpura
+        }
+        
+        # Obtener nombres de bodegas para el eje X
+        nombres_bodegas = df_data['Bodega'].tolist()
+        
+        # Agregar barras para cada liga
+        for liga in ligas:
+            fig.add_trace(go.Bar(
+                name=liga,
+                x=nombres_bodegas,
+                y=df_data[f'{liga}_porcentaje'],
+                marker_color=colores_ligas[liga],
+                text=[f'{val:.1f}%' for val in df_data[f'{liga}_porcentaje']],
+                textposition='outside',
+                textfont=dict(
+                    size=16,
+                    color='black',
+                    family='Inter, sans-serif',
+                    weight='bold'
+                )
+            ))
+        
+        # Configurar layout
+        fig.update_layout(
+            title=titulo_grafico,
+            xaxis_title='Bodegas/Tiendas',
+            yaxis_title='Porcentaje (%)',
+            barmode='group',
+            height=600,
+            showlegend=False,
+            xaxis=dict(
+                categoryorder='array',
+                categoryarray=nombres_bodegas
+            ),
+            margin=dict(l=60, r=60, t=100, b=80)
+        )
+        
+        # Configurar ejes
+        fig.update_xaxes(
+            tickangle=45,
+            tickmode='array',
+            tickvals=list(range(len(nombres_bodegas))),
+            ticktext=nombres_bodegas
+        )
+        fig.update_yaxes(range=[0, 100])
+        
+        # Agregar líneas de cuadrícula
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+        
+        return fig
+    
+    # Función auxiliar para crear tabla resumen
+    def crear_tabla_resumen(df_data, titulo_tabla, ligas):
+        if len(df_data) == 0:
+            return
+        
+        st.markdown(f"#### {titulo_tabla}")
+        
+        # Crear tabla para mostrar con índice de nombres de bodegas
+        tabla_resumen = df_data[['Bodega'] + [f'{liga}_porcentaje' for liga in ligas] + ['Total']].copy()
+        
+        # Usar nombres de bodegas como índice para mejor visualización
+        tabla_resumen = tabla_resumen.set_index('Bodega')
+        
+        # Renombrar columnas para mejor presentación
+        columnas_rename = {'Total': 'Total Stock'}
+        for liga in ligas:
+            columnas_rename[f'{liga}_porcentaje'] = f'{liga}'
+        
+        tabla_resumen = tabla_resumen.rename(columns=columnas_rename)
+        
+        # Formatear porcentajes
+        for liga in ligas:
+            tabla_resumen[liga] = tabla_resumen[liga].apply(lambda x: f'{x:.1f}%')
+        
+        # Formatear total con comas
+        tabla_resumen['Total Stock'] = tabla_resumen['Total Stock'].apply(lambda x: f'{x:,}')
+        
+        # Mostrar tabla
+        st.dataframe(tabla_resumen, column_config={
+            "MLB": st.column_config.TextColumn("MLB", width="small", help="Porcentaje de stock MLB"),
+            "NBA": st.column_config.TextColumn("NBA", width="small", help="Porcentaje de stock NBA"),
+            "NFL": st.column_config.TextColumn("NFL", width="small", help="Porcentaje de stock NFL"),
+            "MOTORSPORT": st.column_config.TextColumn("MOTORSPORT", width="small", help="Porcentaje de stock MOTORSPORT"),
+            "ENTERTAINMENT": st.column_config.TextColumn("ENTERTAINMENT", width="small", help="Porcentaje de stock ENTERTAINMENT"),
+            "Total Stock": st.column_config.TextColumn("Total Stock", width="medium", help="Total de stock (Planas + Curvas)")
+        })
+
+    # Crear y mostrar gráfico de bodegas principales con su tabla
+    if len(df_principales) > 0:
+        st.markdown("#### 🏪 Bodegas Principales")
+        fig_principales = crear_grafico_distribucion(
+            df_principales, 
+            f'Distribución por Ligas - Bodegas Principales ({pais})', 
+            ligas
+        )
+        if fig_principales:
+            st.plotly_chart(fig_principales, use_container_width=True)
+        
+        # Mostrar tabla de bodegas principales inmediatamente después del gráfico
+        crear_tabla_resumen(df_principales, "📋 Resumen - Bodegas Principales", ligas)
+    
+    # Crear y mostrar gráfico de bodegas secundarias con su tabla
+    if len(df_secundarias) > 0:
+        st.markdown("#### 🏬 Bodegas Secundarias")
+        fig_secundarias = crear_grafico_distribucion(
+            df_secundarias, 
+            f'Distribución por Ligas - Bodegas Secundarias ({pais})', 
+            ligas
+        )
+        if fig_secundarias:
+            st.plotly_chart(fig_secundarias, use_container_width=True)
+        
+        # Mostrar tabla de bodegas secundarias inmediatamente después del gráfico
+        crear_tabla_resumen(df_secundarias, "📋 Resumen - Bodegas Secundarias", ligas)
+    
+    # Leyenda personalizada debajo del gráfico
+    st.markdown("""
+    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; background: #1f77b4; border-radius: 3px;"></div>
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">MLB</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; background: #ff7f0e; border-radius: 3px;"></div>
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">NBA</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; background: #2ca02c; border-radius: 3px;"></div>
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">NFL</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; background: #d62728; border-radius: 3px;"></div>
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">MOTORSPORT</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 16px; height: 16px; background: #9467bd; border-radius: 3px;"></div>
+                <span style="font-size: 12px; font-weight: 600; color: #374151;">ENTERTAINMENT</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    
+    # CSS aplicado de forma más simple y compatible
+    st.markdown("""
+    <style>
+    /* Estilos específicos para la tabla de distribución */
+    [data-testid="stDataFrame"] {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    [data-testid="stDataFrame"] thead th {
+        background: #3b82f6;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+        font-size: 11px;
+        border: none;
+    }
+    
+    [data-testid="stDataFrame"] tbody td {
+        text-align: center;
+        padding: 6px 8px;
+        font-size: 11px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    [data-testid="stDataFrame"] tbody td:first-child {
+        text-align: left;
+        font-weight: bold;
+        background: #f8fafc;
+        color: #374151;
+        padding-left: 12px;
+    }
+    
+    [data-testid="stDataFrame"] tbody tr:nth-child(even) {
+        background: #f9fafb;
+    }
+    
+    [data-testid="stDataFrame"] tbody tr:hover {
+        background: #eff6ff;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Instancia del visualizador de gráficas
 chart_visualizer = ChartVisualizer(stock_analyzer, country_manager)
 
@@ -3196,13 +3585,31 @@ def mostrar_tabla_consolidada(tabla, pais):
             "📈"
         )
     
-    cols = st.columns(3)
+    # Verificar si hay datos de ventas para incluir TOTAL VENTAS
+    hay_total_usd = False
+    total_ventas_valor = 0
+    for tabla_col in tabla.columns:
+        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL (USD)':
+            hay_total_usd = True
+            total_ventas_valor = tabla[tabla_col].iloc[-1]
+            break
     
-    metricas = [
-        ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
-        ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
-        ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
-    ]
+    # Definir métricas según disponibilidad de datos de ventas
+    if hay_total_usd:
+        cols = st.columns(4)
+        metricas = [
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563"),
+            ('TOTAL (USD)', 'Total Ventas', "💰", "#10b981")
+        ]
+    else:
+        cols = st.columns(3)
+        metricas = [
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
+        ]
     
     for i, (col, nombre, emoji, color) in enumerate(metricas):
         with cols[i]:
@@ -3212,6 +3619,15 @@ def mostrar_tabla_consolidada(tabla, pais):
                 if len(tabla_col) == 3 and tabla_col[2] == col:
                     valor = tabla[tabla_col].iloc[-1]
                     break
+            
+            # Determinar el texto de descripción según el tipo de métrica
+            if col == 'TOTAL (USD)':
+                descripcion = f"USD en ventas{f' - {selected_league}' if selected_league else ''}"
+                valor_formato = f"${valor:,.2f}"
+            else:
+                descripcion = f"unidades en stock{f' - {selected_league}' if selected_league else ''}"
+                valor_formato = f"{valor:,}"
+            
             st.markdown(f"""
             <div class="metric-card" style="border-left: 4px solid {color};">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -3219,10 +3635,10 @@ def mostrar_tabla_consolidada(tabla, pais):
                     <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{nombre.upper()}</span>
                 </div>
                 <div style="font-size: 2rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
-                    {valor:,}
+                    {valor_formato}
                 </div>
                 <div style="color: #6b7280; font-size: 0.85rem;">
-                    unidades en stock{f" - {selected_league}" if selected_league else ""}
+                    {descripcion}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -3241,6 +3657,10 @@ def mostrar_tabla_consolidada(tabla, pais):
             "📊"
         )
     mostrar_grafica_comparativa(tabla, pais)
+    
+    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (solo para Guatemala)
+    if pais == "Guatemala":
+        mostrar_distribucion_ligas_por_bodega(tabla, pais)
 
 def exportar_excel_consolidado(tabla, nombre_archivo, pais):
     """Exporta la tabla consolidada a Excel con formato profesional"""
