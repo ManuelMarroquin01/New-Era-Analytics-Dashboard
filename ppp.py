@@ -3126,10 +3126,39 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     
     # Crear header de sección
     professional_design.create_section_header(
-        f"Distribución de Ligas por Bodega - {pais}",
+        f"Distribución de Stock por Bodega - {pais}",
         "Porcentaje de stock (planas + curvas) por liga en cada bodega",
         "📊"
     )
+    
+    # Función auxiliar para crear leyenda de ligas
+    def crear_leyenda_ligas():
+        st.markdown("""
+        <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 16px; height: 16px; background: #1f77b4; border-radius: 3px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">MLB</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 16px; height: 16px; background: #ff7f0e; border-radius: 3px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">NBA</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 16px; height: 16px; background: #2ca02c; border-radius: 3px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">NFL</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 16px; height: 16px; background: #d62728; border-radius: 3px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">MOTORSPORT</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 16px; height: 16px; background: #9467bd; border-radius: 3px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">ENTERTAINMENT</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Función auxiliar para crear gráfico
     def crear_grafico_distribucion(df_data, titulo_grafico, ligas):
@@ -3244,8 +3273,11 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         )
         if fig_principales:
             st.plotly_chart(fig_principales, use_container_width=True)
+            
+            # Mostrar leyenda de ligas justo después del gráfico
+            crear_leyenda_ligas()
         
-        # Mostrar tabla de bodegas principales inmediatamente después del gráfico
+        # Mostrar tabla de bodegas principales después de la leyenda
         crear_tabla_resumen(df_principales, "📋 Resumen - Bodegas Principales", ligas)
     
     # Crear y mostrar gráfico de bodegas secundarias con su tabla
@@ -3258,38 +3290,228 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         )
         if fig_secundarias:
             st.plotly_chart(fig_secundarias, use_container_width=True)
+            
+            # Mostrar leyenda de ligas justo después del gráfico
+            crear_leyenda_ligas()
         
-        # Mostrar tabla de bodegas secundarias inmediatamente después del gráfico
+        # Mostrar tabla de bodegas secundarias después de la leyenda
         crear_tabla_resumen(df_secundarias, "📋 Resumen - Bodegas Secundarias", ligas)
     
-    # Leyenda personalizada debajo del gráfico
-    st.markdown("""
-    <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 16px; height: 16px; background: #1f77b4; border-radius: 3px;"></div>
-                <span style="font-size: 12px; font-weight: 600; color: #374151;">MLB</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 16px; height: 16px; background: #ff7f0e; border-radius: 3px;"></div>
-                <span style="font-size: 12px; font-weight: 600; color: #374151;">NBA</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 16px; height: 16px; background: #2ca02c; border-radius: 3px;"></div>
-                <span style="font-size: 12px; font-weight: 600; color: #374151;">NFL</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 16px; height: 16px; background: #d62728; border-radius: 3px;"></div>
-                <span style="font-size: 12px; font-weight: 600; color: #374151;">MOTORSPORT</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 16px; height: 16px; background: #9467bd; border-radius: 3px;"></div>
-                <span style="font-size: 12px; font-weight: 600; color: #374151;">ENTERTAINMENT</span>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # ==================== NUEVA SECCIÓN: DISTRIBUCIÓN DE VENTAS POR BODEGA ====================
     
+    # Función auxiliar para crear gráfico de distribución de ventas
+    def crear_grafico_distribucion_ventas(df_data, titulo_grafico, ligas):
+        if len(df_data) == 0:
+            return None
+            
+        fig = go.Figure()
+        
+        # Colores para cada liga
+        colores_ligas = {
+            'MLB': '#1f77b4',      # Azul
+            'NBA': '#ff7f0e',      # Naranja
+            'NFL': '#2ca02c',      # Verde
+            'MOTORSPORT': '#d62728', # Rojo
+            'ENTERTAINMENT': '#9467bd' # Púrpura
+        }
+        
+        # Obtener nombres de bodegas para el eje X
+        nombres_bodegas = df_data['Bodega'].tolist()
+        
+        # Agregar barras para cada liga
+        for liga in ligas:
+            fig.add_trace(go.Bar(
+                name=liga,
+                x=nombres_bodegas,
+                y=df_data[f'{liga}_porcentaje_ventas'],
+                marker_color=colores_ligas[liga],
+                text=[f'{val:.1f}%' for val in df_data[f'{liga}_porcentaje_ventas']],
+                textposition='outside',
+                textfont=dict(
+                    size=16,
+                    color='black',
+                    family='Inter, sans-serif',
+                    weight='bold'
+                )
+            ))
+        
+        # Configurar layout
+        fig.update_layout(
+            title=titulo_grafico,
+            xaxis_title='Bodegas/Tiendas',
+            yaxis_title='Porcentaje (%)',
+            barmode='group',
+            height=600,
+            showlegend=False,
+            xaxis=dict(
+                categoryorder='array',
+                categoryarray=nombres_bodegas
+            ),
+            margin=dict(l=60, r=60, t=100, b=80)
+        )
+        
+        # Configurar ejes
+        fig.update_xaxes(
+            tickangle=45,
+            tickmode='array',
+            tickvals=list(range(len(nombres_bodegas))),
+            ticktext=nombres_bodegas
+        )
+        fig.update_yaxes(range=[0, 100])
+        
+        # Agregar líneas de cuadrícula
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+        
+        return fig
+    
+    # Función auxiliar para crear tabla resumen de ventas
+    def crear_tabla_resumen_ventas(df_data, titulo_tabla, ligas):
+        if len(df_data) == 0:
+            return
+        
+        st.markdown(f"#### {titulo_tabla}")
+        
+        # Crear tabla para mostrar con índice de nombres de bodegas
+        tabla_resumen = df_data[['Bodega'] + [f'{liga}_porcentaje_ventas' for liga in ligas] + ['Total_Ventas']].copy()
+        
+        # Usar nombres de bodegas como índice para mejor visualización
+        tabla_resumen = tabla_resumen.set_index('Bodega')
+        
+        # Renombrar columnas para mejor presentación
+        columnas_rename = {'Total_Ventas': 'Total Ventas (USD)'}
+        for liga in ligas:
+            columnas_rename[f'{liga}_porcentaje_ventas'] = f'{liga}'
+        
+        tabla_resumen = tabla_resumen.rename(columns=columnas_rename)
+        
+        # Formatear porcentajes
+        for liga in ligas:
+            tabla_resumen[liga] = tabla_resumen[liga].apply(lambda x: f'{x:.1f}%')
+        
+        # Formatear total con comas y símbolo de dólar
+        tabla_resumen['Total Ventas (USD)'] = tabla_resumen['Total Ventas (USD)'].apply(lambda x: f'${x:,.2f}')
+        
+        # Mostrar tabla
+        st.dataframe(tabla_resumen, column_config={
+            "MLB": st.column_config.TextColumn("MLB", width="small", help="Porcentaje de ventas MLB"),
+            "NBA": st.column_config.TextColumn("NBA", width="small", help="Porcentaje de ventas NBA"),
+            "NFL": st.column_config.TextColumn("NFL", width="small", help="Porcentaje de ventas NFL"),
+            "MOTORSPORT": st.column_config.TextColumn("MOTORSPORT", width="small", help="Porcentaje de ventas MOTORSPORT"),
+            "ENTERTAINMENT": st.column_config.TextColumn("ENTERTAINMENT", width="small", help="Porcentaje de ventas ENTERTAINMENT"),
+            "Total Ventas (USD)": st.column_config.TextColumn("Total Ventas (USD)", width="medium", help="Total de ventas en USD")
+        })
+
+    # Verificar si hay datos de ventas disponibles (solo para Guatemala)
+    if pais == "Guatemala" and any('Ventas' in str(col) for col in df_bodegas.columns):
+        # Crear header de sección para ventas
+        professional_design.create_section_header(
+            f"Distribución de Ventas por Bodega - {pais}",
+            "Porcentaje de ventas (USD) por liga en cada bodega",
+            "💰"
+        )
+        
+        # Procesar datos de distribución de ventas
+        distribucion_ventas_data = []
+        
+        for i, bodega_idx in enumerate(df_bodegas.index):
+            # Usar nombre real de bodega si está disponible
+            nombre_bodega = nombres_reales_bodegas[i] if i < len(nombres_reales_bodegas) else bodega_idx
+            bodega_data_ventas = {'Bodega': nombre_bodega}
+            total_ventas_bodega = 0
+            
+            # Calcular ventas por liga (planas + curvas)
+            for liga in ligas:
+                if es_multiindex:
+                    # Para columnas MultiIndex: (Liga, Tipo, 'Ventas')
+                    col_planas_ventas = (liga, 'Planas', 'Ventas')
+                    col_curvas_ventas = (liga, 'Curvas', 'Ventas')
+                    
+                    ventas_planas = df_bodegas.loc[bodega_idx, col_planas_ventas] if col_planas_ventas in df_bodegas.columns else 0
+                    ventas_curvas = df_bodegas.loc[bodega_idx, col_curvas_ventas] if col_curvas_ventas in df_bodegas.columns else 0
+                else:
+                    # Para columnas simples: "LIGA - Tipo - Ventas"  
+                    col_planas_ventas = f"{liga} - Planas - Ventas"
+                    col_curvas_ventas = f"{liga} - Curvas - Ventas"
+                    
+                    ventas_planas = df_bodegas.loc[bodega_idx, col_planas_ventas] if col_planas_ventas in df_bodegas.columns else 0
+                    ventas_curvas = df_bodegas.loc[bodega_idx, col_curvas_ventas] if col_curvas_ventas in df_bodegas.columns else 0
+                
+                # Asegurar que son números
+                try:
+                    ventas_planas = float(ventas_planas) if ventas_planas != 0 else 0
+                    ventas_curvas = float(ventas_curvas) if ventas_curvas != 0 else 0
+                except:
+                    ventas_planas = 0
+                    ventas_curvas = 0
+                
+                ventas_liga = ventas_planas + ventas_curvas
+                bodega_data_ventas[liga] = ventas_liga
+                total_ventas_bodega += ventas_liga
+            
+            # Calcular porcentajes de ventas
+            if total_ventas_bodega > 0:
+                for liga in ligas:
+                    bodega_data_ventas[f"{liga}_porcentaje_ventas"] = (bodega_data_ventas[liga] / total_ventas_bodega) * 100
+            else:
+                for liga in ligas:
+                    bodega_data_ventas[f"{liga}_porcentaje_ventas"] = 0
+            
+            bodega_data_ventas['Total_Ventas'] = total_ventas_bodega
+            distribucion_ventas_data.append(bodega_data_ventas)
+        
+        # Convertir a DataFrame  
+        df_distribucion_ventas = pd.DataFrame(distribucion_ventas_data)
+        
+        if len(df_distribucion_ventas) == 0:
+            st.warning("No hay datos de ventas disponibles para mostrar gráficos.")
+        else:
+            # Filtrar CENTRAL NEW ERA y TOTAL del gráfico
+            df_distribucion_ventas = df_distribucion_ventas[
+                ~df_distribucion_ventas['Bodega'].isin(['CENTRAL NEW ERA', 'TOTAL'])
+            ].copy()
+            
+            if len(df_distribucion_ventas) > 0:
+                # Separar los datos en dos grupos para ventas
+                df_principales_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
+                df_secundarias_ventas = df_distribucion_ventas[~df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
+                
+                # Crear y mostrar gráfico de bodegas principales con ventas
+                if len(df_principales_ventas) > 0:
+                    st.markdown("#### 🏪 Bodegas Principales - Ventas")
+                    fig_principales_ventas = crear_grafico_distribucion_ventas(
+                        df_principales_ventas, 
+                        f'Distribución por Ligas - Bodegas Principales - Ventas ({pais})', 
+                        ligas
+                    )
+                    if fig_principales_ventas:
+                        st.plotly_chart(fig_principales_ventas, use_container_width=True)
+                        
+                        # Mostrar leyenda de ligas justo después del gráfico
+                        crear_leyenda_ligas()
+                    
+                    # Mostrar tabla de bodegas principales de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_principales_ventas, "📋 Resumen - Bodegas Principales - Ventas", ligas)
+                
+                # Crear y mostrar gráfico de bodegas secundarias con ventas
+                if len(df_secundarias_ventas) > 0:
+                    st.markdown("#### 🏬 Bodegas Secundarias - Ventas")
+                    fig_secundarias_ventas = crear_grafico_distribucion_ventas(
+                        df_secundarias_ventas, 
+                        f'Distribución por Ligas - Bodegas Secundarias - Ventas ({pais})', 
+                        ligas
+                    )
+                    if fig_secundarias_ventas:
+                        st.plotly_chart(fig_secundarias_ventas, use_container_width=True)
+                        
+                        # Mostrar leyenda de ligas justo después del gráfico
+                        crear_leyenda_ligas()
+                    
+                    # Mostrar tabla de bodegas secundarias de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_secundarias_ventas, "📋 Resumen - Bodegas Secundarias - Ventas", ligas)
+    else:
+        # Mostrar mensaje informativo para otros países
+        st.info(f"📊 Los gráficos de distribución de ventas solo están disponibles para Guatemala cuando se cargan datos de ventas.")
     
     # CSS aplicado de forma más simple y compatible
     st.markdown("""
