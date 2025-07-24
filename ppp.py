@@ -1900,11 +1900,13 @@ class DataProcessor:
             
             df = _self._prepare_data(df)
             tabla_final = _self._create_base_table(pais)
-            tabla_final = _self._process_categories(df, tabla_final, pais, selected_league)
+            tabla_final = _self._process_categories(df, tabla_final, pais, selected_league, df_ventas_hash)
             tabla_final = _self._calculate_totals(tabla_final, pais, selected_league)
             
-            # Agregar columna Ventas (USD) para ACCESSORIES siempre
-            if 'ACCESSORIES - Stock' in tabla_final.columns and 'ACCESSORIES - Ventas (USD)' not in tabla_final.columns:
+            # Agregar columna Ventas (USD) para ACCESSORIES solo si hay datos de ventas
+            if (df_ventas_hash is not None and pais == "Guatemala" and 
+                'ACCESSORIES - Stock' in tabla_final.columns and 
+                'ACCESSORIES - Ventas (USD)' not in tabla_final.columns):
                 tabla_final['ACCESSORIES - Ventas (USD)'] = 0.0
             
             # Agregar columnas de ventas si hay datos de ventas para Guatemala
@@ -1958,7 +1960,7 @@ class DataProcessor:
         bodegas = self.country_manager.get_bodegas(pais)
         return pd.DataFrame(index=bodegas)
     
-    def _process_categories(self, df: pd.DataFrame, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
+    def _process_categories(self, df: pd.DataFrame, tabla_final: pd.DataFrame, pais: str, selected_league: str = None, df_ventas_hash: List[Dict] = None) -> pd.DataFrame:
         """Procesa cada categoría de liga"""
         # Usar el parámetro pasado en lugar de session_state para compatibilidad con cache
         
@@ -1976,7 +1978,7 @@ class DataProcessor:
                     logger.warning(f"No se encontraron datos para la categoría {categoria}")
                     continue
                 
-                # Para ACCESSORIES, crear directamente las columnas Stock y Ventas (sin Planas/Curvas)
+                # Para ACCESSORIES, crear columnas Stock y opcionalmente Ventas
                 accessories_stock = self._process_accessories_stock(df_cat)
                 
                 # Agregar las columnas al DataFrame final
@@ -2045,19 +2047,26 @@ class DataProcessor:
     def _calculate_totals(self, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Calcula totales y métricas"""
         
+        
         # Calcular totales según el filtro aplicado
         if selected_league:
-            # Para liga específica, calcular totales SOLO de esa liga
-            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col and selected_league in col]].sum(axis=1)
-            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col and selected_league in col]].sum(axis=1)
-            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col and selected_league in col]].sum(axis=1)
+            # Para liga específica, calcular totales SOLO de esa liga y SOLO Stock
+            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Planas']].sum(axis=1)
+            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Curvas']].sum(axis=1)
+            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Apparel']].sum(axis=1)
             logger.info(f"Calculando totales solo para liga: {selected_league}")
         else:
-            # Para todas las ligas, calcular totales de todas las columnas
-            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col]].sum(axis=1)
-            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col]].sum(axis=1)
-            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
-            logger.info("Calculando totales de todas las ligas")
+            # Columnas PLANAS: Buscar solo las que terminan en "Planas" (excluyendo ACCESSORIES y Ventas)
+            columnas_planas = [col for col in tabla_final.columns if str(col).endswith('- Planas') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
+            tabla_final['TOTAL PLANAS'] = tabla_final[columnas_planas].sum(axis=1) if columnas_planas else 0
+            
+            # Columnas CURVAS: Buscar solo las que terminan en "Curvas" (excluyendo ACCESSORIES y Ventas)
+            columnas_curvas = [col for col in tabla_final.columns if str(col).endswith('- Curvas') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
+            tabla_final['TOTAL CURVAS'] = tabla_final[columnas_curvas].sum(axis=1) if columnas_curvas else 0
+            
+            # Columnas APPAREL: Buscar solo las que terminan en "Apparel" (excluyendo ACCESSORIES y Ventas)
+            columnas_apparel = [col for col in tabla_final.columns if str(col).endswith('- Apparel') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
+            tabla_final['TOTAL APPAREL'] = tabla_final[columnas_apparel].sum(axis=1) if columnas_apparel else 0
         
         # TOTAL HEADWEAR y TOTAL STOCK se calculan igual en ambos casos
         tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
@@ -2181,11 +2190,10 @@ class DataProcessor:
         # Para cada liga y subcategoría, crear columnas Stock y Ventas
         for categoria in categorias_para_multiindex.keys():
             if categoria == 'ACCESSORIES':
-                # Para ACCESSORIES, crear columnas Stock y Ventas (USD) directamente
-                columnas_multi.extend([
-                    (categoria, 'ACCESSORIES', 'Stock'),
-                    (categoria, 'ACCESSORIES', 'Ventas (USD)')
-                ])
+                # Para ACCESSORIES, crear columna Stock siempre, Ventas solo si hay datos de ventas
+                columnas_multi.append((categoria, 'Accessories', 'Stock'))
+                if hay_ventas:
+                    columnas_multi.append((categoria, 'Accessories', 'Ventas (USD)'))
             else:
                 for subcategoria in ['Planas', 'Curvas', 'Apparel']:
                     # Stock y Ventas para cada subcategoría
@@ -2245,9 +2253,9 @@ class DataProcessor:
                 nombre_ventas = f"{categoria} - Ventas (USD)"
                 
                 if nombre_stock in tabla_final.columns:
-                    mapeo_columnas[nombre_stock] = (categoria, 'ACCESSORIES', 'Stock')
+                    mapeo_columnas[nombre_stock] = (categoria, 'Accessories', 'Stock')
                 if nombre_ventas in tabla_final.columns:
-                    mapeo_columnas[nombre_ventas] = (categoria, 'ACCESSORIES', 'Ventas (USD)')
+                    mapeo_columnas[nombre_ventas] = (categoria, 'Accessories', 'Ventas (USD)')
             else:
                 for subcategoria in ['Planas', 'Curvas', 'Apparel']:
                     nombre_stock = f"{categoria} - {subcategoria}"
@@ -2938,7 +2946,7 @@ class ChartVisualizer:
                 st.markdown(f"""
                 <div class="metric-card" style="border-left: 4px solid {color};">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span style="font-size: 1.5rem;">{emoji}</span>
+                        <span style="font-size: 1.5rem; color: #000000;">{emoji}</span>
                         <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{nombre.upper()}</span>
                     </div>
                     <div style="font-size: 1.4rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
@@ -3271,15 +3279,56 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         # Formatear total con comas
         tabla_resumen['Total Stock'] = tabla_resumen['Total Stock'].apply(lambda x: f'{x:,}')
         
-        # Mostrar tabla
-        st.dataframe(tabla_resumen, column_config={
-            "MLB": st.column_config.TextColumn("MLB", width="small", help="Porcentaje de stock MLB"),
-            "NBA": st.column_config.TextColumn("NBA", width="small", help="Porcentaje de stock NBA"),
-            "NFL": st.column_config.TextColumn("NFL", width="small", help="Porcentaje de stock NFL"),
-            "MOTORSPORT": st.column_config.TextColumn("MOTORSPORT", width="small", help="Porcentaje de stock MOTORSPORT"),
-            "ENTERTAINMENT": st.column_config.TextColumn("ENTERTAINMENT", width="small", help="Porcentaje de stock ENTERTAINMENT"),
-            "Total Stock": st.column_config.TextColumn("Total Stock", width="medium", help="Total de stock (Planas + Curvas)")
-        })
+        # Crear HTML personalizado con el mismo estilo que la tabla consolidada
+        def crear_html_tabla_resumen(df):
+            html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
+            
+            # Header con estilo profesional
+            html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
+            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
+            
+            for liga in ligas:
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 80px;">{liga}</td>'
+            
+            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 100px;">Total Stock</td>'
+            html += '</tr>'
+            
+            # Filas de datos
+            for idx, row in df.iterrows():
+                html += '<tr style="background-color: #f9f9f9;" onmouseover="this.style.backgroundColor=\'#e8f4f8\'" onmouseout="this.style.backgroundColor=\'#f9f9f9\'">'
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: left; font-weight: 600;">{idx}</td>'
+                
+                for liga in ligas:
+                    valor = row[liga]
+                    html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center;">{valor}</td>'
+                
+                total_valor = row['Total Stock']
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center; font-weight: 600; background-color: #f0f0f0;">{total_valor}</td>'
+                html += '</tr>'
+            
+            html += '</table>'
+            return html
+        
+        # Aplicar estilos CSS
+        st.markdown("""
+        <style>
+            .tabla-resumen-container {
+                overflow-x: auto;
+                width: 100%;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin: 10px 0;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Mostrar tabla con estilo profesional
+        st.markdown('<div class="tabla-resumen-container">', unsafe_allow_html=True)
+        tabla_html = crear_html_tabla_resumen(tabla_resumen)
+        st.markdown(tabla_html, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Crear y mostrar gráfico de tiendas de ciudad con su tabla
     if len(df_principales) > 0:
@@ -3427,15 +3476,56 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         # Formatear total con comas y símbolo de dólar
         tabla_resumen['Total Ventas (USD)'] = tabla_resumen['Total Ventas (USD)'].apply(lambda x: f'${x:,.2f}')
         
-        # Mostrar tabla
-        st.dataframe(tabla_resumen, column_config={
-            "MLB": st.column_config.TextColumn("MLB", width="small", help="Porcentaje de ventas MLB"),
-            "NBA": st.column_config.TextColumn("NBA", width="small", help="Porcentaje de ventas NBA"),
-            "NFL": st.column_config.TextColumn("NFL", width="small", help="Porcentaje de ventas NFL"),
-            "MOTORSPORT": st.column_config.TextColumn("MOTORSPORT", width="small", help="Porcentaje de ventas MOTORSPORT"),
-            "ENTERTAINMENT": st.column_config.TextColumn("ENTERTAINMENT", width="small", help="Porcentaje de ventas ENTERTAINMENT"),
-            "Total Ventas (USD)": st.column_config.TextColumn("Total Ventas (USD)", width="medium", help="Total de ventas en USD")
-        })
+        # Crear HTML personalizado con el mismo estilo que la tabla consolidada
+        def crear_html_tabla_ventas(df):
+            html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
+            
+            # Header con estilo profesional (color diferente para ventas)
+            html += '<tr style="background-color: #10b981; color: white; font-weight: bold;">'
+            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
+            
+            for liga in ligas:
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 80px;">{liga}</td>'
+            
+            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Total Ventas (USD)</td>'
+            html += '</tr>'
+            
+            # Filas de datos
+            for idx, row in df.iterrows():
+                html += '<tr style="background-color: #f9f9f9;" onmouseover="this.style.backgroundColor=\'#e8f8f2\'" onmouseout="this.style.backgroundColor=\'#f9f9f9\'">'
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: left; font-weight: 600;">{idx}</td>'
+                
+                for liga in ligas:
+                    valor = row[liga]
+                    html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center;">{valor}</td>'
+                
+                total_valor = row['Total Ventas (USD)']
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center; font-weight: 600; background-color: #ecfdf5; color: #059669;">{total_valor}</td>'
+                html += '</tr>'
+            
+            html += '</table>'
+            return html
+        
+        # Aplicar estilos CSS
+        st.markdown("""
+        <style>
+            .tabla-ventas-container {
+                overflow-x: auto;
+                width: 100%;
+                border: 1px solid #ddd;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin: 10px 0;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Mostrar tabla con estilo profesional
+        st.markdown('<div class="tabla-ventas-container">', unsafe_allow_html=True)
+        tabla_html = crear_html_tabla_ventas(tabla_resumen)
+        st.markdown(tabla_html, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Verificar si hay datos de ventas disponibles (solo para Guatemala)
     if pais == "Guatemala" and any('Ventas' in str(col) for col in df_bodegas.columns):
@@ -4093,19 +4183,19 @@ def mostrar_tabla_consolidada(tabla, pais):
     if hay_total_usd:
         cols = st.columns(5)
         metricas = [
-            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
-            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
-            ('ACCESSORIES', 'Accessories Total', "🎒", "#374151"),
-            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563"),
-            ('TOTAL (USD)', 'Total Ventas', "💰", "#10b981")
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#000000"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#000000"),
+            ('ACCESSORIES', 'Accessories Total', "🧦", "#000000"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#000000"),
+            ('TOTAL (USD)', 'Total Ventas', "💰", "#000000")
         ]
     else:
         cols = st.columns(4)
         metricas = [
-            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
-            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
-            ('ACCESSORIES', 'Accessories Total', "🎒", "#374151"),
-            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#000000"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#000000"),
+            ('ACCESSORIES', 'Accessories Total', "🧦", "#000000"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#000000")
         ]
     
     for i, (col, nombre, emoji, color) in enumerate(metricas):
@@ -4115,11 +4205,11 @@ def mostrar_tabla_consolidada(tabla, pais):
             if col == 'ACCESSORIES':
                 # Para ACCESSORIES, buscar en la estructura específica
                 try:
-                    # Buscar columna con estructura (ACCESSORIES, ACCESSORIES, Stock)
+                    # Buscar columna con estructura (ACCESSORIES, Accessories, Stock)
                     for tabla_col in tabla.columns:
                         if (len(tabla_col) == 3 and 
                             tabla_col[0] == 'ACCESSORIES' and 
-                            tabla_col[1] == 'ACCESSORIES' and 
+                            tabla_col[1] == 'Accessories' and 
                             tabla_col[2] == 'Stock'):
                             # Tomar solo la fila TOTAL (última fila)
                             valor = tabla[tabla_col].iloc[-1]
@@ -4146,8 +4236,8 @@ def mostrar_tabla_consolidada(tabla, pais):
             st.markdown(f"""
             <div class="metric-card" style="border-left: 4px solid {color};">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-size: 1.5rem;">{emoji}</span>
-                    <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{nombre.upper()}</span>
+                    <span style="font-size: 2rem; color: #000000;">{emoji}</span>
+                    <span style="color: {color}; font-weight: 600; font-size: 1.1rem;">{nombre.upper()}</span>
                 </div>
                 <div style="font-size: 2rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
                     {valor_formato}
