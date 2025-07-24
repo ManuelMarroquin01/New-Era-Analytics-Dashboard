@@ -3108,21 +3108,30 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     logger.info(f"DataFrame de distribución creado con {len(df_distribucion)} filas (sin CENTRAL NEW ERA y TOTAL)")
     logger.info(f"Bodegas encontradas: {df_distribucion['Bodega'].tolist()}")
     
-    # Definir bodegas principales y secundarias
+    # Definir tiendas de ciudad, outlets y secundarias
     bodegas_principales = [
         'NE Oakland', 'NE Cayala', 'NE Miraflores', 'NE Portales', 'NE Concepcion', 
         'NE Naranjo', 'NE Vistares', 'NE Peri Roosvelt', 'NE Plaza Videre'
     ]
     
-    # Separar los datos en dos grupos
+    bodegas_outlets = [
+        'NE Metronorte', 'NE Metrocentro Outlet', 'NE Outlet Santa clara'
+    ]
+    
+    # Separar los datos en tres grupos
     df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
-    df_secundarias = df_distribucion[~df_distribucion['Bodega'].isin(bodegas_principales)].copy()
+    df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
+    df_secundarias = df_distribucion[
+        ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets)
+    ].copy()
     
     # DEBUG: Verificar separación de datos
     logger.info(f"Bodegas principales encontradas: {df_principales['Bodega'].tolist() if len(df_principales) > 0 else 'NINGUNA'}")
-    logger.info(f"Total bodegas principales: {len(df_principales)}")
+    logger.info(f"Total tiendas de ciudad: {len(df_principales)}")
+    logger.info(f"Bodegas outlets encontradas: {df_outlets['Bodega'].tolist() if len(df_outlets) > 0 else 'NINGUNA'}")
+    logger.info(f"Total bodegas outlets: {len(df_outlets)}")
     logger.info(f"Bodegas secundarias encontradas: {df_secundarias['Bodega'].tolist() if len(df_secundarias) > 0 else 'NINGUNA'}")
-    logger.info(f"Total bodegas secundarias: {len(df_secundarias)}")
+    logger.info(f"Total tiendas departamentales: {len(df_secundarias)}")
     
     # Crear header de sección
     professional_design.create_section_header(
@@ -3135,7 +3144,7 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     def crear_leyenda_ligas():
         st.markdown("""
         <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="width: 16px; height: 16px; background: #1f77b4; border-radius: 3px;"></div>
                     <span style="font-size: 12px; font-weight: 600; color: #374151;">MLB</span>
@@ -3155,6 +3164,15 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="width: 16px; height: 16px; background: #9467bd; border-radius: 3px;"></div>
                     <span style="font-size: 12px; font-weight: 600; color: #374151;">ENTERTAINMENT</span>
+                </div>
+                <div style="width: 2px; height: 20px; background: #d1d5db; margin: 0 10px;"></div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 3px; background: #374151; border-radius: 1px;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">Línea Sólida (Ventas)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 20px; height: 2px; background: transparent; border-top: 2px dashed #374151;"></div>
+                    <span style="font-size: 12px; font-weight: 600; color: #374151;">Línea Punteada (Stock)</span>
                 </div>
             </div>
         </div>
@@ -3263,12 +3281,12 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             "Total Stock": st.column_config.TextColumn("Total Stock", width="medium", help="Total de stock (Planas + Curvas)")
         })
 
-    # Crear y mostrar gráfico de bodegas principales con su tabla
+    # Crear y mostrar gráfico de tiendas de ciudad con su tabla
     if len(df_principales) > 0:
-        st.markdown("#### 🏪 Bodegas Principales")
+        st.markdown("#### 🏪 Tiendas de Ciudad")
         fig_principales = crear_grafico_distribucion(
             df_principales, 
-            f'Distribución por Ligas - Bodegas Principales ({pais})', 
+            f'Distribución por Ligas - Tiendas de Ciudad ({pais})', 
             ligas
         )
         if fig_principales:
@@ -3277,15 +3295,32 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             # Mostrar leyenda de ligas justo después del gráfico
             crear_leyenda_ligas()
         
-        # Mostrar tabla de bodegas principales después de la leyenda
-        crear_tabla_resumen(df_principales, "📋 Resumen - Bodegas Principales", ligas)
+        # Mostrar tabla de tiendas de ciudad después de la leyenda
+        crear_tabla_resumen(df_principales, "📋 Resumen - Tiendas de Ciudad", ligas)
     
-    # Crear y mostrar gráfico de bodegas secundarias con su tabla
+    # Crear y mostrar gráfico de outlets con su tabla
+    if len(df_outlets) > 0:
+        st.markdown("#### 🛒 Outlets")
+        fig_outlets = crear_grafico_distribucion(
+            df_outlets, 
+            f'Distribución por Ligas - Outlets ({pais})', 
+            ligas
+        )
+        if fig_outlets:
+            st.plotly_chart(fig_outlets, use_container_width=True)
+            
+            # Mostrar leyenda de ligas justo después del gráfico
+            crear_leyenda_ligas()
+        
+        # Mostrar tabla de outlets después de la leyenda
+        crear_tabla_resumen(df_outlets, "📋 Resumen - Outlets", ligas)
+    
+    # Crear y mostrar gráfico de tiendas departamentales con su tabla
     if len(df_secundarias) > 0:
-        st.markdown("#### 🏬 Bodegas Secundarias")
+        st.markdown("#### 🏬 Tiendas Departamentales")
         fig_secundarias = crear_grafico_distribucion(
             df_secundarias, 
-            f'Distribución por Ligas - Bodegas Secundarias ({pais})', 
+            f'Distribución por Ligas - Tiendas Departamentales ({pais})', 
             ligas
         )
         if fig_secundarias:
@@ -3294,8 +3329,8 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             # Mostrar leyenda de ligas justo después del gráfico
             crear_leyenda_ligas()
         
-        # Mostrar tabla de bodegas secundarias después de la leyenda
-        crear_tabla_resumen(df_secundarias, "📋 Resumen - Bodegas Secundarias", ligas)
+        # Mostrar tabla de tiendas departamentales después de la leyenda
+        crear_tabla_resumen(df_secundarias, "📋 Resumen - Tiendas Departamentales", ligas)
     
     # ==================== NUEVA SECCIÓN: DISTRIBUCIÓN DE VENTAS POR BODEGA ====================
     
@@ -3474,14 +3509,17 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             if len(df_distribucion_ventas) > 0:
                 # Separar los datos en dos grupos para ventas
                 df_principales_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
-                df_secundarias_ventas = df_distribucion_ventas[~df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
+                df_outlets_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_outlets)].copy()
+                df_secundarias_ventas = df_distribucion_ventas[
+                    ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets)
+                ].copy()
                 
-                # Crear y mostrar gráfico de bodegas principales con ventas
+                # Crear y mostrar gráfico de tiendas de ciudad con ventas
                 if len(df_principales_ventas) > 0:
-                    st.markdown("#### 🏪 Bodegas Principales - Ventas")
+                    st.markdown("#### 🏪 Tiendas de Ciudad - Ventas")
                     fig_principales_ventas = crear_grafico_distribucion_ventas(
                         df_principales_ventas, 
-                        f'Distribución por Ligas - Bodegas Principales - Ventas ({pais})', 
+                        f'Distribución por Ligas - Tiendas de Ciudad - Ventas ({pais})', 
                         ligas
                     )
                     if fig_principales_ventas:
@@ -3490,15 +3528,32 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                         # Mostrar leyenda de ligas justo después del gráfico
                         crear_leyenda_ligas()
                     
-                    # Mostrar tabla de bodegas principales de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_principales_ventas, "📋 Resumen - Bodegas Principales - Ventas", ligas)
+                    # Mostrar tabla de tiendas de ciudad de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_principales_ventas, "📋 Resumen - Tiendas de Ciudad - Ventas", ligas)
                 
-                # Crear y mostrar gráfico de bodegas secundarias con ventas
+                # Crear y mostrar gráfico de outlets con ventas
+                if len(df_outlets_ventas) > 0:
+                    st.markdown("#### 🛒 Outlets - Ventas")
+                    fig_outlets_ventas = crear_grafico_distribucion_ventas(
+                        df_outlets_ventas, 
+                        f'Distribución por Ligas - Outlets - Ventas ({pais})', 
+                        ligas
+                    )
+                    if fig_outlets_ventas:
+                        st.plotly_chart(fig_outlets_ventas, use_container_width=True)
+                        
+                        # Mostrar leyenda de ligas justo después del gráfico
+                        crear_leyenda_ligas()
+                    
+                    # Mostrar tabla de outlets de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_outlets_ventas, "📋 Resumen - Outlets - Ventas", ligas)
+                
+                # Crear y mostrar gráfico de tiendas departamentales con ventas
                 if len(df_secundarias_ventas) > 0:
-                    st.markdown("#### 🏬 Bodegas Secundarias - Ventas")
+                    st.markdown("#### 🏬 Tiendas Departamentales - Ventas")
                     fig_secundarias_ventas = crear_grafico_distribucion_ventas(
                         df_secundarias_ventas, 
-                        f'Distribución por Ligas - Bodegas Secundarias - Ventas ({pais})', 
+                        f'Distribución por Ligas - Tiendas Departamentales - Ventas ({pais})', 
                         ligas
                     )
                     if fig_secundarias_ventas:
@@ -3507,8 +3562,226 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                         # Mostrar leyenda de ligas justo después del gráfico
                         crear_leyenda_ligas()
                     
-                    # Mostrar tabla de bodegas secundarias de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_secundarias_ventas, "📋 Resumen - Bodegas Secundarias - Ventas", ligas)
+                    # Mostrar tabla de tiendas departamentales de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_secundarias_ventas, "📋 Resumen - Tiendas Departamentales - Ventas", ligas)
+        
+        # ==================== NUEVA SECCIÓN: COMPARACIÓN STOCK VS VENTAS ====================
+        
+        # Función para crear gráfico comparativo - LÍNEAS VERTICALES DELGADAS AGRUPADAS
+        def crear_grafico_comparativo_stock_ventas(df_data_stock, df_data_ventas, titulo_grafico, ligas):
+            if len(df_data_stock) == 0 or len(df_data_ventas) == 0:
+                return None
+                
+            fig = go.Figure()
+            
+            # Colores para cada liga
+            colores_ligas = {
+                'MLB': '#1f77b4',      # Azul  
+                'NBA': '#ff7f0e',      # Naranja
+                'NFL': '#2ca02c',      # Verde
+                'MOTORSPORT': '#d62728', # Rojo
+                'ENTERTAINMENT': '#9467bd' # Púrpura
+            }
+            
+            # Obtener nombres de bodegas para el eje X
+            nombres_bodegas = df_data_ventas['Bodega'].tolist()
+            num_ligas = len(ligas)
+            
+            # Crear líneas verticales para cada liga y bodega
+            for i, liga in enumerate(ligas):
+                for j, bodega in enumerate(nombres_bodegas):
+                    # Calcular posiciones X para agrupar las líneas por bodega
+                    # Cada bodega tendrá 10 líneas: 5 ventas + 5 stock
+                    base_x = j * 0.8  # Reducir espaciado entre bodegas (era j)
+                    offset_ventas = (i - (num_ligas - 1) / 2) * 0.12  # Aumentar espaciado entre líneas (era 0.08)
+                    offset_stock = offset_ventas + 0.05  # Aumentar separación stock-ventas (era 0.03)
+                    
+                    x_ventas = base_x + offset_ventas
+                    x_stock = base_x + offset_stock
+                    
+                    # Obtener valores
+                    valor_ventas = df_data_ventas.iloc[j][f'{liga}_porcentaje_ventas']
+                    valor_stock = df_data_stock.iloc[j][f'{liga}_porcentaje']
+                    
+                    # Posiciones de texto con rotación para evitar sobreposición
+                    text_pos_ventas = 'top center'
+                    text_pos_stock = 'top center'
+                    text_y_offset_ventas = 2
+                    text_y_offset_stock = 2
+                    
+                    # LÍNEA VERTICAL PARA VENTAS (sólida, delgada)
+                    fig.add_trace(go.Scatter(
+                        x=[x_ventas, x_ventas],
+                        y=[0, valor_ventas],
+                        mode='lines',
+                        line=dict(
+                            color=colores_ligas[liga],
+                            width=4,  # Línea delgada pero visible
+                            dash='solid'
+                        ),
+                        showlegend=False,
+                        hovertemplate=f'<b>{liga} - Ventas</b><br>{bodega}<br>{valor_ventas:.1f}%<extra></extra>',
+                        name=f'{liga} - Ventas'
+                    ))
+                    
+                    # MARCA CIRCULAR PARA VENTAS (extremo de línea sólida)
+                    fig.add_trace(go.Scatter(
+                        x=[x_ventas],
+                        y=[valor_ventas],
+                        mode='markers',
+                        marker=dict(
+                            color=colores_ligas[liga],
+                            size=6,
+                            symbol='circle',
+                            line=dict(width=1, color='white')
+                        ),
+                        showlegend=False,
+                        hoverinfo='skip'
+                    ))
+                    
+                    # ANOTACIÓN PARA VENTAS (rotada -90 grados)
+                    fig.add_annotation(
+                        x=x_ventas,
+                        y=valor_ventas + text_y_offset_ventas,
+                        text=f'{valor_ventas:.1f}%',
+                        textangle=-90,
+                        showarrow=False,
+                        font=dict(
+                            size=9,
+                            color=colores_ligas[liga],
+                            family='Inter, sans-serif'
+                        ),
+                        xanchor='center',
+                        yanchor='bottom'
+                    )
+                    
+                    # LÍNEA VERTICAL PARA STOCK (punteada, delgada)
+                    fig.add_trace(go.Scatter(
+                        x=[x_stock, x_stock],
+                        y=[0, valor_stock],
+                        mode='lines',
+                        line=dict(
+                            color=colores_ligas[liga],
+                            width=3,  # Más delgada que ventas
+                            dash='dash'  # Punteada
+                        ),
+                        showlegend=False,
+                        hovertemplate=f'<b>{liga} - Stock</b><br>{bodega}<br>{valor_stock:.1f}%<extra></extra>',
+                        name=f'{liga} - Stock'
+                    ))
+                    
+                    # MARCA CUADRADA PARA STOCK (extremo de línea punteada)
+                    fig.add_trace(go.Scatter(
+                        x=[x_stock],
+                        y=[valor_stock],
+                        mode='markers',
+                        marker=dict(
+                            color=colores_ligas[liga],
+                            size=6,
+                            symbol='square',
+                            line=dict(width=1, color='white')
+                        ),
+                        showlegend=False,
+                        hoverinfo='skip'
+                    ))
+                    
+                    # ANOTACIÓN PARA STOCK (rotada -90 grados)
+                    fig.add_annotation(
+                        x=x_stock,
+                        y=valor_stock + text_y_offset_stock,
+                        text=f'{valor_stock:.1f}%',
+                        textangle=-90,
+                        showarrow=False,
+                        font=dict(
+                            size=8,
+                            color=colores_ligas[liga],
+                            family='Inter, sans-serif'
+                        ),
+                        xanchor='center',
+                        yanchor='bottom'
+                    )
+            
+            # Configurar layout
+            fig.update_layout(
+                title=titulo_grafico,
+                xaxis_title='Bodegas/Tiendas',
+                yaxis_title='Porcentaje (%)',
+                height=600,
+                showlegend=False,
+                xaxis=dict(
+                    tickmode='array',
+                    tickvals=[i * 0.8 for i in range(len(nombres_bodegas))],  # Ajustar posiciones de etiquetas
+                    ticktext=nombres_bodegas
+                ),
+                margin=dict(l=60, r=60, t=100, b=80)
+            )
+            
+            # Configurar ejes
+            fig.update_xaxes(
+                tickangle=45,
+                range=[-0.4, (len(nombres_bodegas) - 1) * 0.8 + 0.4]  # Ajustar rango para el nuevo espaciado
+            )
+            fig.update_yaxes(range=[0, 100])
+            
+            # Agregar líneas de cuadrícula
+            fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+            
+            return fig
+        
+        # Crear header de sección para comparación
+        professional_design.create_section_header(
+            f"Comparación Stock vs Ventas por Bodega - {pais}",
+            "Comparación visual entre distribución de stock (transparente) y ventas (sólido) por liga",
+            "📊"
+        )
+        
+        # Crear gráfico comparativo para tiendas de ciudad
+        if len(df_principales) > 0 and len(df_principales_ventas) > 0:
+            st.markdown("#### 🏪 Tiendas de Ciudad - Comparación Stock vs Ventas")
+            fig_comparativo_principales = crear_grafico_comparativo_stock_ventas(
+                df_principales,
+                df_principales_ventas, 
+                f'Stock vs Ventas - Tiendas de Ciudad ({pais})', 
+                ligas
+            )
+            if fig_comparativo_principales:
+                st.plotly_chart(fig_comparativo_principales, use_container_width=True)
+                
+                # Mostrar leyenda de ligas justo después del gráfico
+                crear_leyenda_ligas()
+        
+        # Crear gráfico comparativo para outlets
+        if len(df_outlets) > 0 and len(df_outlets_ventas) > 0:
+            st.markdown("#### 🛒 Outlets - Comparación Stock vs Ventas")
+            fig_comparativo_outlets = crear_grafico_comparativo_stock_ventas(
+                df_outlets,
+                df_outlets_ventas, 
+                f'Stock vs Ventas - Outlets ({pais})', 
+                ligas
+            )
+            if fig_comparativo_outlets:
+                st.plotly_chart(fig_comparativo_outlets, use_container_width=True)
+                
+                # Mostrar leyenda de ligas justo después del gráfico
+                crear_leyenda_ligas()
+        
+        # Crear gráfico comparativo para tiendas departamentales
+        if len(df_secundarias) > 0 and len(df_secundarias_ventas) > 0:
+            st.markdown("#### 🏬 Tiendas Departamentales - Comparación Stock vs Ventas")
+            fig_comparativo_secundarias = crear_grafico_comparativo_stock_ventas(
+                df_secundarias,
+                df_secundarias_ventas, 
+                f'Stock vs Ventas - Tiendas Departamentales ({pais})', 
+                ligas
+            )
+            if fig_comparativo_secundarias:
+                st.plotly_chart(fig_comparativo_secundarias, use_container_width=True)
+                
+                # Mostrar leyenda de ligas justo después del gráfico
+                crear_leyenda_ligas()
+                
+        
     else:
         # Mostrar mensaje informativo para otros países
         st.info(f"📊 Los gráficos de distribución de ventas solo están disponibles para Guatemala cuando se cargan datos de ventas.")
@@ -3818,18 +4091,20 @@ def mostrar_tabla_consolidada(tabla, pais):
     
     # Definir métricas según disponibilidad de datos de ventas
     if hay_total_usd:
-        cols = st.columns(4)
+        cols = st.columns(5)
         metricas = [
             ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
             ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('ACCESSORIES', 'Accessories Total', "🎒", "#374151"),
             ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563"),
             ('TOTAL (USD)', 'Total Ventas', "💰", "#10b981")
         ]
     else:
-        cols = st.columns(3)
+        cols = st.columns(4)
         metricas = [
             ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
             ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('ACCESSORIES', 'Accessories Total', "🎒", "#374151"),
             ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
         ]
     
@@ -3837,10 +4112,26 @@ def mostrar_tabla_consolidada(tabla, pais):
         with cols[i]:
             # Buscar la columna en la estructura de 3 niveles (totales)
             valor = 0
-            for tabla_col in tabla.columns:
-                if len(tabla_col) == 3 and tabla_col[2] == col:
-                    valor = tabla[tabla_col].iloc[-1]
-                    break
+            if col == 'ACCESSORIES':
+                # Para ACCESSORIES, buscar en la estructura específica
+                try:
+                    # Buscar columna con estructura (ACCESSORIES, ACCESSORIES, Stock)
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'ACCESSORIES' and 
+                            tabla_col[1] == 'ACCESSORIES' and 
+                            tabla_col[2] == 'Stock'):
+                            # Tomar solo la fila TOTAL (última fila)
+                            valor = tabla[tabla_col].iloc[-1]
+                            break
+                except:
+                    valor = 0
+            else:
+                # Para las demás métricas, usar la lógica original
+                for tabla_col in tabla.columns:
+                    if len(tabla_col) == 3 and tabla_col[2] == col:
+                        valor = tabla[tabla_col].iloc[-1]
+                        break
             
             # Determinar el texto de descripción según el tipo de métrica
             if col == 'TOTAL (USD)':
@@ -3848,7 +4139,9 @@ def mostrar_tabla_consolidada(tabla, pais):
                 valor_formato = f"${valor:,.2f}"
             else:
                 descripcion = f"unidades en stock{f' - {selected_league}' if selected_league else ''}"
-                valor_formato = f"{valor:,}"
+                # Convertir a entero para eliminar decimales
+                valor_entero = int(valor) if valor else 0
+                valor_formato = f"{valor_entero:,}"
             
             st.markdown(f"""
             <div class="metric-card" style="border-left: 4px solid {color};">
