@@ -3870,11 +3870,42 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                 
                 # Mostrar leyenda de ligas justo después del gráfico
                 crear_leyenda_ligas()
-                
+        
+        # NUEVA SECCIÓN: Exportar Distribuciones cuando hay ventas (al final de todo)
+        if pais == "Guatemala":
+            tiene_ventas_final = any('Ventas' in str(col) for col in df_bodegas.columns)
+            if tiene_ventas_final:
+                # Crear diccionario completo con todas las tablas (stock y ventas)
+                tablas_completas = {
+                    'df_principales': df_principales if len(df_principales) > 0 else pd.DataFrame(),
+                    'df_outlets': df_outlets if len(df_outlets) > 0 else pd.DataFrame(),
+                    'df_secundarias': df_secundarias if len(df_secundarias) > 0 else pd.DataFrame(),
+                    'df_principales_ventas': df_principales_ventas if len(df_principales_ventas) > 0 else pd.DataFrame(),
+                    'df_outlets_ventas': df_outlets_ventas if len(df_outlets_ventas) > 0 else pd.DataFrame(),
+                    'df_secundarias_ventas': df_secundarias_ventas if len(df_secundarias_ventas) > 0 else pd.DataFrame()
+                }
+                agregar_seccion_exportar_distribuciones(tablas_completas, pais, tiene_ventas_final)
         
     else:
         # Mostrar mensaje informativo para otros países
         st.info(f"📊 Los gráficos de distribución de ventas solo están disponibles para Guatemala cuando se cargan datos de ventas.")
+    
+    # NUEVA SECCIÓN: Exportar Distribuciones (solo para Guatemala)
+    # Recolectar las tablas reales para exportación
+    if pais == "Guatemala":
+        tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
+        
+        # Crear diccionario con las tablas de stock
+        tablas_reales = {
+            'df_principales': df_principales if len(df_principales) > 0 else pd.DataFrame(),
+            'df_outlets': df_outlets if len(df_outlets) > 0 else pd.DataFrame(),
+            'df_secundarias': df_secundarias if len(df_secundarias) > 0 else pd.DataFrame()
+        }
+        
+        # Si NO hay ventas, mostrar la sección aquí (después de distribución de stock)
+        # Si SÍ hay ventas, la sección se mostrará al final de la función (después de comparación)
+        if not tiene_ventas:
+            agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas)
     
     # CSS aplicado de forma más simple y compatible
     st.markdown("""
@@ -4151,6 +4182,26 @@ def mostrar_tabla_consolidada(tabla, pais):
     st.markdown(tabla_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
+    # Sección de exportación (solo para Guatemala)
+    if pais == "Guatemala":
+        professional_design.create_section_header(
+            "Exportar Reporte - Guatemala", 
+            "Generar archivo Excel con formato profesional",
+            "GT"
+        )
+        
+        col1, col2 = st.columns([3, 2])
+        
+        with col1:
+            # Obtener nombre del archivo desde session state o usar valor por defecto
+            archivo_nombre = st.session_state.get('archivo_guatemala_name', "GUATEMALA.csv")
+            nombre_archivo_gt = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key="nombre_gt_export")
+        
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
+            if st.button("🚀 Generar Excel Guatemala", key="excel_gt_export", use_container_width=True):
+                exportar_excel_consolidado(tabla, nombre_archivo_gt, "Guatemala")
+    
     # Mostrar métricas resumidas mejoradas
     selected_league = st.session_state.get('selected_league', None)
     # Convertir "Todas" a None para mostrar todas las ligas
@@ -4267,6 +4318,398 @@ def mostrar_tabla_consolidada(tabla, pais):
     if pais == "Guatemala":
         mostrar_distribucion_ligas_por_bodega(tabla, pais)
 
+def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
+    """Agrega la sección de exportación de distribuciones idéntica a la sección existente"""
+    # Crear header de sección idéntico a la sección de exportación existente
+    professional_design = ProfessionalDesign()
+    professional_design.create_section_header(
+        "Exportar Distribuciones - Guatemala", 
+        "Generar archivo Excel con distribuciones por bodega",
+        "GT"
+    )
+    
+    col1, col2 = st.columns([3, 2])
+    
+    with col1:
+        # Input idéntico al existente
+        archivo_nombre = st.session_state.get('archivo_guatemala_name', "GUATEMALA.csv")
+        nombre_archivo_dist = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key="nombre_dist_export")
+    
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
+        if st.button("🚀 Generar Excel Distribuciones", key="excel_dist_export", use_container_width=True):
+            exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas)
+
+def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
+    """Exporta las tablas reales de distribución tal como aparecen en Streamlit"""
+    if not tablas_reales:
+        st.warning(f"No hay tablas de distribución para exportar de {pais}")
+        return
+    
+    try:
+        logger.info(f"Iniciando exportación de distribuciones reales para {pais}")
+        
+        # Crear archivo Excel
+        nombre_excel = f"distribucion_bodegas_{pais.lower().replace(' ', '_')}_{config.fecha_reporte}.xlsx"
+        output = pd.ExcelWriter(nombre_excel, engine='openpyxl')
+        
+        if not tiene_ventas:
+            # Solo hay stock - crear una pestaña con las 3 tablas
+            sheet_name = "Distribución Stock"
+            row_offset = 0
+            
+            # Escribir tabla de Tiendas de Ciudad
+            if 'df_principales' in tablas_reales and len(tablas_reales['df_principales']) > 0:
+                # Agregar título
+                titulo_principales = pd.DataFrame([['🏪 TIENDAS DE CIUDAD']], columns=[''])
+                titulo_principales.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                
+                tablas_reales['df_principales'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_principales']) + 3
+            
+            # Escribir tabla de Outlets
+            if 'df_outlets' in tablas_reales and len(tablas_reales['df_outlets']) > 0:
+                titulo_outlets = pd.DataFrame([['🛒 OUTLETS']], columns=[''])
+                titulo_outlets.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                
+                tablas_reales['df_outlets'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_outlets']) + 3
+            
+            # Escribir tabla de Tiendas Departamentales
+            if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
+                titulo_secundarias = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES']], columns=[''])
+                titulo_secundarias.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                
+                tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
+        
+        else:
+            # Hay stock y ventas - crear 3 pestañas
+            
+            # PESTAÑA 1: Distribución Stock
+            sheet_name_stock = "Distribución Stock"
+            row_offset = 0
+            
+            if 'df_principales' in tablas_reales and len(tablas_reales['df_principales']) > 0:
+                titulo = pd.DataFrame([['🏪 TIENDAS DE CIUDAD']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_principales'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_principales']) + 3
+            
+            if 'df_outlets' in tablas_reales and len(tablas_reales['df_outlets']) > 0:
+                titulo = pd.DataFrame([['🛒 OUTLETS']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_outlets'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_outlets']) + 3
+            
+            if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
+                titulo = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+            
+            # PESTAÑA 2: Distribución Ventas
+            sheet_name_ventas = "Distribución Ventas"
+            row_offset = 0
+            
+            if 'df_principales_ventas' in tablas_reales and len(tablas_reales['df_principales_ventas']) > 0:
+                titulo = pd.DataFrame([['🏪 TIENDAS DE CIUDAD - VENTAS']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_principales_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_principales_ventas']) + 3
+            
+            if 'df_outlets_ventas' in tablas_reales and len(tablas_reales['df_outlets_ventas']) > 0:
+                titulo = pd.DataFrame([['🛒 OUTLETS - VENTAS']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_outlets_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_outlets_ventas']) + 3
+            
+            if 'df_secundarias_ventas' in tablas_reales and len(tablas_reales['df_secundarias_ventas']) > 0:
+                titulo = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES - VENTAS']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_secundarias_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+            
+            # Nota: Se removió la pestaña de comparación como se solicitó
+        
+        # Aplicar formato básico a todas las pestañas
+        workbook = output.book
+        header_fill = PatternFill(start_color='4a7a8c', end_color='4a7a8c', fill_type='solid')
+        header_font = Font(color='FFFFFF', bold=True, size=12)
+        titulo_fill = PatternFill(start_color='2d3748', end_color='2d3748', fill_type='solid')
+        titulo_font = Font(color='FFFFFF', bold=True, size=14)
+        border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        center_alignment = Alignment(horizontal='center', vertical='center')
+        
+        for sheet_name in workbook.sheetnames:
+            worksheet = workbook[sheet_name]
+            
+            # Aplicar formato a todas las celdas
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    cell.border = border
+                    cell.alignment = center_alignment
+                    
+                    # Formato numérico con 2 decimales
+                    if isinstance(cell.value, (int, float)) and cell.value != 0:
+                        cell.number_format = '0.00'
+                    
+                    # Formato para títulos de secciones (🏪, 🛒, 🏬)
+                    if cell.value and isinstance(cell.value, str) and any(emoji in str(cell.value) for emoji in ['🏪', '🛒', '🏬']):
+                        cell.fill = titulo_fill
+                        cell.font = titulo_font
+                    # Formato para headers de tablas
+                    elif cell.row > 1 and cell.value and isinstance(cell.value, str) and 'Bodega' in str(cell.value):
+                        cell.fill = header_fill
+                        cell.font = header_font
+            
+            # Ajustar ancho de columnas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = get_column_letter(column[0].column)
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 20)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        output.close()
+        
+        # Descargar archivo
+        with open(nombre_excel, "rb") as f:
+            if tiene_ventas:
+                label_text = f"Descargar Distribuciones Completas {pais}"
+            else:
+                label_text = f"Descargar Distribución Stock {pais}"
+            
+            st.download_button(
+                label=label_text,
+                data=f,
+                file_name=f"DISTRIBUCION_BODEGAS_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_distribucion_real_{pais}"
+            )
+        
+        # Limpiar archivo temporal
+        os.remove(nombre_excel)
+        logger.info(f"Exportación de distribuciones reales completada para {pais}")
+        
+    except Exception as e:
+        logger.error(f"Error al exportar distribuciones reales {pais}: {str(e)}")
+        st.error(f"Error al exportar distribuciones reales {pais}: {str(e)}")
+
+def exportar_excel_distribuciones(df_bodegas, nombres_reales_bodegas, pais):
+    """Exporta las tablas de distribución por bodega a Excel con pestañas según los datos disponibles"""
+    if df_bodegas is None:
+        st.warning(f"No hay datos de distribución para exportar de {pais}")
+        return
+    
+    try:
+        logger.info(f"Iniciando exportación de distribuciones para {pais}")
+        
+        # Detectar si hay datos de ventas
+        tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
+        
+        # Crear archivo Excel
+        nombre_excel = f"distribucion_bodegas_{pais.lower().replace(' ', '_')}_{config.fecha_reporte}.xlsx"
+        output = pd.ExcelWriter(nombre_excel, engine='openpyxl')
+        
+        # Configurar ligas
+        ligas = ['MLB', 'NBA', 'NFL', 'MOTORSPORT', 'ENTERTAINMENT']
+        es_multiindex = isinstance(df_bodegas.columns, pd.MultiIndex)
+        
+        # Función auxiliar para crear tablas de distribución
+        def crear_tablas_distribucion(df_bodegas, nombres_bodegas, tipo_datos="Stock"):
+            # Procesar datos de distribución
+            distribucion_data = []
+            
+            for i, bodega_idx in enumerate(df_bodegas.index):
+                nombre_bodega = nombres_bodegas[i] if i < len(nombres_bodegas) else bodega_idx
+                bodega_data = {'Bodega': nombre_bodega}
+                total_bodega = 0
+                
+                # Calcular totales por liga
+                for liga in ligas:
+                    if es_multiindex:
+                        if tipo_datos == "Stock":
+                            col_planas = (liga, 'Planas', 'Stock')
+                            col_curvas = (liga, 'Curvas', 'Stock')
+                        else:  # Ventas
+                            col_planas = (liga, 'Planas', 'Ventas')
+                            col_curvas = (liga, 'Curvas', 'Ventas')
+                    else:
+                        if tipo_datos == "Stock":
+                            col_planas = f"{liga} - Planas - Stock"
+                            col_curvas = f"{liga} - Curvas - Stock"
+                        else:  # Ventas
+                            col_planas = f"{liga} - Planas - Ventas"
+                            col_curvas = f"{liga} - Curvas - Ventas"
+                    
+                    valor_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
+                    valor_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
+                    
+                    try:
+                        valor_planas = float(valor_planas) if valor_planas != 0 else 0
+                        valor_curvas = float(valor_curvas) if valor_curvas != 0 else 0
+                    except:
+                        valor_planas = 0
+                        valor_curvas = 0
+                    
+                    valor_liga = valor_planas + valor_curvas
+                    bodega_data[liga] = valor_liga
+                    total_bodega += valor_liga
+                
+                # Calcular porcentajes
+                if total_bodega > 0:
+                    for liga in ligas:
+                        pct = (bodega_data[liga] / total_bodega) * 100
+                        bodega_data[f'{liga} %'] = round(pct, 1)
+                else:
+                    for liga in ligas:
+                        bodega_data[f'{liga} %'] = 0.0
+                
+                bodega_data['Total'] = total_bodega
+                distribucion_data.append(bodega_data)
+            
+            df_distribucion = pd.DataFrame(distribucion_data)
+            
+            # Separar en tres tipos de bodegas
+            df_principales = df_distribucion[df_distribucion['Bodega'].str.contains('Principal|Ciudad', case=False, na=False)]
+            df_outlets = df_distribucion[df_distribucion['Bodega'].str.contains('Outlet', case=False, na=False)]
+            df_secundarias = df_distribucion[~df_distribucion['Bodega'].str.contains('Principal|Ciudad|Outlet', case=False, na=False)]
+            
+            return df_principales, df_outlets, df_secundarias
+        
+        # Exportar datos de stock
+        df_principales_stock, df_outlets_stock, df_secundarias_stock = crear_tablas_distribucion(df_bodegas, nombres_reales_bodegas, "Stock")
+        
+        # Crear pestaña de Stock
+        sheet_name_stock = "Distribución Stock"
+        
+        # Escribir las tres tablas en la pestaña de stock
+        row_offset = 0
+        
+        # Tiendas de Ciudad
+        if len(df_principales_stock) > 0:
+            df_principales_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+            row_offset += len(df_principales_stock) + 3  # Espacio entre tablas
+        
+        # Outlets
+        if len(df_outlets_stock) > 0:
+            df_outlets_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+            row_offset += len(df_outlets_stock) + 3
+        
+        # Tiendas Departamentales
+        if len(df_secundarias_stock) > 0:
+            df_secundarias_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+        
+        # Si hay datos de ventas, crear pestañas adicionales
+        if tiene_ventas:
+            # Exportar datos de ventas
+            df_principales_ventas, df_outlets_ventas, df_secundarias_ventas = crear_tablas_distribucion(df_bodegas, nombres_reales_bodegas, "Ventas")
+            
+            # Crear pestaña de Ventas
+            sheet_name_ventas = "Distribución Ventas"
+            row_offset = 0
+            
+            if len(df_principales_ventas) > 0:
+                df_principales_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+                row_offset += len(df_principales_ventas) + 3
+            
+            if len(df_outlets_ventas) > 0:
+                df_outlets_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+                row_offset += len(df_outlets_ventas) + 3
+            
+            if len(df_secundarias_ventas) > 0:
+                df_secundarias_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+            
+            # Crear pestaña de Comparación (datos combinados)
+            sheet_name_comparacion = "Comparación Stock vs Ventas"
+            row_offset = 0
+            
+            # Combinar datos de stock y ventas para comparación
+            if len(df_principales_stock) > 0 and len(df_principales_ventas) > 0:
+                df_comparacion_principales = df_principales_stock.merge(df_principales_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
+                df_comparacion_principales.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
+                row_offset += len(df_comparacion_principales) + 3
+            
+            if len(df_outlets_stock) > 0 and len(df_outlets_ventas) > 0:
+                df_comparacion_outlets = df_outlets_stock.merge(df_outlets_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
+                df_comparacion_outlets.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
+                row_offset += len(df_comparacion_outlets) + 3
+            
+            if len(df_secundarias_stock) > 0 and len(df_secundarias_ventas) > 0:
+                df_comparacion_secundarias = df_secundarias_stock.merge(df_secundarias_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
+                df_comparacion_secundarias.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
+        
+        # Aplicar formato básico a todas las pestañas
+        workbook = output.book
+        header_fill = PatternFill(start_color='4a7a8c', end_color='4a7a8c', fill_type='solid')
+        header_font = Font(color='FFFFFF', bold=True, size=12)
+        border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        center_alignment = Alignment(horizontal='center', vertical='center')
+        
+        for sheet_name in workbook.sheetnames:
+            worksheet = workbook[sheet_name]
+            
+            # Aplicar formato a todas las celdas
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    cell.border = border
+                    cell.alignment = center_alignment
+                    
+                    # Formato para headers
+                    if cell.row == 1 or (cell.value and isinstance(cell.value, str) and 'Bodega' in str(cell.value)):
+                        cell.fill = header_fill
+                        cell.font = header_font
+            
+            # Ajustar ancho de columnas
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = get_column_letter(column[0].column)
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 20)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        output.close()
+        
+        # Descargar archivo
+        with open(nombre_excel, "rb") as f:
+            if tiene_ventas:
+                label_text = f"Descargar Distribuciones Completas {pais}"
+            else:
+                label_text = f"Descargar Distribución Stock {pais}"
+            
+            st.download_button(
+                label=label_text,
+                data=f,
+                file_name=f"DISTRIBUCION_BODEGAS_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_distribucion_{pais}"
+            )
+        
+        # Limpiar archivo temporal
+        os.remove(nombre_excel)
+        logger.info(f"Exportación de distribuciones completada para {pais}")
+        
+    except Exception as e:
+        logger.error(f"Error al exportar distribuciones {pais}: {str(e)}")
+        st.error(f"Error al exportar distribuciones {pais}: {str(e)}")
+
 def exportar_excel_consolidado(tabla, nombre_archivo, pais):
     """Exporta la tabla consolidada a Excel con formato profesional"""
     if tabla is None:
@@ -4347,23 +4790,26 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         
         # Aplicar semáforo a la columna "% DE CUMPLIMIENTO"
         col_cumplimiento = None
-        for col in range(1, worksheet.max_column + 1):
-            if worksheet.cell(row=1, column=col).value == "% DE CUMPLIMIENTO":
-                col_cumplimiento = col
-                break
+        col_total_headwear = None
         
-        if col_cumplimiento:
+        # Buscar columnas por nombre que contenga las palabras clave
+        for col in range(1, worksheet.max_column + 1):
+            cell_value = worksheet.cell(row=1, column=col).value
+            if cell_value:
+                if "% DE CUMPLIMIENTO" in str(cell_value):
+                    col_cumplimiento = col
+                elif "TOTAL HEADWEAR" in str(cell_value):
+                    col_total_headwear = col
+        
+        if col_cumplimiento and col_total_headwear:
+            logger.info(f"Aplicando semáforo - Col cumplimiento: {col_cumplimiento}, Col total headwear: {col_total_headwear}")
             capacidades = country_manager.get_capacidades(pais)
             
             for row in range(2, worksheet.max_row + 1):
                 bodega = worksheet.cell(row=row, column=1).value
                 
-                # Buscar total_headwear en la fila correspondiente
-                total_headwear = 0
-                for col in range(1, worksheet.max_column + 1):
-                    if worksheet.cell(row=1, column=col).value == "TOTAL HEADWEAR":
-                        total_headwear = worksheet.cell(row=row, column=col).value or 0
-                        break
+                # Obtener total_headwear de la columna encontrada
+                total_headwear = worksheet.cell(row=row, column=col_total_headwear).value or 0
                 
                 if bodega == 'TOTAL':
                     capacidad = country_manager.get_country_data(pais).get_total_capacity()
@@ -4387,6 +4833,12 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
                     cell.font = Font(color='FFFFFF', bold=True, size=14)
                 else:
                     cell.font = semaforo_font
+        else:
+            logger.warning(f"No se pudieron encontrar las columnas para el semáforo - Col cumplimiento: {col_cumplimiento}, Col total headwear: {col_total_headwear}")
+            logger.info("Columnas disponibles en Excel:")
+            for col in range(1, worksheet.max_column + 1):
+                cell_value = worksheet.cell(row=1, column=col).value
+                logger.info(f"  Columna {col}: {cell_value}")
         
         # Autoajustar columnas
         for column in worksheet.columns:
@@ -4407,11 +4859,11 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         
         # Agregar leyenda del semáforo
         worksheet.cell(row=info_row+4, column=1, value="Leyenda Semáforo:").font = Font(bold=True)
-        worksheet.cell(row=info_row+5, column=1, value="Verde: 100%-115%").fill = verde_fill
+        worksheet.cell(row=info_row+5, column=1, value="Verde: 0%-15%").fill = verde_fill
         worksheet.cell(row=info_row+5, column=1).font = semaforo_font
-        worksheet.cell(row=info_row+6, column=1, value="Amarillo: >115%").fill = amarillo_fill
+        worksheet.cell(row=info_row+6, column=1, value="Amarillo: >15%").fill = amarillo_fill
         worksheet.cell(row=info_row+6, column=1).font = semaforo_font
-        worksheet.cell(row=info_row+7, column=1, value="Rojo: <100%").fill = rojo_fill
+        worksheet.cell(row=info_row+7, column=1, value="Rojo: <0%").fill = rojo_fill
         worksheet.cell(row=info_row+7, column=1).font = semaforo_font
         worksheet.cell(row=info_row+8, column=1, value="Gris: Sin capacidad definida").fill = gris_fill
         worksheet.cell(row=info_row+8, column=1).font = semaforo_font
@@ -4421,7 +4873,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         # Descargar archivo
         with open(nombre_excel, "rb") as f:
             st.download_button(
-                label=f"📤 Descargar Reporte {pais}",
+                label=f"Descargar Reporte {pais}",
                 data=f,
                 file_name=f"STOCK_CONSOLIDADO_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -4476,6 +4928,10 @@ def main():
             archivo_ventas_guatemala = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_GUATEMALA.csv", "Guatemala_ventas")
         
         if archivo_guatemala is not None:
+            # Guardar nombre del archivo en session state para la exportación
+            if hasattr(archivo_guatemala, 'name'):
+                st.session_state.archivo_guatemala_name = archivo_guatemala.name
+            
             # Crear hash del DataFrame para cache
             df_hash = archivo_guatemala.to_dict('records')
             
@@ -4496,23 +4952,6 @@ def main():
             # Mostrar resultados Guatemala
             mostrar_tabla_consolidada(tabla_guatemala, "Guatemala")
             
-            # Sección de exportación dentro de la pestaña
-            professional_design.create_section_header(
-                "Exportar Reporte - Guatemala", 
-                "Generar archivo Excel con formato profesional",
-                "GT"
-            )
-            
-            col1, col2 = st.columns([3, 2])
-            
-            with col1:
-                nombre_original_gt = archivo_guatemala.name if hasattr(archivo_guatemala, 'name') else "GUATEMALA.csv"
-                nombre_archivo_gt = st.text_input("📝 Nombre del archivo origen", nombre_original_gt, key="nombre_gt")
-            
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-                if st.button("🚀 Generar Excel Guatemala", key="excel_gt", use_container_width=True):
-                    exportar_excel_consolidado(tabla_guatemala, nombre_archivo_gt, "Guatemala")
         # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
         if archivo_guatemala is None or archivo_ventas_guatemala is None:
             col_msg_guatemala, col_msg_ventas = st.columns(2)
