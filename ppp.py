@@ -1350,6 +1350,7 @@ class CountryData:
     name: str
     bodegas: List[str]
     capacidades: Dict[str, int]
+    tienda_mapping: Dict[str, str] = None
     
     def get_total_capacity(self) -> int:
         """Obtiene la capacidad total del país"""
@@ -1391,7 +1392,19 @@ class CountryManager:
                 capacidades={
                     "NEW ERA METROCENTRO": 4355, "NEW ERA MULTIPLAZA": 5443, "NEW ERA EL PASEO": 4436,
                     "NEW ERA METROCENTRO SANTA ANA": 5771, "NE USULUTÁN": 5760, "NE METROCENTRO SAN MIGUEL": 3600,
-                    "NE PLAZA MUNDO SOYAPANGO": 3120, "NE METROCENTRO LOURDES": 6912
+                    "NE PLAZA MUNDO SOYAPANGO": 3120, "NE METROCENTRO LOURDES": 6912, "New Era Central": 5000
+                },
+                tienda_mapping={
+                    # Mapeo: Bodega (Stock) -> Tienda (Ventas)
+                    "NE METROCENTRO LOURDES": "NE METROCENTRO LOURDES",
+                    "NEW ERA MULTIPLAZA": "NEW ERA MULTIPLAZA",
+                    "NEW ERA METROCENTRO": "NE METROCENTRO",
+                    "NEW ERA METROCENTRO SANTA ANA": "NE METROCENTRO SANTA ANA",
+                    "NE PLAZA MUNDO SOYAPANGO": "NE PLAZA MUNDO SOYAPANGO",
+                    "NE USULUTÁN": "NE PLAZA MUNDO USULUTÁN",
+                    "NE METROCENTRO SAN MIGUEL": "NE METROCENTRO SAN MIGUEL",
+                    "NEW ERA EL PASEO": "NEW ERA EL PASEO"
+                    # Nota: "New Era Central" no tiene equivalente en ventas
                 }
             ),
             "Honduras": CountryData(
@@ -1449,6 +1462,8 @@ class SalesProcessor:
     """Procesador de datos de ventas"""
     
     def __init__(self):
+        # Inicializar country_manager
+        self.country_manager = CountryManager()
         # Mapeo de bodegas del dashboard a nombres en columna "Tienda" del archivo de ventas
         self.tienda_mapping = {
             "NE Oakland": "NE OAKLAND",
@@ -1526,16 +1541,19 @@ class SalesProcessor:
         # Filtrar por marca NEW ERA
         df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
         
-        # Mapear tiendas a bodegas
-        mapeo_inverso = {v: k for k, v in self.tienda_mapping.items()}
+        # Usar mapeo específico para Guatemala
+        mapeo_guatemala = self.country_manager.get_country_data("Guatemala").tienda_mapping or self.tienda_mapping
+        mapeo_inverso = {v: k for k, v in mapeo_guatemala.items()}
         df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
         
         # Intentar mapeo normalizado para no mapeadas
         tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
         if len(tiendas_no_mapeadas) > 0:
+            # Crear mapeo normalizado para Guatemala
+            mapeo_normalizado_gt = {self._normalize_text(v): k for k, v in mapeo_guatemala.items()}
             df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
                 df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
-                    lambda x: self.tienda_mapping_normalizado.get(self._normalize_text(x))
+                    lambda x: mapeo_normalizado_gt.get(self._normalize_text(x))
                 )
         
         # Filtrar solo registros mapeados
@@ -1602,6 +1620,125 @@ class SalesProcessor:
                     ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
         
         print(f"Ventas desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
+        return ventas_desglosadas
+
+    def procesar_ventas_el_salvador(self, df_ventas: pd.DataFrame) -> Dict[str, Dict[str, Dict[str, float]]]:
+        """
+        Procesa el archivo de ventas de El Salvador y retorna ventas desglosadas por bodega, liga y subcategoría
+        Estructura: {bodega: {liga: {subcategoria: ventas}}}
+        """
+        if df_ventas is None or df_ventas.empty:
+            return {}
+        
+        # Debug: Mostrar las columnas disponibles (solo en consola)
+        print(f"Columnas disponibles en archivo de ventas El Salvador: {list(df_ventas.columns)}")
+        
+        # Verificar columnas necesarias
+        columnas_necesarias = ['U_Marca', 'U_Segmento', 'U_Liga', 'USD_Total_SI_CD']
+        columna_tienda = None
+        
+        # Buscar columna de tienda
+        for col in df_ventas.columns:
+            if 'tienda' in col.lower() or 'store' in col.lower() or 'bodega' in col.lower():
+                columna_tienda = col
+                break
+        
+        if columna_tienda is None:
+            print("No se encontró columna de tienda en El Salvador")
+            return {}
+            
+        columnas_necesarias.append(columna_tienda)
+        
+        # Verificar que existan todas las columnas
+        for col in columnas_necesarias[:-1]:  # Excepto la columna_tienda que ya verificamos
+            if col not in df_ventas.columns:
+                print(f"No se encontró columna {col} en El Salvador")
+                return {}
+        
+        print(f"Usando columna de tienda para El Salvador: {columna_tienda}")
+        
+        # Filtrar por marca NEW ERA
+        df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
+        
+        # Usar mapeo específico para El Salvador
+        mapeo_el_salvador = self.country_manager.get_country_data("El Salvador").tienda_mapping
+        mapeo_inverso = {v: k for k, v in mapeo_el_salvador.items()}
+        df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
+        
+        # Intentar mapeo normalizado para no mapeadas
+        tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
+        if len(tiendas_no_mapeadas) > 0:
+            # Crear mapeo normalizado para El Salvador
+            mapeo_normalizado_sv = {self._normalize_text(v): k for k, v in mapeo_el_salvador.items()}
+            df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
+                df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
+                    lambda x: mapeo_normalizado_sv.get(self._normalize_text(x))
+                )
+        
+        # Filtrar solo registros mapeados
+        df_mapeado = df_new_era[df_new_era['Bodega_Mapeada'].notna()].copy()
+        
+        if len(df_mapeado) == 0:
+            print("No hay registros mapeados para procesar en El Salvador")
+            return {}
+        
+        # Definir categorías de ligas (mismas que Guatemala)
+        categorias_ligas = {
+            "MLB": ["MLB", "MLB properties"],
+            "NBA": ["NBA", "NBA Properties"],
+            "NFL": ["NFL", "NFL Properties"], 
+            "MOTORSPORT": ["MOTORSPORT"],
+            "ENTERTAINMENT": [
+                "NEW ERA BRANDED", "ENTERTAINMENT", "MARCA PAIS", "WARNER BROS",
+                "DISNEY", "LOONEY TUNES", "MARVEL", "DC", "UNIVERSAL", "PARAMOUNT"
+            ],
+            "ACCESSORIES": ["ACCESSORIES"]
+        }
+        
+        # Importar ProductClassification para clasificar siluetas
+        product_classifier = ProductClassification(siluetas_planas=[], siluetas_curvas=[])
+        
+        # Clasificar siluetas solo para HEADWEAR
+        df_mapeado['Tipo'] = df_mapeado.apply(
+            lambda row: product_classifier.clasificar_silueta(row['U_Silueta']) 
+            if row['U_Segmento'] == 'HEADWEAR' else None, 
+            axis=1
+        )
+        
+        # Inicializar estructura de resultados
+        ventas_desglosadas = {}
+        
+        # Procesar por bodega
+        for bodega in df_mapeado['Bodega_Mapeada'].unique():
+            df_bodega = df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega]
+            ventas_desglosadas[bodega] = {}
+            
+            # Procesar por liga
+            for categoria, ligas in categorias_ligas.items():
+                ventas_desglosadas[bodega][categoria] = {}
+                
+                if categoria == 'ACCESSORIES':
+                    # Para ACCESSORIES, filtrar directamente por segmento
+                    df_accessories = df_bodega[df_bodega['U_Segmento'] == 'ACCESSORIES']
+                    ventas_desglosadas[bodega][categoria]['Stock'] = df_accessories['USD_Total_SI_CD'].sum()
+                    ventas_desglosadas[bodega][categoria]['Ventas'] = df_accessories['USD_Total_SI_CD'].sum()
+                else:
+                    # Lógica original para otras ligas
+                    df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
+                    
+                    # Planas (HEADWEAR + Planas)
+                    df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
+                    ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
+                    
+                    # Curvas (HEADWEAR + Curvas)  
+                    df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
+                    ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
+                    
+                    # Apparel
+                    df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
+                    ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
+        
+        print(f"Ventas El Salvador desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
         return ventas_desglosadas
 
 # Instancia del procesador de ventas
@@ -1904,18 +2041,18 @@ class DataProcessor:
             tabla_final = _self._calculate_totals(tabla_final, pais, selected_league)
             
             # Agregar columna Ventas (USD) para ACCESSORIES solo si hay datos de ventas
-            if (df_ventas_hash is not None and pais == "Guatemala" and 
+            if (df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"] and 
                 'ACCESSORIES - Stock' in tabla_final.columns and 
                 'ACCESSORIES - Ventas (USD)' not in tabla_final.columns):
                 tabla_final['ACCESSORIES - Ventas (USD)'] = 0.0
             
-            # Agregar columnas de ventas si hay datos de ventas para Guatemala
-            if df_ventas_hash is not None and pais == "Guatemala":
+            # Agregar columnas de ventas si hay datos de ventas para Guatemala o El Salvador
+            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]:
                 df_ventas = pd.DataFrame(df_ventas_hash)
-                tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league)
+                tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league, pais)
             
             # Calcular TOTAL (USD) SOLO si hay archivo de ventas cargado
-            if df_ventas_hash is not None and pais == "Guatemala":
+            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]:
                 if selected_league:
                     # Para liga específica, solo sumar columnas de ventas de esa liga
                     columnas_usd = [col for col in tabla_final.columns if 
@@ -1934,7 +2071,7 @@ class DataProcessor:
             # Si no hay archivo de ventas, NO crear la columna TOTAL (USD)
             
             # Determinar si hay datos de ventas para pasarlo a _format_table
-            hay_ventas = df_ventas_hash is not None and pais == "Guatemala"
+            hay_ventas = df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]
             tabla_final = _self._format_table(tabla_final, selected_league, hay_ventas)
             
             logger.info(f"Procesamiento completado para {pais}")
@@ -2107,10 +2244,15 @@ class DataProcessor:
         
         return tabla_final
     
-    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None) -> pd.DataFrame:
+    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None, pais: str = "Guatemala") -> pd.DataFrame:
         """Agrega las columnas de ventas desglosadas por liga y subcategoría"""
-        # Procesar datos de ventas usando el SalesProcessor
-        ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
+        # Procesar datos de ventas usando el SalesProcessor según el país
+        if pais == "Guatemala":
+            ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
+        elif pais == "El Salvador":
+            ventas_desglosadas = sales_processor.procesar_ventas_el_salvador(df_ventas)
+        else:
+            ventas_desglosadas = {}
         
         # SIEMPRE procesar todas las categorías para generar tabla completa
         categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT", "ACCESSORIES"]
@@ -3104,9 +3246,9 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     if len(df_distribucion) == 0:
         return
     
-    # Filtrar CENTRAL NEW ERA y TOTAL del gráfico
+    # Filtrar CENTRAL NEW ERA, New Era Central y TOTAL del gráfico
     df_distribucion = df_distribucion[
-        ~df_distribucion['Bodega'].isin(['CENTRAL NEW ERA', 'TOTAL'])
+        ~df_distribucion['Bodega'].isin(['CENTRAL NEW ERA', 'New Era Central', 'TOTAL'])
     ].copy()
     
     if len(df_distribucion) == 0:
@@ -3115,6 +3257,12 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     # DEBUG: Verificar contenido del DataFrame
     logger.info(f"DataFrame de distribución creado con {len(df_distribucion)} filas (sin CENTRAL NEW ERA y TOTAL)")
     logger.info(f"Bodegas encontradas: {df_distribucion['Bodega'].tolist()}")
+    
+    # Definir nombres dinámicos según el país
+    if pais == "Guatemala":
+        nombre_tiendas_secundarias = "Tiendas Departamentales"
+    else:
+        nombre_tiendas_secundarias = "Tiendas Franquicia"
     
     # Definir tiendas de ciudad, outlets y secundarias
     bodegas_principales = [
@@ -3126,12 +3274,25 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         'NE Metronorte', 'NE Metrocentro Outlet', 'NE Outlet Santa clara'
     ]
     
-    # Separar los datos en tres grupos
-    df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
-    df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
-    df_secundarias = df_distribucion[
-        ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets)
-    ].copy()
+    # Para El Salvador, separar NE METROCENTRO LOURDES como tienda outlet especial
+    if pais == "El Salvador":
+        bodega_outlet_especial = ['NE METROCENTRO LOURDES']
+        df_outlet_especial = df_distribucion[df_distribucion['Bodega'].isin(bodega_outlet_especial)].copy()
+        
+        # Separar los datos en cuatro grupos para El Salvador
+        df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
+        df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
+        df_secundarias = df_distribucion[
+            ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets + bodega_outlet_especial)
+        ].copy()
+    else:
+        # Separar los datos en tres grupos para otros países
+        df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
+        df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
+        df_secundarias = df_distribucion[
+            ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets)
+        ].copy()
+        df_outlet_especial = pd.DataFrame()  # DataFrame vacío para otros países
     
     # DEBUG: Verificar separación de datos
     logger.info(f"Bodegas principales encontradas: {df_principales['Bodega'].tolist() if len(df_principales) > 0 else 'NINGUNA'}")
@@ -3284,7 +3445,7 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
             
             # Header con estilo profesional
-            html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
+            html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
             html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
             
             for liga in ligas:
@@ -3366,10 +3527,10 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     
     # Crear y mostrar gráfico de tiendas departamentales con su tabla
     if len(df_secundarias) > 0:
-        st.markdown("#### 🏬 Tiendas Departamentales")
+        st.markdown(f"#### 🏬 {nombre_tiendas_secundarias}")
         fig_secundarias = crear_grafico_distribucion(
             df_secundarias, 
-            f'Distribución por Ligas - Tiendas Departamentales ({pais})', 
+            f'Distribución por Ligas - {nombre_tiendas_secundarias} ({pais})', 
             ligas
         )
         if fig_secundarias:
@@ -3379,7 +3540,24 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             crear_leyenda_ligas()
         
         # Mostrar tabla de tiendas departamentales después de la leyenda
-        crear_tabla_resumen(df_secundarias, "📋 Resumen - Tiendas Departamentales", ligas)
+        crear_tabla_resumen(df_secundarias, f"📋 Resumen - {nombre_tiendas_secundarias}", ligas)
+    
+    # Crear y mostrar gráfico de tienda outlet especial (solo para El Salvador)
+    if pais == "El Salvador" and len(df_outlet_especial) > 0:
+        st.markdown("#### 🏪 Tienda Outlet")
+        fig_outlet_especial = crear_grafico_distribucion(
+            df_outlet_especial, 
+            f'Distribución por Ligas - Tienda Outlet ({pais})', 
+            ligas
+        )
+        if fig_outlet_especial:
+            st.plotly_chart(fig_outlet_especial, use_container_width=True)
+            
+            # Mostrar leyenda de ligas justo después del gráfico
+            crear_leyenda_ligas()
+        
+        # Mostrar tabla de tienda outlet después de la leyenda
+        crear_tabla_resumen(df_outlet_especial, "📋 Resumen - Tienda Outlet", ligas)
     
     # ==================== NUEVA SECCIÓN: DISTRIBUCIÓN DE VENTAS POR BODEGA ====================
     
@@ -3481,7 +3659,7 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
             
             # Header con estilo profesional (color diferente para ventas)
-            html += '<tr style="background-color: #10b981; color: white; font-weight: bold;">'
+            html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
             html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
             
             for liga in ligas:
@@ -3527,8 +3705,8 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         st.markdown(tabla_html, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Verificar si hay datos de ventas disponibles (solo para Guatemala)
-    if pais == "Guatemala" and any('Ventas' in str(col) for col in df_bodegas.columns):
+    # Verificar si hay datos de ventas disponibles (para Guatemala y El Salvador)
+    if pais in ["Guatemala", "El Salvador"] and any('Ventas' in str(col) for col in df_bodegas.columns):
         # Crear header de sección para ventas
         professional_design.create_section_header(
             f"Distribución de Ventas por Bodega - {pais}",
@@ -3591,18 +3769,27 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         if len(df_distribucion_ventas) == 0:
             st.warning("No hay datos de ventas disponibles para mostrar gráficos.")
         else:
-            # Filtrar CENTRAL NEW ERA y TOTAL del gráfico
+            # Filtrar CENTRAL NEW ERA, New Era Central y TOTAL del gráfico
             df_distribucion_ventas = df_distribucion_ventas[
-                ~df_distribucion_ventas['Bodega'].isin(['CENTRAL NEW ERA', 'TOTAL'])
+                ~df_distribucion_ventas['Bodega'].isin(['CENTRAL NEW ERA', 'New Era Central', 'TOTAL'])
             ].copy()
             
             if len(df_distribucion_ventas) > 0:
-                # Separar los datos en dos grupos para ventas
+                # Separar los datos para ventas
                 df_principales_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
                 df_outlets_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_outlets)].copy()
-                df_secundarias_ventas = df_distribucion_ventas[
-                    ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets)
-                ].copy()
+                
+                # Para El Salvador, separar NE METROCENTRO LOURDES como tienda outlet especial
+                if pais == "El Salvador":
+                    df_outlet_especial_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodega_outlet_especial)].copy()
+                    df_secundarias_ventas = df_distribucion_ventas[
+                        ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets + bodega_outlet_especial)
+                    ].copy()
+                else:
+                    df_outlet_especial_ventas = pd.DataFrame()
+                    df_secundarias_ventas = df_distribucion_ventas[
+                        ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets)
+                    ].copy()
                 
                 # Crear y mostrar gráfico de tiendas de ciudad con ventas
                 if len(df_principales_ventas) > 0:
@@ -3640,10 +3827,10 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                 
                 # Crear y mostrar gráfico de tiendas departamentales con ventas
                 if len(df_secundarias_ventas) > 0:
-                    st.markdown("#### 🏬 Tiendas Departamentales - Ventas")
+                    st.markdown(f"#### 🏬 {nombre_tiendas_secundarias} - Ventas")
                     fig_secundarias_ventas = crear_grafico_distribucion_ventas(
                         df_secundarias_ventas, 
-                        f'Distribución por Ligas - Tiendas Departamentales - Ventas ({pais})', 
+                        f'Distribución por Ligas - {nombre_tiendas_secundarias} - Ventas ({pais})', 
                         ligas
                     )
                     if fig_secundarias_ventas:
@@ -3653,7 +3840,24 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                         crear_leyenda_ligas()
                     
                     # Mostrar tabla de tiendas departamentales de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_secundarias_ventas, "📋 Resumen - Tiendas Departamentales - Ventas", ligas)
+                    crear_tabla_resumen_ventas(df_secundarias_ventas, f"📋 Resumen - {nombre_tiendas_secundarias} - Ventas", ligas)
+                
+                # Crear y mostrar gráfico de tienda outlet especial con ventas (solo para El Salvador)
+                if pais == "El Salvador" and len(df_outlet_especial_ventas) > 0:
+                    st.markdown("#### 🏪 Tienda Outlet - Ventas")
+                    fig_outlet_especial_ventas = crear_grafico_distribucion_ventas(
+                        df_outlet_especial_ventas, 
+                        f'Distribución por Ligas - Tienda Outlet - Ventas ({pais})', 
+                        ligas
+                    )
+                    if fig_outlet_especial_ventas:
+                        st.plotly_chart(fig_outlet_especial_ventas, use_container_width=True)
+                        
+                        # Mostrar leyenda de ligas justo después del gráfico
+                        crear_leyenda_ligas()
+                    
+                    # Mostrar tabla de tienda outlet de ventas después de la leyenda
+                    crear_tabla_resumen_ventas(df_outlet_especial_ventas, "📋 Resumen - Tienda Outlet - Ventas", ligas)
         
         # ==================== NUEVA SECCIÓN: COMPARACIÓN STOCK VS VENTAS ====================
         
@@ -3858,11 +4062,11 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         
         # Crear gráfico comparativo para tiendas departamentales
         if len(df_secundarias) > 0 and len(df_secundarias_ventas) > 0:
-            st.markdown("#### 🏬 Tiendas Departamentales - Comparación Stock vs Ventas")
+            st.markdown(f"#### 🏬 {nombre_tiendas_secundarias} - Comparación Stock vs Ventas")
             fig_comparativo_secundarias = crear_grafico_comparativo_stock_ventas(
                 df_secundarias,
                 df_secundarias_ventas, 
-                f'Stock vs Ventas - Tiendas Departamentales ({pais})', 
+                f'Stock vs Ventas - {nombre_tiendas_secundarias} ({pais})', 
                 ligas
             )
             if fig_comparativo_secundarias:
@@ -3871,8 +4075,23 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                 # Mostrar leyenda de ligas justo después del gráfico
                 crear_leyenda_ligas()
         
+        # Crear y mostrar gráfico comparativo de tienda outlet especial (solo para El Salvador)
+        if pais == "El Salvador" and len(df_outlet_especial) > 0 and len(df_outlet_especial_ventas) > 0:
+            st.markdown("#### 🏪 Tienda Outlet - Comparación Stock vs Ventas")
+            fig_comparativo_outlet_especial = crear_grafico_comparativo_stock_ventas(
+                df_outlet_especial,
+                df_outlet_especial_ventas, 
+                f'Stock vs Ventas - Tienda Outlet ({pais})', 
+                ligas
+            )
+            if fig_comparativo_outlet_especial:
+                st.plotly_chart(fig_comparativo_outlet_especial, use_container_width=True)
+                
+                # Mostrar leyenda de ligas justo después del gráfico
+                crear_leyenda_ligas()
+        
         # NUEVA SECCIÓN: Exportar Distribuciones cuando hay ventas (al final de todo)
-        if pais == "Guatemala":
+        if pais in ["Guatemala", "El Salvador"]:
             tiene_ventas_final = any('Ventas' in str(col) for col in df_bodegas.columns)
             if tiene_ventas_final:
                 # Crear diccionario completo con todas las tablas (stock y ventas)
@@ -3884,15 +4103,20 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                     'df_outlets_ventas': df_outlets_ventas if len(df_outlets_ventas) > 0 else pd.DataFrame(),
                     'df_secundarias_ventas': df_secundarias_ventas if len(df_secundarias_ventas) > 0 else pd.DataFrame()
                 }
+                
+                # Agregar Tienda Outlet especial para El Salvador
+                if pais == "El Salvador":
+                    tablas_completas['df_outlet_especial'] = df_outlet_especial if len(df_outlet_especial) > 0 else pd.DataFrame()
+                    tablas_completas['df_outlet_especial_ventas'] = df_outlet_especial_ventas if len(df_outlet_especial_ventas) > 0 else pd.DataFrame()
                 agregar_seccion_exportar_distribuciones(tablas_completas, pais, tiene_ventas_final)
         
     else:
         # Mostrar mensaje informativo para otros países
         st.info(f"📊 Los gráficos de distribución de ventas solo están disponibles para Guatemala cuando se cargan datos de ventas.")
     
-    # NUEVA SECCIÓN: Exportar Distribuciones (solo para Guatemala)
+    # NUEVA SECCIÓN: Exportar Distribuciones (para Guatemala y El Salvador)
     # Recolectar las tablas reales para exportación
-    if pais == "Guatemala":
+    if pais in ["Guatemala", "El Salvador"]:
         tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
         
         # Crear diccionario con las tablas de stock
@@ -3901,6 +4125,10 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             'df_outlets': df_outlets if len(df_outlets) > 0 else pd.DataFrame(),
             'df_secundarias': df_secundarias if len(df_secundarias) > 0 else pd.DataFrame()
         }
+        
+        # Agregar Tienda Outlet especial para El Salvador
+        if pais == "El Salvador":
+            tablas_reales['df_outlet_especial'] = df_outlet_especial if len(df_outlet_especial) > 0 else pd.DataFrame()
         
         # Si NO hay ventas, mostrar la sección aquí (después de distribución de stock)
         # Si SÍ hay ventas, la sección se mostrará al final de la función (después de comparación)
@@ -4068,7 +4296,7 @@ def mostrar_tabla_consolidada(tabla, pais):
         html = '<table style="border-collapse: collapse; text-align: center; font-size: 10px; width: 100%;">'
         
         # Fila 1: Ligas (con colspan)
-        html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
         html += '<td rowspan="3" style="border: 1px solid #ddd; padding: 3px; vertical-align: middle; font-size: 10px; width: 60px;">Bodega</td>'
         
         for liga, count in liga_counts.items():
@@ -4109,7 +4337,7 @@ def mostrar_tabla_consolidada(tabla, pais):
         # Filas de datos
         for idx, row in df.iterrows():
             if idx == len(df) - 1:  # Fila TOTAL
-                html += '<tr style="background-color: #d35400; color: white; font-weight: bold;">'
+                html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
             else:
                 html += '<tr>'
             
@@ -4182,25 +4410,31 @@ def mostrar_tabla_consolidada(tabla, pais):
     st.markdown(tabla_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Sección de exportación (solo para Guatemala)
-    if pais == "Guatemala":
+    # Sección de exportación (para Guatemala y El Salvador)
+    if pais in ["Guatemala", "El Salvador"]:
+        # Configurar header según el país
+        codigo_pais = "GT" if pais == "Guatemala" else "SV"
         professional_design.create_section_header(
-            "Exportar Reporte - Guatemala", 
+            f"Exportar Reporte - {pais}", 
             "Generar archivo Excel con formato profesional",
-            "GT"
+            codigo_pais
         )
         
         col1, col2 = st.columns([3, 2])
         
         with col1:
             # Obtener nombre del archivo desde session state o usar valor por defecto
-            archivo_nombre = st.session_state.get('archivo_guatemala_name', "GUATEMALA.csv")
-            nombre_archivo_gt = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key="nombre_gt_export")
+            archivo_default = "GUATEMALA.csv" if pais == "Guatemala" else "EL_SALVADOR.csv"
+            session_key = 'archivo_guatemala_name' if pais == "Guatemala" else 'archivo_el_salvador_name'
+            archivo_nombre = st.session_state.get(session_key, archivo_default)
+            export_key = "nombre_gt_export" if pais == "Guatemala" else "nombre_sv_export"
+            nombre_archivo = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key=export_key)
         
         with col2:
             st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-            if st.button("🚀 Generar Excel Guatemala", key="excel_gt_export", use_container_width=True):
-                exportar_excel_consolidado(tabla, nombre_archivo_gt, "Guatemala")
+            button_key = "excel_gt_export" if pais == "Guatemala" else "excel_sv_export"
+            if st.button(f"🚀 Generar Excel {pais}", key=button_key, use_container_width=True):
+                exportar_excel_consolidado(tabla, nombre_archivo, pais)
     
     # Mostrar métricas resumidas mejoradas
     selected_league = st.session_state.get('selected_league', None)
@@ -4314,30 +4548,35 @@ def mostrar_tabla_consolidada(tabla, pais):
         )
     mostrar_grafica_comparativa(tabla, pais)
     
-    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (solo para Guatemala)
-    if pais == "Guatemala":
+    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (para Guatemala y El Salvador)
+    if pais in ["Guatemala", "El Salvador"]:
         mostrar_distribucion_ligas_por_bodega(tabla, pais)
 
 def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
     """Agrega la sección de exportación de distribuciones idéntica a la sección existente"""
     # Crear header de sección idéntico a la sección de exportación existente
     professional_design = ProfessionalDesign()
+    codigo_pais = "GT" if pais == "Guatemala" else "SV"
     professional_design.create_section_header(
-        "Exportar Distribuciones - Guatemala", 
+        f"Exportar Distribuciones - {pais}", 
         "Generar archivo Excel con distribuciones por bodega",
-        "GT"
+        codigo_pais
     )
     
     col1, col2 = st.columns([3, 2])
     
     with col1:
         # Input idéntico al existente
-        archivo_nombre = st.session_state.get('archivo_guatemala_name', "GUATEMALA.csv")
-        nombre_archivo_dist = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key="nombre_dist_export")
+        archivo_default = "GUATEMALA.csv" if pais == "Guatemala" else "EL_SALVADOR.csv"
+        session_key = 'archivo_guatemala_name' if pais == "Guatemala" else 'archivo_el_salvador_name'
+        archivo_nombre = st.session_state.get(session_key, archivo_default)
+        dist_key = "nombre_dist_export" if pais == "Guatemala" else "nombre_dist_export_sv"
+        nombre_archivo_dist = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key=dist_key)
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-        if st.button("🚀 Generar Excel Distribuciones", key="excel_dist_export", use_container_width=True):
+        button_dist_key = "excel_dist_export" if pais == "Guatemala" else "excel_dist_export_sv"
+        if st.button("🚀 Generar Excel Distribuciones", key=button_dist_key, use_container_width=True):
             exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas)
 
 def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
@@ -4348,6 +4587,12 @@ def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
     
     try:
         logger.info(f"Iniciando exportación de distribuciones reales para {pais}")
+        
+        # Definir nombres dinámicos según el país
+        if pais == "Guatemala":
+            nombre_tiendas_secundarias = "Tiendas Departamentales"
+        else:
+            nombre_tiendas_secundarias = "Tiendas Franquicia"
         
         # Crear archivo Excel
         nombre_excel = f"distribucion_bodegas_{pais.lower().replace(' ', '_')}_{config.fecha_reporte}.xlsx"
@@ -4379,11 +4624,20 @@ def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
             
             # Escribir tabla de Tiendas Departamentales
             if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
-                titulo_secundarias = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES']], columns=[''])
+                titulo_secundarias = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()}']], columns=[''])
                 titulo_secundarias.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
                 row_offset += 2
                 
                 tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_secundarias']) + 3
+            
+            # Escribir tabla de Tienda Outlet (solo para El Salvador)
+            if 'df_outlet_especial' in tablas_reales and len(tablas_reales['df_outlet_especial']) > 0:
+                titulo_outlet_especial = pd.DataFrame([['🏪 TIENDA OUTLET']], columns=[''])
+                titulo_outlet_especial.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                
+                tablas_reales['df_outlet_especial'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
         
         else:
             # Hay stock y ventas - crear 3 pestañas
@@ -4407,10 +4661,18 @@ def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
                 row_offset += len(tablas_reales['df_outlets']) + 3
             
             if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
-                titulo = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES']], columns=[''])
+                titulo = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()}']], columns=[''])
                 titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
                 row_offset += 2
                 tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_secundarias']) + 3
+            
+            # Escribir tabla de Tienda Outlet en pestaña de stock (solo para El Salvador)
+            if 'df_outlet_especial' in tablas_reales and len(tablas_reales['df_outlet_especial']) > 0:
+                titulo = pd.DataFrame([['🏪 TIENDA OUTLET']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_outlet_especial'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
             
             # PESTAÑA 2: Distribución Ventas
             sheet_name_ventas = "Distribución Ventas"
@@ -4431,10 +4693,18 @@ def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
                 row_offset += len(tablas_reales['df_outlets_ventas']) + 3
             
             if 'df_secundarias_ventas' in tablas_reales and len(tablas_reales['df_secundarias_ventas']) > 0:
-                titulo = pd.DataFrame([['🏬 TIENDAS DEPARTAMENTALES - VENTAS']], columns=[''])
+                titulo = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()} - VENTAS']], columns=[''])
                 titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
                 row_offset += 2
                 tablas_reales['df_secundarias_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
+                row_offset += len(tablas_reales['df_secundarias_ventas']) + 3
+            
+            # Escribir tabla de Tienda Outlet - Ventas (solo para El Salvador)
+            if 'df_outlet_especial_ventas' in tablas_reales and len(tablas_reales['df_outlet_especial_ventas']) > 0:
+                titulo = pd.DataFrame([['🏪 TIENDA OUTLET - VENTAS']], columns=[''])
+                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
+                row_offset += 2
+                tablas_reales['df_outlet_especial_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
             
             # Nota: Se removió la pestaña de comparación como se solicitó
         
@@ -4515,6 +4785,12 @@ def exportar_excel_distribuciones(df_bodegas, nombres_reales_bodegas, pais):
     
     try:
         logger.info(f"Iniciando exportación de distribuciones para {pais}")
+        
+        # Definir nombres dinámicos según el país
+        if pais == "Guatemala":
+            nombre_tiendas_secundarias = "Tiendas Departamentales"
+        else:
+            nombre_tiendas_secundarias = "Tiendas Franquicia"
         
         # Detectar si hay datos de ventas
         tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
@@ -5095,13 +5371,24 @@ def main():
     with tab_el_salvador:
         professional_design.create_section_header(
             "Análisis de Stock - El Salvador", 
-            "Gestión de inventario para 9 tiendas en El Salvador",
+            "Gestión de inventario para 9 tiendas en territorio salvadoreño",
             "SV"
         )
         
-        archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "El Salvador")
+        # Crear dos columnas para los espacios de carga (igual que Guatemala)
+        col_el_salvador, col_ventas_sv = st.columns(2)
+        
+        with col_el_salvador:
+            archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "El Salvador")
+            
+        with col_ventas_sv:
+            archivo_ventas_el_salvador = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_EL_SALVADOR.csv", "El_Salvador_ventas")
         
         if archivo_el_salvador is not None:
+            # Guardar nombre del archivo en session state para la exportación
+            if hasattr(archivo_el_salvador, 'name'):
+                st.session_state.archivo_el_salvador_name = archivo_el_salvador.name
+            
             # Crear hash del DataFrame para cache
             df_hash = archivo_el_salvador.to_dict('records')
             
@@ -5110,40 +5397,47 @@ def main():
             # Convertir "Todas" a None para mostrar todas las ligas
             if selected_league == "Todas":
                 selected_league = None
-            tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league)
+            df_ventas_hash = archivo_ventas_el_salvador.to_dict('records') if archivo_ventas_el_salvador is not None else None
+            
+            # Limpiar cache si hay cambios
+            if 'cache_cleared_sv' not in st.session_state:
+                st.cache_data.clear()
+                st.session_state.cache_cleared_sv = True
+                
+            tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league, df_ventas_hash)
             
             # Mostrar resultados El Salvador
             mostrar_tabla_consolidada(tabla_el_salvador, "El Salvador")
             
-            # Sección de exportación dentro de la pestaña
-            professional_design.create_section_header(
-                "Exportar Reporte - El Salvador", 
-                "Generar archivo Excel con formato profesional",
-                "SV"
-            )
+        # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
+        if archivo_el_salvador is None or archivo_ventas_el_salvador is None:
+            col_msg_el_salvador, col_msg_ventas_sv = st.columns(2)
             
-            col1, col2 = st.columns([3, 2])
+            with col_msg_el_salvador:
+                if archivo_el_salvador is None:
+                    st.markdown("""
+                    <div class="country-card country-card-sv">
+                        <div class="country-flag">🇸🇻</div>
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                            Selecciona tu archivo EL_SALVADOR.csv para comenzar el análisis completo del inventario<br>
+                            <strong style="color: #1e3a8a;">9 tiendas</strong> en operación
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
             
-            with col1:
-                nombre_original_sv = archivo_el_salvador.name if hasattr(archivo_el_salvador, 'name') else "EL_SALVADOR.csv"
-                nombre_archivo_sv = st.text_input("📝 Nombre del archivo origen", nombre_original_sv, key="nombre_sv")
-            
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-                if st.button("🚀 Generar Excel El Salvador", key="excel_sv", use_container_width=True):
-                    exportar_excel_consolidado(tabla_el_salvador, nombre_archivo_sv, "El Salvador")
-        else:
-            # Mensaje de bienvenida cuando no hay archivo
-            st.markdown("""
-            <div class="country-card country-card-sv">
-                <div class="country-flag">🇸🇻</div>
-                <h3 class="country-title" style="color: #1e3a8a; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de Stock</h3>
-                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
-                    Selecciona tu archivo EL_SALVADOR.csv para comenzar el análisis de las 9 bodegas de El Salvador<br>
-                    <strong style="color: #1e3a8a;">9 tiendas</strong> en operación
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            with col_msg_ventas_sv:
+                if archivo_ventas_el_salvador is None:
+                    st.markdown("""
+                    <div class="country-card country-card-sv">
+                        <div class="country-flag">🇸🇻</div>
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
+                            Selecciona tu archivo VENTAS_EL_SALVADOR.csv para análisis de ventas en USD<br>
+                            <strong style="color: #22c55e;">Datos de ventas</strong> opcionales
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
     # PESTAÑA COSTA RICA
     with tab_costa_rica:
