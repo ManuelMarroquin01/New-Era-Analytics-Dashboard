@@ -5237,10 +5237,10 @@ def main():
                     st.markdown("""
                     <div class="country-card country-card-gt">
                         <div class="country-flag">🇬🇹</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #0ea5e9;">Stock</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(186, 230, 253, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(186, 230, 253, 0.3);">
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
                             Selecciona tu archivo GUATEMALA.csv para comenzar el análisis completo del inventario<br>
-                            <strong style="color: #0ea5e9;">24 tiendas</strong> en operación
+                            <strong style="color: #1e3a8a;">24 tiendas</strong> en operación
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -5250,10 +5250,10 @@ def main():
                     st.markdown("""
                     <div class="country-card country-card-gt">
                         <div class="country-flag">🇬🇹</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #0ea5e9;">Ventas</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(186, 230, 253, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(186, 230, 253, 0.3);">
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
                             Selecciona tu archivo VENTAS_GUATEMALA.csv para comenzar el análisis completo de ventas<br>
-                            <strong style="color: #0ea5e9;">24 tiendas</strong> en operación
+                            <strong style="color: #22c55e;">24 tiendas</strong> en operación
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
