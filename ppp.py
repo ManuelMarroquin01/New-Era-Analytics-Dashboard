@@ -1846,6 +1846,60 @@ class DataLoader:
     def __init__(self, country_manager: CountryManager):
         self.country_manager = country_manager
         self.required_columns = ['U_Marca', 'U_Silueta', 'Stock_Actual', 'Bodega', 'U_Liga', 'U_Segmento']
+        
+        # Configuración centralizada de nombres de archivos permitidos
+        self.nombres_permitidos = {
+            'GUATEMALA': {
+                'stock': 'GUATEMALA',
+                'ventas': 'VENTAS_GUATEMALA'
+            },
+            'EL_SALVADOR': {
+                'stock': 'EL_SALVADOR', 
+                'ventas': 'VENTAS_EL_SALVADOR'
+            },
+            'PANAMA': {
+                'stock': 'PANAMA',
+                'ventas': 'VENTAS_PANAMA'
+            },
+            'HONDURAS': {
+                'stock': 'HONDURAS',
+                'ventas': 'VENTAS_HONDURAS'
+            },
+            'COSTA_RICA': {
+                'stock': 'COSTA_RICA',
+                'ventas': 'VENTAS_COSTA_RICA'
+            }
+        }
+    
+    def _validar_nombre_archivo(self, archivo, pais: str, tipo: str) -> bool:
+        """Valida que el nombre del archivo sea exactamente el esperado"""
+        if not hasattr(archivo, 'name') or archivo.name is None:
+            return False
+            
+        # Obtener el nombre sin extensión
+        nombre_archivo = archivo.name.rsplit('.', 1)[0] if '.' in archivo.name else archivo.name
+        
+        # Obtener el nombre esperado para el país y tipo
+        nombre_esperado = self.nombres_permitidos.get(pais, {}).get(tipo)
+        
+        if nombre_esperado is None:
+            # Si no hay nombre definido para este tipo (ej: ventas no disponible)
+            st.error(f"❌ **Error de seguridad:** No hay archivos de {tipo} configurados para {pais}")
+            return False
+            
+        # Validación estricta de nombre
+        if nombre_archivo != nombre_esperado:
+            st.error(f"""
+            ❌ **Error de seguridad:** Nombre de archivo incorrecto
+            
+            **Nombre recibido:** `{nombre_archivo}`
+            **Nombre esperado:** `{nombre_esperado}`
+            
+            ⚠️ Por favor, renombra tu archivo exactamente como se indica: **{nombre_esperado}.csv**
+            """)
+            return False
+            
+        return True
     
     def cargar_archivo(self, label_texto: str, pais: str) -> Optional[pd.DataFrame]:
         """Carga y valida el archivo CSV con manejo robusto"""
@@ -1884,6 +1938,10 @@ class DataLoader:
         if archivo is None:
             return None
         
+        # VALIDACIÓN DE SEGURIDAD: Verificar nombre del archivo
+        if not self._validar_nombre_archivo(archivo, pais, 'stock'):
+            return None
+        
         try:
             return self._process_file(archivo, pais)
         except Exception as e:
@@ -1911,8 +1969,8 @@ class DataLoader:
             st.success(f"✅ Archivo {pais} cargado ({elapsed_time:.2f}s) | Registros: {len(df):,}")
             return df
     
-    def cargar_archivo_ventas(self, label_texto: str, key: str) -> Optional[pd.DataFrame]:
-        """Carga archivo de ventas sin validar columnas de stock"""
+    def cargar_archivo_ventas(self, label_texto: str, key: str, pais: str = None) -> Optional[pd.DataFrame]:
+        """Carga archivo de ventas con validación de nombre"""
         with st.container():
             st.markdown(f"""
                 <div style="
@@ -1945,6 +2003,10 @@ class DataLoader:
             )
             
             if archivo is None:
+                return None
+            
+            # VALIDACIÓN DE SEGURIDAD: Verificar nombre del archivo
+            if pais and not self._validar_nombre_archivo(archivo, pais, 'ventas'):
                 return None
             
             try:
@@ -3074,13 +3136,13 @@ class ChartVisualizer:
             metricas_performance = [
                 (max_stock['Bodega'], f"{max_stock['Stock']:,}", f"Mayor Stock {selected_league}", "🏆", "#10b981"),
                 (min_stock['Bodega'], f"{min_stock['Stock']:,}", f"Menor Stock {selected_league}", "📊", "#ef4444"),
-                (f"{promedio_stock:,.0f}", "unidades", f"Promedio {selected_league}", "📈", "#6b7280")
+                (f"{promedio_stock:,.0f}", "unidades", f"Promedio de Headwear {selected_league}", "📈", "#6b7280")
             ]
         else:
             metricas_performance = [
                 (max_stock['Bodega'], f"{max_stock['Stock']:,}", "Mayor Stock", "🏆", "#10b981"),
                 (min_stock['Bodega'], f"{min_stock['Stock']:,}", "Menor Stock", "📊", "#ef4444"),
-                (f"{promedio_stock:,.0f}", "unidades", "Promedio General", "📈", "#6b7280")
+                (f"{promedio_stock:,.0f}", "unidades", "Promedio de Headwear", "📈", "#6b7280")
             ]
         
         for i, (valor_principal, valor_secundario, nombre, emoji, color) in enumerate(metricas_performance):
@@ -5198,10 +5260,10 @@ def main():
         col_guatemala, col_ventas = st.columns(2)
         
         with col_guatemala:
-            archivo_guatemala = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv", "Guatemala")
+            archivo_guatemala = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv", "GUATEMALA")
             
         with col_ventas:
-            archivo_ventas_guatemala = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_GUATEMALA.csv", "Guatemala_ventas")
+            archivo_ventas_guatemala = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_GUATEMALA.csv", "Guatemala_ventas", "GUATEMALA")
         
         if archivo_guatemala is not None:
             # Guardar nombre del archivo en session state para la exportación
@@ -5321,7 +5383,7 @@ def main():
             "HN"
         )
         
-        archivo_honduras = data_loader.cargar_archivo("📁 Subir archivo HONDURAS.csv", "Honduras")
+        archivo_honduras = data_loader.cargar_archivo("📁 Subir archivo HONDURAS.csv", "HONDURAS")
         
         if archivo_honduras is not None:
             # Crear hash del DataFrame para cache
@@ -5379,10 +5441,10 @@ def main():
         col_el_salvador, col_ventas_sv = st.columns(2)
         
         with col_el_salvador:
-            archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "El Salvador")
+            archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "EL_SALVADOR")
             
         with col_ventas_sv:
-            archivo_ventas_el_salvador = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_EL_SALVADOR.csv", "El_Salvador_ventas")
+            archivo_ventas_el_salvador = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_EL_SALVADOR.csv", "El_Salvador_ventas", "EL_SALVADOR")
         
         if archivo_el_salvador is not None:
             # Guardar nombre del archivo en session state para la exportación
@@ -5447,7 +5509,7 @@ def main():
             "CR"
         )
         
-        archivo_costa_rica = data_loader.cargar_archivo("📁 Subir archivo COSTA_RICA.csv", "Costa Rica")
+        archivo_costa_rica = data_loader.cargar_archivo("📁 Subir archivo COSTA_RICA.csv", "COSTA_RICA")
         
         if archivo_costa_rica is not None:
             # Crear hash del DataFrame para cache
