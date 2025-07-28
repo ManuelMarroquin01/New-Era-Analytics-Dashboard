@@ -1350,7 +1350,6 @@ class CountryData:
     name: str
     bodegas: List[str]
     capacidades: Dict[str, int]
-    tienda_mapping: Dict[str, str] = None
     
     def get_total_capacity(self) -> int:
         """Obtiene la capacidad total del país"""
@@ -1392,19 +1391,7 @@ class CountryManager:
                 capacidades={
                     "NEW ERA METROCENTRO": 4355, "NEW ERA MULTIPLAZA": 5443, "NEW ERA EL PASEO": 4436,
                     "NEW ERA METROCENTRO SANTA ANA": 5771, "NE USULUTÁN": 5760, "NE METROCENTRO SAN MIGUEL": 3600,
-                    "NE PLAZA MUNDO SOYAPANGO": 3120, "NE METROCENTRO LOURDES": 6912, "New Era Central": 5000
-                },
-                tienda_mapping={
-                    # Mapeo: Bodega (Stock) -> Tienda (Ventas)
-                    "NE METROCENTRO LOURDES": "NE METROCENTRO LOURDES",
-                    "NEW ERA MULTIPLAZA": "NEW ERA MULTIPLAZA",
-                    "NEW ERA METROCENTRO": "NE METROCENTRO",
-                    "NEW ERA METROCENTRO SANTA ANA": "NE METROCENTRO SANTA ANA",
-                    "NE PLAZA MUNDO SOYAPANGO": "NE PLAZA MUNDO SOYAPANGO",
-                    "NE USULUTÁN": "NE PLAZA MUNDO USULUTÁN",
-                    "NE METROCENTRO SAN MIGUEL": "NE METROCENTRO SAN MIGUEL",
-                    "NEW ERA EL PASEO": "NEW ERA EL PASEO"
-                    # Nota: "New Era Central" no tiene equivalente en ventas
+                    "NE PLAZA MUNDO SOYAPANGO": 3120, "NE METROCENTRO LOURDES": 6912
                 }
             ),
             "Honduras": CountryData(
@@ -1462,8 +1449,6 @@ class SalesProcessor:
     """Procesador de datos de ventas"""
     
     def __init__(self):
-        # Inicializar country_manager
-        self.country_manager = CountryManager()
         # Mapeo de bodegas del dashboard a nombres en columna "Tienda" del archivo de ventas
         self.tienda_mapping = {
             "NE Oakland": "NE OAKLAND",
@@ -1541,19 +1526,16 @@ class SalesProcessor:
         # Filtrar por marca NEW ERA
         df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
         
-        # Usar mapeo específico para Guatemala
-        mapeo_guatemala = self.country_manager.get_country_data("Guatemala").tienda_mapping or self.tienda_mapping
-        mapeo_inverso = {v: k for k, v in mapeo_guatemala.items()}
+        # Mapear tiendas a bodegas
+        mapeo_inverso = {v: k for k, v in self.tienda_mapping.items()}
         df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
         
         # Intentar mapeo normalizado para no mapeadas
         tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
         if len(tiendas_no_mapeadas) > 0:
-            # Crear mapeo normalizado para Guatemala
-            mapeo_normalizado_gt = {self._normalize_text(v): k for k, v in mapeo_guatemala.items()}
             df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
                 df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
-                    lambda x: mapeo_normalizado_gt.get(self._normalize_text(x))
+                    lambda x: self.tienda_mapping_normalizado.get(self._normalize_text(x))
                 )
         
         # Filtrar solo registros mapeados
@@ -1620,125 +1602,6 @@ class SalesProcessor:
                     ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
         
         print(f"Ventas desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
-        return ventas_desglosadas
-
-    def procesar_ventas_el_salvador(self, df_ventas: pd.DataFrame) -> Dict[str, Dict[str, Dict[str, float]]]:
-        """
-        Procesa el archivo de ventas de El Salvador y retorna ventas desglosadas por bodega, liga y subcategoría
-        Estructura: {bodega: {liga: {subcategoria: ventas}}}
-        """
-        if df_ventas is None or df_ventas.empty:
-            return {}
-        
-        # Debug: Mostrar las columnas disponibles (solo en consola)
-        print(f"Columnas disponibles en archivo de ventas El Salvador: {list(df_ventas.columns)}")
-        
-        # Verificar columnas necesarias
-        columnas_necesarias = ['U_Marca', 'U_Segmento', 'U_Liga', 'USD_Total_SI_CD']
-        columna_tienda = None
-        
-        # Buscar columna de tienda
-        for col in df_ventas.columns:
-            if 'tienda' in col.lower() or 'store' in col.lower() or 'bodega' in col.lower():
-                columna_tienda = col
-                break
-        
-        if columna_tienda is None:
-            print("No se encontró columna de tienda en El Salvador")
-            return {}
-            
-        columnas_necesarias.append(columna_tienda)
-        
-        # Verificar que existan todas las columnas
-        for col in columnas_necesarias[:-1]:  # Excepto la columna_tienda que ya verificamos
-            if col not in df_ventas.columns:
-                print(f"No se encontró columna {col} en El Salvador")
-                return {}
-        
-        print(f"Usando columna de tienda para El Salvador: {columna_tienda}")
-        
-        # Filtrar por marca NEW ERA
-        df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
-        
-        # Usar mapeo específico para El Salvador
-        mapeo_el_salvador = self.country_manager.get_country_data("El Salvador").tienda_mapping
-        mapeo_inverso = {v: k for k, v in mapeo_el_salvador.items()}
-        df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
-        
-        # Intentar mapeo normalizado para no mapeadas
-        tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
-        if len(tiendas_no_mapeadas) > 0:
-            # Crear mapeo normalizado para El Salvador
-            mapeo_normalizado_sv = {self._normalize_text(v): k for k, v in mapeo_el_salvador.items()}
-            df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
-                df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
-                    lambda x: mapeo_normalizado_sv.get(self._normalize_text(x))
-                )
-        
-        # Filtrar solo registros mapeados
-        df_mapeado = df_new_era[df_new_era['Bodega_Mapeada'].notna()].copy()
-        
-        if len(df_mapeado) == 0:
-            print("No hay registros mapeados para procesar en El Salvador")
-            return {}
-        
-        # Definir categorías de ligas (mismas que Guatemala)
-        categorias_ligas = {
-            "MLB": ["MLB", "MLB properties"],
-            "NBA": ["NBA", "NBA Properties"],
-            "NFL": ["NFL", "NFL Properties"], 
-            "MOTORSPORT": ["MOTORSPORT"],
-            "ENTERTAINMENT": [
-                "NEW ERA BRANDED", "ENTERTAINMENT", "MARCA PAIS", "WARNER BROS",
-                "DISNEY", "LOONEY TUNES", "MARVEL", "DC", "UNIVERSAL", "PARAMOUNT"
-            ],
-            "ACCESSORIES": ["ACCESSORIES"]
-        }
-        
-        # Importar ProductClassification para clasificar siluetas
-        product_classifier = ProductClassification(siluetas_planas=[], siluetas_curvas=[])
-        
-        # Clasificar siluetas solo para HEADWEAR
-        df_mapeado['Tipo'] = df_mapeado.apply(
-            lambda row: product_classifier.clasificar_silueta(row['U_Silueta']) 
-            if row['U_Segmento'] == 'HEADWEAR' else None, 
-            axis=1
-        )
-        
-        # Inicializar estructura de resultados
-        ventas_desglosadas = {}
-        
-        # Procesar por bodega
-        for bodega in df_mapeado['Bodega_Mapeada'].unique():
-            df_bodega = df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega]
-            ventas_desglosadas[bodega] = {}
-            
-            # Procesar por liga
-            for categoria, ligas in categorias_ligas.items():
-                ventas_desglosadas[bodega][categoria] = {}
-                
-                if categoria == 'ACCESSORIES':
-                    # Para ACCESSORIES, filtrar directamente por segmento
-                    df_accessories = df_bodega[df_bodega['U_Segmento'] == 'ACCESSORIES']
-                    ventas_desglosadas[bodega][categoria]['Stock'] = df_accessories['USD_Total_SI_CD'].sum()
-                    ventas_desglosadas[bodega][categoria]['Ventas'] = df_accessories['USD_Total_SI_CD'].sum()
-                else:
-                    # Lógica original para otras ligas
-                    df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
-                    
-                    # Planas (HEADWEAR + Planas)
-                    df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
-                    ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
-                    
-                    # Curvas (HEADWEAR + Curvas)  
-                    df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
-                    ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
-                    
-                    # Apparel
-                    df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
-                    ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
-        
-        print(f"Ventas El Salvador desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
         return ventas_desglosadas
 
 # Instancia del procesador de ventas
@@ -1846,60 +1709,6 @@ class DataLoader:
     def __init__(self, country_manager: CountryManager):
         self.country_manager = country_manager
         self.required_columns = ['U_Marca', 'U_Silueta', 'Stock_Actual', 'Bodega', 'U_Liga', 'U_Segmento']
-        
-        # Configuración centralizada de nombres de archivos permitidos
-        self.nombres_permitidos = {
-            'GUATEMALA': {
-                'stock': 'GUATEMALA',
-                'ventas': 'VENTAS_GUATEMALA'
-            },
-            'EL_SALVADOR': {
-                'stock': 'EL_SALVADOR', 
-                'ventas': 'VENTAS_EL_SALVADOR'
-            },
-            'PANAMA': {
-                'stock': 'PANAMA',
-                'ventas': 'VENTAS_PANAMA'
-            },
-            'HONDURAS': {
-                'stock': 'HONDURAS',
-                'ventas': 'VENTAS_HONDURAS'
-            },
-            'COSTA_RICA': {
-                'stock': 'COSTA_RICA',
-                'ventas': 'VENTAS_COSTA_RICA'
-            }
-        }
-    
-    def _validar_nombre_archivo(self, archivo, pais: str, tipo: str) -> bool:
-        """Valida que el nombre del archivo sea exactamente el esperado"""
-        if not hasattr(archivo, 'name') or archivo.name is None:
-            return False
-            
-        # Obtener el nombre sin extensión
-        nombre_archivo = archivo.name.rsplit('.', 1)[0] if '.' in archivo.name else archivo.name
-        
-        # Obtener el nombre esperado para el país y tipo
-        nombre_esperado = self.nombres_permitidos.get(pais, {}).get(tipo)
-        
-        if nombre_esperado is None:
-            # Si no hay nombre definido para este tipo (ej: ventas no disponible)
-            st.error(f"❌ **Error de seguridad:** No hay archivos de {tipo} configurados para {pais}")
-            return False
-            
-        # Validación estricta de nombre
-        if nombre_archivo != nombre_esperado:
-            st.error(f"""
-            ❌ **Error de seguridad:** Nombre de archivo incorrecto
-            
-            **Nombre recibido:** `{nombre_archivo}`
-            **Nombre esperado:** `{nombre_esperado}`
-            
-            ⚠️ Por favor, renombra tu archivo exactamente como se indica: **{nombre_esperado}.csv**
-            """)
-            return False
-            
-        return True
     
     def cargar_archivo(self, label_texto: str, pais: str) -> Optional[pd.DataFrame]:
         """Carga y valida el archivo CSV con manejo robusto"""
@@ -1938,10 +1747,6 @@ class DataLoader:
         if archivo is None:
             return None
         
-        # VALIDACIÓN DE SEGURIDAD: Verificar nombre del archivo
-        if not self._validar_nombre_archivo(archivo, pais, 'stock'):
-            return None
-        
         try:
             return self._process_file(archivo, pais)
         except Exception as e:
@@ -1969,8 +1774,8 @@ class DataLoader:
             st.success(f"✅ Archivo {pais} cargado ({elapsed_time:.2f}s) | Registros: {len(df):,}")
             return df
     
-    def cargar_archivo_ventas(self, label_texto: str, key: str, pais: str = None) -> Optional[pd.DataFrame]:
-        """Carga archivo de ventas con validación de nombre"""
+    def cargar_archivo_ventas(self, label_texto: str, key: str) -> Optional[pd.DataFrame]:
+        """Carga archivo de ventas sin validar columnas de stock"""
         with st.container():
             st.markdown(f"""
                 <div style="
@@ -2003,10 +1808,6 @@ class DataLoader:
             )
             
             if archivo is None:
-                return None
-            
-            # VALIDACIÓN DE SEGURIDAD: Verificar nombre del archivo
-            if pais and not self._validar_nombre_archivo(archivo, pais, 'ventas'):
                 return None
             
             try:
@@ -2099,22 +1900,20 @@ class DataProcessor:
             
             df = _self._prepare_data(df)
             tabla_final = _self._create_base_table(pais)
-            tabla_final = _self._process_categories(df, tabla_final, pais, selected_league, df_ventas_hash)
+            tabla_final = _self._process_categories(df, tabla_final, pais, selected_league)
             tabla_final = _self._calculate_totals(tabla_final, pais, selected_league)
             
-            # Agregar columna Ventas (USD) para ACCESSORIES solo si hay datos de ventas
-            if (df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"] and 
-                'ACCESSORIES - Stock' in tabla_final.columns and 
-                'ACCESSORIES - Ventas (USD)' not in tabla_final.columns):
+            # Agregar columna Ventas (USD) para ACCESSORIES siempre
+            if 'ACCESSORIES - Stock' in tabla_final.columns and 'ACCESSORIES - Ventas (USD)' not in tabla_final.columns:
                 tabla_final['ACCESSORIES - Ventas (USD)'] = 0.0
             
-            # Agregar columnas de ventas si hay datos de ventas para Guatemala o El Salvador
-            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]:
+            # Agregar columnas de ventas si hay datos de ventas para Guatemala
+            if df_ventas_hash is not None and pais == "Guatemala":
                 df_ventas = pd.DataFrame(df_ventas_hash)
-                tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league, pais)
+                tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league)
             
             # Calcular TOTAL (USD) SOLO si hay archivo de ventas cargado
-            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]:
+            if df_ventas_hash is not None and pais == "Guatemala":
                 if selected_league:
                     # Para liga específica, solo sumar columnas de ventas de esa liga
                     columnas_usd = [col for col in tabla_final.columns if 
@@ -2133,7 +1932,7 @@ class DataProcessor:
             # Si no hay archivo de ventas, NO crear la columna TOTAL (USD)
             
             # Determinar si hay datos de ventas para pasarlo a _format_table
-            hay_ventas = df_ventas_hash is not None and pais in ["Guatemala", "El Salvador"]
+            hay_ventas = df_ventas_hash is not None and pais == "Guatemala"
             tabla_final = _self._format_table(tabla_final, selected_league, hay_ventas)
             
             logger.info(f"Procesamiento completado para {pais}")
@@ -2159,7 +1958,7 @@ class DataProcessor:
         bodegas = self.country_manager.get_bodegas(pais)
         return pd.DataFrame(index=bodegas)
     
-    def _process_categories(self, df: pd.DataFrame, tabla_final: pd.DataFrame, pais: str, selected_league: str = None, df_ventas_hash: List[Dict] = None) -> pd.DataFrame:
+    def _process_categories(self, df: pd.DataFrame, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Procesa cada categoría de liga"""
         # Usar el parámetro pasado en lugar de session_state para compatibilidad con cache
         
@@ -2177,7 +1976,7 @@ class DataProcessor:
                     logger.warning(f"No se encontraron datos para la categoría {categoria}")
                     continue
                 
-                # Para ACCESSORIES, crear columnas Stock y opcionalmente Ventas
+                # Para ACCESSORIES, crear directamente las columnas Stock y Ventas (sin Planas/Curvas)
                 accessories_stock = self._process_accessories_stock(df_cat)
                 
                 # Agregar las columnas al DataFrame final
@@ -2246,26 +2045,19 @@ class DataProcessor:
     def _calculate_totals(self, tabla_final: pd.DataFrame, pais: str, selected_league: str = None) -> pd.DataFrame:
         """Calcula totales y métricas"""
         
-        
         # Calcular totales según el filtro aplicado
         if selected_league:
-            # Para liga específica, calcular totales SOLO de esa liga y SOLO Stock
-            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Planas']].sum(axis=1)
-            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Curvas']].sum(axis=1)
-            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if str(col) == f'{selected_league} - Apparel']].sum(axis=1)
+            # Para liga específica, calcular totales SOLO de esa liga
+            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col and selected_league in col]].sum(axis=1)
+            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col and selected_league in col]].sum(axis=1)
+            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col and selected_league in col]].sum(axis=1)
             logger.info(f"Calculando totales solo para liga: {selected_league}")
         else:
-            # Columnas PLANAS: Buscar solo las que terminan en "Planas" (excluyendo ACCESSORIES y Ventas)
-            columnas_planas = [col for col in tabla_final.columns if str(col).endswith('- Planas') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
-            tabla_final['TOTAL PLANAS'] = tabla_final[columnas_planas].sum(axis=1) if columnas_planas else 0
-            
-            # Columnas CURVAS: Buscar solo las que terminan en "Curvas" (excluyendo ACCESSORIES y Ventas)
-            columnas_curvas = [col for col in tabla_final.columns if str(col).endswith('- Curvas') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
-            tabla_final['TOTAL CURVAS'] = tabla_final[columnas_curvas].sum(axis=1) if columnas_curvas else 0
-            
-            # Columnas APPAREL: Buscar solo las que terminan en "Apparel" (excluyendo ACCESSORIES y Ventas)
-            columnas_apparel = [col for col in tabla_final.columns if str(col).endswith('- Apparel') and 'ACCESSORIES' not in str(col) and 'Ventas' not in str(col)]
-            tabla_final['TOTAL APPAREL'] = tabla_final[columnas_apparel].sum(axis=1) if columnas_apparel else 0
+            # Para todas las ligas, calcular totales de todas las columnas
+            tabla_final['TOTAL PLANAS'] = tabla_final[[col for col in tabla_final.columns if 'Planas' in col]].sum(axis=1)
+            tabla_final['TOTAL CURVAS'] = tabla_final[[col for col in tabla_final.columns if 'Curvas' in col]].sum(axis=1)
+            tabla_final['TOTAL APPAREL'] = tabla_final[[col for col in tabla_final.columns if 'Apparel' in col]].sum(axis=1)
+            logger.info("Calculando totales de todas las ligas")
         
         # TOTAL HEADWEAR y TOTAL STOCK se calculan igual en ambos casos
         tabla_final['TOTAL HEADWEAR'] = tabla_final['TOTAL PLANAS'] + tabla_final['TOTAL CURVAS']
@@ -2306,15 +2098,10 @@ class DataProcessor:
         
         return tabla_final
     
-    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None, pais: str = "Guatemala") -> pd.DataFrame:
+    def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None) -> pd.DataFrame:
         """Agrega las columnas de ventas desglosadas por liga y subcategoría"""
-        # Procesar datos de ventas usando el SalesProcessor según el país
-        if pais == "Guatemala":
-            ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
-        elif pais == "El Salvador":
-            ventas_desglosadas = sales_processor.procesar_ventas_el_salvador(df_ventas)
-        else:
-            ventas_desglosadas = {}
+        # Procesar datos de ventas usando el SalesProcessor
+        ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
         
         # SIEMPRE procesar todas las categorías para generar tabla completa
         categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT", "ACCESSORIES"]
@@ -2394,10 +2181,11 @@ class DataProcessor:
         # Para cada liga y subcategoría, crear columnas Stock y Ventas
         for categoria in categorias_para_multiindex.keys():
             if categoria == 'ACCESSORIES':
-                # Para ACCESSORIES, crear columna Stock siempre, Ventas solo si hay datos de ventas
-                columnas_multi.append((categoria, 'Accessories', 'Stock'))
-                if hay_ventas:
-                    columnas_multi.append((categoria, 'Accessories', 'Ventas (USD)'))
+                # Para ACCESSORIES, crear columnas Stock y Ventas (USD) directamente
+                columnas_multi.extend([
+                    (categoria, 'ACCESSORIES', 'Stock'),
+                    (categoria, 'ACCESSORIES', 'Ventas (USD)')
+                ])
             else:
                 for subcategoria in ['Planas', 'Curvas', 'Apparel']:
                     # Stock y Ventas para cada subcategoría
@@ -2457,9 +2245,9 @@ class DataProcessor:
                 nombre_ventas = f"{categoria} - Ventas (USD)"
                 
                 if nombre_stock in tabla_final.columns:
-                    mapeo_columnas[nombre_stock] = (categoria, 'Accessories', 'Stock')
+                    mapeo_columnas[nombre_stock] = (categoria, 'ACCESSORIES', 'Stock')
                 if nombre_ventas in tabla_final.columns:
-                    mapeo_columnas[nombre_ventas] = (categoria, 'Accessories', 'Ventas (USD)')
+                    mapeo_columnas[nombre_ventas] = (categoria, 'ACCESSORIES', 'Ventas (USD)')
             else:
                 for subcategoria in ['Planas', 'Curvas', 'Apparel']:
                     nombre_stock = f"{categoria} - {subcategoria}"
@@ -3136,13 +2924,13 @@ class ChartVisualizer:
             metricas_performance = [
                 (max_stock['Bodega'], f"{max_stock['Stock']:,}", f"Mayor Stock {selected_league}", "🏆", "#10b981"),
                 (min_stock['Bodega'], f"{min_stock['Stock']:,}", f"Menor Stock {selected_league}", "📊", "#ef4444"),
-                (f"{promedio_stock:,.0f}", "unidades", f"Promedio de Headwear {selected_league}", "📈", "#6b7280")
+                (f"{promedio_stock:,.0f}", "unidades", f"Promedio {selected_league}", "📈", "#6b7280")
             ]
         else:
             metricas_performance = [
                 (max_stock['Bodega'], f"{max_stock['Stock']:,}", "Mayor Stock", "🏆", "#10b981"),
                 (min_stock['Bodega'], f"{min_stock['Stock']:,}", "Menor Stock", "📊", "#ef4444"),
-                (f"{promedio_stock:,.0f}", "unidades", "Promedio de Headwear", "📈", "#6b7280")
+                (f"{promedio_stock:,.0f}", "unidades", "Promedio General", "📈", "#6b7280")
             ]
         
         for i, (valor_principal, valor_secundario, nombre, emoji, color) in enumerate(metricas_performance):
@@ -3150,7 +2938,7 @@ class ChartVisualizer:
                 st.markdown(f"""
                 <div class="metric-card" style="border-left: 4px solid {color};">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span style="font-size: 1.5rem; color: #000000;">{emoji}</span>
+                        <span style="font-size: 1.5rem;">{emoji}</span>
                         <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{nombre.upper()}</span>
                     </div>
                     <div style="font-size: 1.4rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
@@ -3169,127 +2957,33 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     
     logger.info(f"Generando distribución de ligas por bodega para {pais}")
     
-    # DEBUG: Mostrar información de la tabla
-    logger.info(f"Columnas disponibles: {list(tabla.columns)}")
-    logger.info(f"Índices (bodegas): {list(tabla.index)}")
-    
-    # Buscar la columna que contiene los nombres de las bodegas
-    nombre_columna_bodega = None
-    if isinstance(tabla.columns, pd.MultiIndex):
-        # Para MultiIndex, buscar columna con nombres de bodegas
-        for col in tabla.columns:
-            if len(col) >= 3 and col[2] == 'Bodega':
-                nombre_columna_bodega = col
-                break
-        # Si no encuentra "Bodega" en nivel 2, buscar en otros niveles
-        if nombre_columna_bodega is None:
-            for col in tabla.columns:
-                if 'INFO' in str(col) and 'Bodega' in str(col):
-                    nombre_columna_bodega = col
-                    break
-    
-    logger.info(f"Columna de nombres de bodega encontrada: {nombre_columna_bodega}")
-    
     # Filtrar solo las bodegas (excluir fila TOTAL)
     df_bodegas = tabla[tabla.index != 'TOTAL'].copy()
     
     if len(df_bodegas) == 0:
-        st.warning("No se encontraron bodegas en los datos")
         return
-    
-    # Obtener nombres reales de bodegas
-    if nombre_columna_bodega is not None:
-        nombres_reales_bodegas = df_bodegas[nombre_columna_bodega].tolist()
-        logger.info(f"Nombres reales de bodegas: {nombres_reales_bodegas}")
-    else:
-        # Fallback: usar índices si no encuentra la columna de nombres
-        nombres_reales_bodegas = list(df_bodegas.index)
-        logger.info(f"Usando índices como nombres de bodegas: {nombres_reales_bodegas}")
-        st.warning("No se pudo encontrar la columna de nombres de bodegas, usando índices")
-        st.write("Estructura de columnas:")
-        st.write(tabla.columns.tolist()[:5])
     
     # Definir las ligas a analizar
     ligas = ['MLB', 'NBA', 'NFL', 'MOTORSPORT', 'ENTERTAINMENT']
     
-    # Verificar si la tabla tiene columnas MultiIndex
-    es_multiindex = isinstance(df_bodegas.columns, pd.MultiIndex)
-    logger.info(f"Es MultiIndex: {es_multiindex}")
-    
-    # DEBUG: Verificar qué columnas de ligas existen (para MultiIndex)
-    columnas_encontradas = []
-    if es_multiindex:
-        for liga in ligas:
-            # Buscar columnas con estructura (Liga, Tipo, 'Stock')
-            col_planas = (liga, 'Planas', 'Stock')
-            col_curvas = (liga, 'Curvas', 'Stock')
-            
-            if col_planas in df_bodegas.columns:
-                columnas_encontradas.append(col_planas)
-            if col_curvas in df_bodegas.columns:
-                columnas_encontradas.append(col_curvas)
-    else:
-        for liga in ligas:
-            col_planas = f"{liga} - Planas"
-            col_curvas = f"{liga} - Curvas"
-            if col_planas in df_bodegas.columns:
-                columnas_encontradas.append(col_planas)
-            if col_curvas in df_bodegas.columns:
-                columnas_encontradas.append(col_curvas)
-    
-    logger.info(f"Columnas de ligas encontradas: {columnas_encontradas}")
-    
-    if not columnas_encontradas:
-        st.warning("No se encontraron columnas de stock por liga")
-        # Mostrar algunas columnas de ejemplo
-        st.write("Columnas disponibles en la tabla:")
-        st.write(list(tabla.columns)[:10])  # Mostrar primeras 10 columnas
-        return
-    
     # Calcular stock de planas + curvas por liga para cada bodega
     distribucion_data = []
     
-    for i, bodega_idx in enumerate(df_bodegas.index):
-        # Usar nombre real de bodega si está disponible
-        nombre_bodega = nombres_reales_bodegas[i] if i < len(nombres_reales_bodegas) else bodega_idx
-        bodega_data = {'Bodega': nombre_bodega}
+    for bodega in df_bodegas.index:
+        bodega_data = {'Bodega': bodega}
         total_stock_bodega = 0
         
         # Calcular stock por liga (planas + curvas)
         for liga in ligas:
-            if es_multiindex:
-                # Para columnas MultiIndex: (Liga, Tipo, 'Stock')
-                col_planas = (liga, 'Planas', 'Stock')
-                col_curvas = (liga, 'Curvas', 'Stock')
-                
-                stock_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
-                stock_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
-            else:
-                # Para columnas simples: "LIGA - Tipo"
-                col_planas = f"{liga} - Planas"
-                col_curvas = f"{liga} - Curvas"
-                
-                stock_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
-                stock_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
+            col_planas = f"{liga} - Planas"
+            col_curvas = f"{liga} - Curvas"
             
-            # Asegurar que son números
-            try:
-                stock_planas = float(stock_planas) if stock_planas != 0 else 0
-                stock_curvas = float(stock_curvas) if stock_curvas != 0 else 0
-            except:
-                stock_planas = 0
-                stock_curvas = 0
+            stock_planas = df_bodegas.loc[bodega, col_planas] if col_planas in df_bodegas.columns else 0
+            stock_curvas = df_bodegas.loc[bodega, col_curvas] if col_curvas in df_bodegas.columns else 0
             
             stock_liga = stock_planas + stock_curvas
             bodega_data[liga] = stock_liga
             total_stock_bodega += stock_liga
-            
-            # DEBUG: Mostrar stock por liga y bodega
-            if stock_liga > 0:
-                logger.info(f"Bodega {nombre_bodega}, Liga {liga}: Planas={stock_planas}, Curvas={stock_curvas}, Total={stock_liga}")
-        
-        # DEBUG: Mostrar totales por bodega
-        logger.info(f"Bodega {nombre_bodega}: Total stock = {total_stock_bodega}")
         
         # Calcular porcentajes
         if total_stock_bodega > 0:
@@ -3308,942 +3002,107 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     if len(df_distribucion) == 0:
         return
     
-    # Filtrar CENTRAL NEW ERA, New Era Central y TOTAL del gráfico
-    df_distribucion = df_distribucion[
-        ~df_distribucion['Bodega'].isin(['CENTRAL NEW ERA', 'New Era Central', 'TOTAL'])
-    ].copy()
-    
-    if len(df_distribucion) == 0:
-        return
-    
-    # DEBUG: Verificar contenido del DataFrame
-    logger.info(f"DataFrame de distribución creado con {len(df_distribucion)} filas (sin CENTRAL NEW ERA y TOTAL)")
-    logger.info(f"Bodegas encontradas: {df_distribucion['Bodega'].tolist()}")
-    
-    # Definir nombres dinámicos según el país
-    if pais == "Guatemala":
-        nombre_tiendas_secundarias = "Tiendas Departamentales"
-    else:
-        nombre_tiendas_secundarias = "Tiendas Franquicia"
-    
-    # Definir tiendas de ciudad, outlets y secundarias
-    bodegas_principales = [
-        'NE Oakland', 'NE Cayala', 'NE Miraflores', 'NE Portales', 'NE Concepcion', 
-        'NE Naranjo', 'NE Vistares', 'NE Peri Roosvelt', 'NE Plaza Videre'
-    ]
-    
-    bodegas_outlets = [
-        'NE Metronorte', 'NE Metrocentro Outlet', 'NE Outlet Santa clara'
-    ]
-    
-    # Para El Salvador, separar NE METROCENTRO LOURDES como tienda outlet especial
-    if pais == "El Salvador":
-        bodega_outlet_especial = ['NE METROCENTRO LOURDES']
-        df_outlet_especial = df_distribucion[df_distribucion['Bodega'].isin(bodega_outlet_especial)].copy()
-        
-        # Separar los datos en cuatro grupos para El Salvador
-        df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
-        df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
-        df_secundarias = df_distribucion[
-            ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets + bodega_outlet_especial)
-        ].copy()
-    else:
-        # Separar los datos en tres grupos para otros países
-        df_principales = df_distribucion[df_distribucion['Bodega'].isin(bodegas_principales)].copy()
-        df_outlets = df_distribucion[df_distribucion['Bodega'].isin(bodegas_outlets)].copy()
-        df_secundarias = df_distribucion[
-            ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets)
-        ].copy()
-        df_outlet_especial = pd.DataFrame()  # DataFrame vacío para otros países
-    
-    # DEBUG: Verificar separación de datos
-    logger.info(f"Bodegas principales encontradas: {df_principales['Bodega'].tolist() if len(df_principales) > 0 else 'NINGUNA'}")
-    logger.info(f"Total tiendas de ciudad: {len(df_principales)}")
-    logger.info(f"Bodegas outlets encontradas: {df_outlets['Bodega'].tolist() if len(df_outlets) > 0 else 'NINGUNA'}")
-    logger.info(f"Total bodegas outlets: {len(df_outlets)}")
-    logger.info(f"Bodegas secundarias encontradas: {df_secundarias['Bodega'].tolist() if len(df_secundarias) > 0 else 'NINGUNA'}")
-    logger.info(f"Total tiendas departamentales: {len(df_secundarias)}")
-    
     # Crear header de sección
     professional_design.create_section_header(
-        f"Distribución de Stock por Bodega - {pais}",
+        f"Distribución de Ligas por Bodega - {pais}",
         "Porcentaje de stock (planas + curvas) por liga en cada bodega",
         "📊"
     )
     
-    # Función auxiliar para crear leyenda de ligas
-    def crear_leyenda_ligas():
-        st.markdown("""
-        <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #1f77b4; border-radius: 3px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">MLB</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #ff7f0e; border-radius: 3px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">NBA</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #2ca02c; border-radius: 3px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">NFL</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #d62728; border-radius: 3px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">MOTORSPORT</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #9467bd; border-radius: 3px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">ENTERTAINMENT</span>
-                </div>
-                <div style="width: 2px; height: 20px; background: #d1d5db; margin: 0 10px;"></div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 20px; height: 3px; background: #374151; border-radius: 1px;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">Línea Sólida (Ventas)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 20px; height: 2px; background: transparent; border-top: 2px dashed #374151;"></div>
-                    <span style="font-size: 12px; font-weight: 600; color: #374151;">Línea Punteada (Stock)</span>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # Crear gráfica de barras verticales agrupadas
+    fig = go.Figure()
     
-    # Función auxiliar para crear gráfico
-    def crear_grafico_distribucion(df_data, titulo_grafico, ligas):
-        if len(df_data) == 0:
-            return None
-            
-        fig = go.Figure()
-        
-        # Colores para cada liga
-        colores_ligas = {
-            'MLB': '#1f77b4',      # Azul
-            'NBA': '#ff7f0e',      # Naranja
-            'NFL': '#2ca02c',      # Verde
-            'MOTORSPORT': '#d62728', # Rojo
-            'ENTERTAINMENT': '#9467bd' # Púrpura
-        }
-        
-        # Obtener nombres de bodegas para el eje X
-        nombres_bodegas = df_data['Bodega'].tolist()
-        
-        # Agregar barras para cada liga
-        for liga in ligas:
-            fig.add_trace(go.Bar(
-                name=liga,
-                x=nombres_bodegas,
-                y=df_data[f'{liga}_porcentaje'],
-                marker_color=colores_ligas[liga],
-                text=[f'{val:.1f}%' for val in df_data[f'{liga}_porcentaje']],
-                textposition='outside',
-                textfont=dict(
-                    size=16,
-                    color='black',
-                    family='Inter, sans-serif',
-                    weight='bold'
-                )
-            ))
-        
-        # Configurar layout
-        fig.update_layout(
-            title=titulo_grafico,
-            xaxis_title='Bodegas/Tiendas',
-            yaxis_title='Porcentaje (%)',
-            barmode='group',
-            height=600,
-            showlegend=False,
-            xaxis=dict(
-                categoryorder='array',
-                categoryarray=nombres_bodegas
-            ),
-            margin=dict(l=60, r=60, t=100, b=80)
-        )
-        
-        # Configurar ejes
-        fig.update_xaxes(
-            tickangle=45,
-            tickmode='array',
-            tickvals=list(range(len(nombres_bodegas))),
-            ticktext=nombres_bodegas
-        )
-        fig.update_yaxes(range=[0, 100])
-        
-        # Agregar líneas de cuadrícula
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-        
-        return fig
-    
-    # Función auxiliar para crear tabla resumen
-    def crear_tabla_resumen(df_data, titulo_tabla, ligas):
-        if len(df_data) == 0:
-            return
-        
-        st.markdown(f"#### {titulo_tabla}")
-        
-        # Crear tabla para mostrar con índice de nombres de bodegas
-        tabla_resumen = df_data[['Bodega'] + [f'{liga}_porcentaje' for liga in ligas] + ['Total']].copy()
-        
-        # Usar nombres de bodegas como índice para mejor visualización
-        tabla_resumen = tabla_resumen.set_index('Bodega')
-        
-        # Renombrar columnas para mejor presentación
-        columnas_rename = {'Total': 'Total Stock'}
-        for liga in ligas:
-            columnas_rename[f'{liga}_porcentaje'] = f'{liga}'
-        
-        tabla_resumen = tabla_resumen.rename(columns=columnas_rename)
-        
-        # Formatear porcentajes
-        for liga in ligas:
-            tabla_resumen[liga] = tabla_resumen[liga].apply(lambda x: f'{x:.1f}%')
-        
-        # Formatear total con comas
-        tabla_resumen['Total Stock'] = tabla_resumen['Total Stock'].apply(lambda x: f'{x:,}')
-        
-        # Crear HTML personalizado con el mismo estilo que la tabla consolidada
-        def crear_html_tabla_resumen(df):
-            html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
-            
-            # Header con estilo profesional
-            html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
-            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
-            
-            for liga in ligas:
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 80px;">{liga}</td>'
-            
-            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 100px;">Total Stock</td>'
-            html += '</tr>'
-            
-            # Filas de datos
-            for idx, row in df.iterrows():
-                html += '<tr style="background-color: #f9f9f9;" onmouseover="this.style.backgroundColor=\'#e8f4f8\'" onmouseout="this.style.backgroundColor=\'#f9f9f9\'">'
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: left; font-weight: 600;">{idx}</td>'
-                
-                for liga in ligas:
-                    valor = row[liga]
-                    html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center;">{valor}</td>'
-                
-                total_valor = row['Total Stock']
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center; font-weight: 600; background-color: #f0f0f0;">{total_valor}</td>'
-                html += '</tr>'
-            
-            html += '</table>'
-            return html
-        
-        # Aplicar estilos CSS
-        st.markdown("""
-        <style>
-            .tabla-resumen-container {
-                overflow-x: auto;
-                width: 100%;
-                border: 1px solid #ddd;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin: 10px 0;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Mostrar tabla con estilo profesional
-        st.markdown('<div class="tabla-resumen-container">', unsafe_allow_html=True)
-        tabla_html = crear_html_tabla_resumen(tabla_resumen)
-        st.markdown(tabla_html, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Crear y mostrar gráfico de tiendas de ciudad con su tabla
-    if len(df_principales) > 0:
-        st.markdown("#### 🏪 Tiendas de Ciudad")
-        fig_principales = crear_grafico_distribucion(
-            df_principales, 
-            f'Distribución por Ligas - Tiendas de Ciudad ({pais})', 
-            ligas
-        )
-        if fig_principales:
-            st.plotly_chart(fig_principales, use_container_width=True)
-            
-            # Mostrar leyenda de ligas justo después del gráfico
-            crear_leyenda_ligas()
-        
-        # Mostrar tabla de tiendas de ciudad después de la leyenda
-        crear_tabla_resumen(df_principales, "📋 Resumen - Tiendas de Ciudad", ligas)
-    
-    # Crear y mostrar gráfico de outlets con su tabla
-    if len(df_outlets) > 0:
-        st.markdown("#### 🛒 Outlets")
-        fig_outlets = crear_grafico_distribucion(
-            df_outlets, 
-            f'Distribución por Ligas - Outlets ({pais})', 
-            ligas
-        )
-        if fig_outlets:
-            st.plotly_chart(fig_outlets, use_container_width=True)
-            
-            # Mostrar leyenda de ligas justo después del gráfico
-            crear_leyenda_ligas()
-        
-        # Mostrar tabla de outlets después de la leyenda
-        crear_tabla_resumen(df_outlets, "📋 Resumen - Outlets", ligas)
-    
-    # Crear y mostrar gráfico de tiendas departamentales con su tabla
-    if len(df_secundarias) > 0:
-        st.markdown(f"#### 🏬 {nombre_tiendas_secundarias}")
-        fig_secundarias = crear_grafico_distribucion(
-            df_secundarias, 
-            f'Distribución por Ligas - {nombre_tiendas_secundarias} ({pais})', 
-            ligas
-        )
-        if fig_secundarias:
-            st.plotly_chart(fig_secundarias, use_container_width=True)
-            
-            # Mostrar leyenda de ligas justo después del gráfico
-            crear_leyenda_ligas()
-        
-        # Mostrar tabla de tiendas departamentales después de la leyenda
-        crear_tabla_resumen(df_secundarias, f"📋 Resumen - {nombre_tiendas_secundarias}", ligas)
-    
-    # Crear y mostrar gráfico de tienda outlet especial (solo para El Salvador)
-    if pais == "El Salvador" and len(df_outlet_especial) > 0:
-        st.markdown("#### 🏪 Tienda Outlet")
-        fig_outlet_especial = crear_grafico_distribucion(
-            df_outlet_especial, 
-            f'Distribución por Ligas - Tienda Outlet ({pais})', 
-            ligas
-        )
-        if fig_outlet_especial:
-            st.plotly_chart(fig_outlet_especial, use_container_width=True)
-            
-            # Mostrar leyenda de ligas justo después del gráfico
-            crear_leyenda_ligas()
-        
-        # Mostrar tabla de tienda outlet después de la leyenda
-        crear_tabla_resumen(df_outlet_especial, "📋 Resumen - Tienda Outlet", ligas)
-    
-    # ==================== NUEVA SECCIÓN: DISTRIBUCIÓN DE VENTAS POR BODEGA ====================
-    
-    # Función auxiliar para crear gráfico de distribución de ventas
-    def crear_grafico_distribucion_ventas(df_data, titulo_grafico, ligas):
-        if len(df_data) == 0:
-            return None
-            
-        fig = go.Figure()
-        
-        # Colores para cada liga
-        colores_ligas = {
-            'MLB': '#1f77b4',      # Azul
-            'NBA': '#ff7f0e',      # Naranja
-            'NFL': '#2ca02c',      # Verde
-            'MOTORSPORT': '#d62728', # Rojo
-            'ENTERTAINMENT': '#9467bd' # Púrpura
-        }
-        
-        # Obtener nombres de bodegas para el eje X
-        nombres_bodegas = df_data['Bodega'].tolist()
-        
-        # Agregar barras para cada liga
-        for liga in ligas:
-            fig.add_trace(go.Bar(
-                name=liga,
-                x=nombres_bodegas,
-                y=df_data[f'{liga}_porcentaje_ventas'],
-                marker_color=colores_ligas[liga],
-                text=[f'{val:.1f}%' for val in df_data[f'{liga}_porcentaje_ventas']],
-                textposition='outside',
-                textfont=dict(
-                    size=16,
-                    color='black',
-                    family='Inter, sans-serif',
-                    weight='bold'
-                )
-            ))
-        
-        # Configurar layout
-        fig.update_layout(
-            title=titulo_grafico,
-            xaxis_title='Bodegas/Tiendas',
-            yaxis_title='Porcentaje (%)',
-            barmode='group',
-            height=600,
-            showlegend=False,
-            xaxis=dict(
-                categoryorder='array',
-                categoryarray=nombres_bodegas
-            ),
-            margin=dict(l=60, r=60, t=100, b=80)
-        )
-        
-        # Configurar ejes
-        fig.update_xaxes(
-            tickangle=45,
-            tickmode='array',
-            tickvals=list(range(len(nombres_bodegas))),
-            ticktext=nombres_bodegas
-        )
-        fig.update_yaxes(range=[0, 100])
-        
-        # Agregar líneas de cuadrícula
-        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-        
-        return fig
-    
-    # Función auxiliar para crear tabla resumen de ventas
-    def crear_tabla_resumen_ventas(df_data, titulo_tabla, ligas):
-        if len(df_data) == 0:
-            return
-        
-        st.markdown(f"#### {titulo_tabla}")
-        
-        # Crear tabla para mostrar con índice de nombres de bodegas
-        tabla_resumen = df_data[['Bodega'] + [f'{liga}_porcentaje_ventas' for liga in ligas] + ['Total_Ventas']].copy()
-        
-        # Usar nombres de bodegas como índice para mejor visualización
-        tabla_resumen = tabla_resumen.set_index('Bodega')
-        
-        # Renombrar columnas para mejor presentación
-        columnas_rename = {'Total_Ventas': 'Total Ventas (USD)'}
-        for liga in ligas:
-            columnas_rename[f'{liga}_porcentaje_ventas'] = f'{liga}'
-        
-        tabla_resumen = tabla_resumen.rename(columns=columnas_rename)
-        
-        # Formatear porcentajes
-        for liga in ligas:
-            tabla_resumen[liga] = tabla_resumen[liga].apply(lambda x: f'{x:.1f}%')
-        
-        # Formatear total con comas y símbolo de dólar
-        tabla_resumen['Total Ventas (USD)'] = tabla_resumen['Total Ventas (USD)'].apply(lambda x: f'${x:,.2f}')
-        
-        # Crear HTML personalizado con el mismo estilo que la tabla consolidada
-        def crear_html_tabla_ventas(df):
-            html = '<table style="border-collapse: collapse; text-align: center; font-size: 11px; width: 100%;">'
-            
-            # Header con estilo profesional (color diferente para ventas)
-            html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
-            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Bodega</td>'
-            
-            for liga in ligas:
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 80px;">{liga}</td>'
-            
-            html += '<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; min-width: 120px;">Total Ventas (USD)</td>'
-            html += '</tr>'
-            
-            # Filas de datos
-            for idx, row in df.iterrows():
-                html += '<tr style="background-color: #f9f9f9;" onmouseover="this.style.backgroundColor=\'#e8f8f2\'" onmouseout="this.style.backgroundColor=\'#f9f9f9\'">'
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: left; font-weight: 600;">{idx}</td>'
-                
-                for liga in ligas:
-                    valor = row[liga]
-                    html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center;">{valor}</td>'
-                
-                total_valor = row['Total Ventas (USD)']
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; font-size: 11px; text-align: center; font-weight: 600; background-color: #ecfdf5; color: #059669;">{total_valor}</td>'
-                html += '</tr>'
-            
-            html += '</table>'
-            return html
-        
-        # Aplicar estilos CSS
-        st.markdown("""
-        <style>
-            .tabla-ventas-container {
-                overflow-x: auto;
-                width: 100%;
-                border: 1px solid #ddd;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin: 10px 0;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Mostrar tabla con estilo profesional
-        st.markdown('<div class="tabla-ventas-container">', unsafe_allow_html=True)
-        tabla_html = crear_html_tabla_ventas(tabla_resumen)
-        st.markdown(tabla_html, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Verificar si hay datos de ventas disponibles (para Guatemala y El Salvador)
-    if pais in ["Guatemala", "El Salvador"] and any('Ventas' in str(col) for col in df_bodegas.columns):
-        # Crear header de sección para ventas
-        professional_design.create_section_header(
-            f"Distribución de Ventas por Bodega - {pais}",
-            "Porcentaje de ventas (USD) por liga en cada bodega",
-            "💰"
-        )
-        
-        # Procesar datos de distribución de ventas
-        distribucion_ventas_data = []
-        
-        for i, bodega_idx in enumerate(df_bodegas.index):
-            # Usar nombre real de bodega si está disponible
-            nombre_bodega = nombres_reales_bodegas[i] if i < len(nombres_reales_bodegas) else bodega_idx
-            bodega_data_ventas = {'Bodega': nombre_bodega}
-            total_ventas_bodega = 0
-            
-            # Calcular ventas por liga (planas + curvas)
-            for liga in ligas:
-                if es_multiindex:
-                    # Para columnas MultiIndex: (Liga, Tipo, 'Ventas')
-                    col_planas_ventas = (liga, 'Planas', 'Ventas')
-                    col_curvas_ventas = (liga, 'Curvas', 'Ventas')
-                    
-                    ventas_planas = df_bodegas.loc[bodega_idx, col_planas_ventas] if col_planas_ventas in df_bodegas.columns else 0
-                    ventas_curvas = df_bodegas.loc[bodega_idx, col_curvas_ventas] if col_curvas_ventas in df_bodegas.columns else 0
-                else:
-                    # Para columnas simples: "LIGA - Tipo - Ventas"  
-                    col_planas_ventas = f"{liga} - Planas - Ventas"
-                    col_curvas_ventas = f"{liga} - Curvas - Ventas"
-                    
-                    ventas_planas = df_bodegas.loc[bodega_idx, col_planas_ventas] if col_planas_ventas in df_bodegas.columns else 0
-                    ventas_curvas = df_bodegas.loc[bodega_idx, col_curvas_ventas] if col_curvas_ventas in df_bodegas.columns else 0
-                
-                # Asegurar que son números
-                try:
-                    ventas_planas = float(ventas_planas) if ventas_planas != 0 else 0
-                    ventas_curvas = float(ventas_curvas) if ventas_curvas != 0 else 0
-                except:
-                    ventas_planas = 0
-                    ventas_curvas = 0
-                
-                ventas_liga = ventas_planas + ventas_curvas
-                bodega_data_ventas[liga] = ventas_liga
-                total_ventas_bodega += ventas_liga
-            
-            # Calcular porcentajes de ventas
-            if total_ventas_bodega > 0:
-                for liga in ligas:
-                    bodega_data_ventas[f"{liga}_porcentaje_ventas"] = (bodega_data_ventas[liga] / total_ventas_bodega) * 100
-            else:
-                for liga in ligas:
-                    bodega_data_ventas[f"{liga}_porcentaje_ventas"] = 0
-            
-            bodega_data_ventas['Total_Ventas'] = total_ventas_bodega
-            distribucion_ventas_data.append(bodega_data_ventas)
-        
-        # Convertir a DataFrame  
-        df_distribucion_ventas = pd.DataFrame(distribucion_ventas_data)
-        
-        if len(df_distribucion_ventas) == 0:
-            st.warning("No hay datos de ventas disponibles para mostrar gráficos.")
-        else:
-            # Filtrar CENTRAL NEW ERA, New Era Central y TOTAL del gráfico
-            df_distribucion_ventas = df_distribucion_ventas[
-                ~df_distribucion_ventas['Bodega'].isin(['CENTRAL NEW ERA', 'New Era Central', 'TOTAL'])
-            ].copy()
-            
-            if len(df_distribucion_ventas) > 0:
-                # Separar los datos para ventas
-                df_principales_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_principales)].copy()
-                df_outlets_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodegas_outlets)].copy()
-                
-                # Para El Salvador, separar NE METROCENTRO LOURDES como tienda outlet especial
-                if pais == "El Salvador":
-                    df_outlet_especial_ventas = df_distribucion_ventas[df_distribucion_ventas['Bodega'].isin(bodega_outlet_especial)].copy()
-                    df_secundarias_ventas = df_distribucion_ventas[
-                        ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets + bodega_outlet_especial)
-                    ].copy()
-                else:
-                    df_outlet_especial_ventas = pd.DataFrame()
-                    df_secundarias_ventas = df_distribucion_ventas[
-                        ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets)
-                    ].copy()
-                
-                # Crear y mostrar gráfico de tiendas de ciudad con ventas
-                if len(df_principales_ventas) > 0:
-                    st.markdown("#### 🏪 Tiendas de Ciudad - Ventas")
-                    fig_principales_ventas = crear_grafico_distribucion_ventas(
-                        df_principales_ventas, 
-                        f'Distribución por Ligas - Tiendas de Ciudad - Ventas ({pais})', 
-                        ligas
-                    )
-                    if fig_principales_ventas:
-                        st.plotly_chart(fig_principales_ventas, use_container_width=True)
-                        
-                        # Mostrar leyenda de ligas justo después del gráfico
-                        crear_leyenda_ligas()
-                    
-                    # Mostrar tabla de tiendas de ciudad de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_principales_ventas, "📋 Resumen - Tiendas de Ciudad - Ventas", ligas)
-                
-                # Crear y mostrar gráfico de outlets con ventas
-                if len(df_outlets_ventas) > 0:
-                    st.markdown("#### 🛒 Outlets - Ventas")
-                    fig_outlets_ventas = crear_grafico_distribucion_ventas(
-                        df_outlets_ventas, 
-                        f'Distribución por Ligas - Outlets - Ventas ({pais})', 
-                        ligas
-                    )
-                    if fig_outlets_ventas:
-                        st.plotly_chart(fig_outlets_ventas, use_container_width=True)
-                        
-                        # Mostrar leyenda de ligas justo después del gráfico
-                        crear_leyenda_ligas()
-                    
-                    # Mostrar tabla de outlets de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_outlets_ventas, "📋 Resumen - Outlets - Ventas", ligas)
-                
-                # Crear y mostrar gráfico de tiendas departamentales con ventas
-                if len(df_secundarias_ventas) > 0:
-                    st.markdown(f"#### 🏬 {nombre_tiendas_secundarias} - Ventas")
-                    fig_secundarias_ventas = crear_grafico_distribucion_ventas(
-                        df_secundarias_ventas, 
-                        f'Distribución por Ligas - {nombre_tiendas_secundarias} - Ventas ({pais})', 
-                        ligas
-                    )
-                    if fig_secundarias_ventas:
-                        st.plotly_chart(fig_secundarias_ventas, use_container_width=True)
-                        
-                        # Mostrar leyenda de ligas justo después del gráfico
-                        crear_leyenda_ligas()
-                    
-                    # Mostrar tabla de tiendas departamentales de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_secundarias_ventas, f"📋 Resumen - {nombre_tiendas_secundarias} - Ventas", ligas)
-                
-                # Crear y mostrar gráfico de tienda outlet especial con ventas (solo para El Salvador)
-                if pais == "El Salvador" and len(df_outlet_especial_ventas) > 0:
-                    st.markdown("#### 🏪 Tienda Outlet - Ventas")
-                    fig_outlet_especial_ventas = crear_grafico_distribucion_ventas(
-                        df_outlet_especial_ventas, 
-                        f'Distribución por Ligas - Tienda Outlet - Ventas ({pais})', 
-                        ligas
-                    )
-                    if fig_outlet_especial_ventas:
-                        st.plotly_chart(fig_outlet_especial_ventas, use_container_width=True)
-                        
-                        # Mostrar leyenda de ligas justo después del gráfico
-                        crear_leyenda_ligas()
-                    
-                    # Mostrar tabla de tienda outlet de ventas después de la leyenda
-                    crear_tabla_resumen_ventas(df_outlet_especial_ventas, "📋 Resumen - Tienda Outlet - Ventas", ligas)
-        
-        # ==================== NUEVA SECCIÓN: COMPARACIÓN STOCK VS VENTAS ====================
-        
-        # Función para crear gráfico comparativo - LÍNEAS VERTICALES DELGADAS AGRUPADAS
-        def crear_grafico_comparativo_stock_ventas(df_data_stock, df_data_ventas, titulo_grafico, ligas):
-            if len(df_data_stock) == 0 or len(df_data_ventas) == 0:
-                return None
-                
-            fig = go.Figure()
-            
-            # Colores para cada liga
-            colores_ligas = {
-                'MLB': '#1f77b4',      # Azul  
-                'NBA': '#ff7f0e',      # Naranja
-                'NFL': '#2ca02c',      # Verde
-                'MOTORSPORT': '#d62728', # Rojo
-                'ENTERTAINMENT': '#9467bd' # Púrpura
-            }
-            
-            # Obtener nombres de bodegas para el eje X
-            nombres_bodegas = df_data_ventas['Bodega'].tolist()
-            num_ligas = len(ligas)
-            
-            # Crear líneas verticales para cada liga y bodega
-            for i, liga in enumerate(ligas):
-                for j, bodega in enumerate(nombres_bodegas):
-                    # Calcular posiciones X para agrupar las líneas por bodega
-                    # Cada bodega tendrá 10 líneas: 5 ventas + 5 stock
-                    base_x = j * 0.8  # Reducir espaciado entre bodegas (era j)
-                    offset_ventas = (i - (num_ligas - 1) / 2) * 0.12  # Aumentar espaciado entre líneas (era 0.08)
-                    offset_stock = offset_ventas + 0.05  # Aumentar separación stock-ventas (era 0.03)
-                    
-                    x_ventas = base_x + offset_ventas
-                    x_stock = base_x + offset_stock
-                    
-                    # Obtener valores
-                    valor_ventas = df_data_ventas.iloc[j][f'{liga}_porcentaje_ventas']
-                    valor_stock = df_data_stock.iloc[j][f'{liga}_porcentaje']
-                    
-                    # Posiciones de texto con rotación para evitar sobreposición
-                    text_pos_ventas = 'top center'
-                    text_pos_stock = 'top center'
-                    text_y_offset_ventas = 2
-                    text_y_offset_stock = 2
-                    
-                    # LÍNEA VERTICAL PARA VENTAS (sólida, delgada)
-                    fig.add_trace(go.Scatter(
-                        x=[x_ventas, x_ventas],
-                        y=[0, valor_ventas],
-                        mode='lines',
-                        line=dict(
-                            color=colores_ligas[liga],
-                            width=4,  # Línea delgada pero visible
-                            dash='solid'
-                        ),
-                        showlegend=False,
-                        hovertemplate=f'<b>{liga} - Ventas</b><br>{bodega}<br>{valor_ventas:.1f}%<extra></extra>',
-                        name=f'{liga} - Ventas'
-                    ))
-                    
-                    # MARCA CIRCULAR PARA VENTAS (extremo de línea sólida)
-                    fig.add_trace(go.Scatter(
-                        x=[x_ventas],
-                        y=[valor_ventas],
-                        mode='markers',
-                        marker=dict(
-                            color=colores_ligas[liga],
-                            size=6,
-                            symbol='circle',
-                            line=dict(width=1, color='white')
-                        ),
-                        showlegend=False,
-                        hoverinfo='skip'
-                    ))
-                    
-                    # ANOTACIÓN PARA VENTAS (rotada -90 grados)
-                    fig.add_annotation(
-                        x=x_ventas,
-                        y=valor_ventas + text_y_offset_ventas,
-                        text=f'{valor_ventas:.1f}%',
-                        textangle=-90,
-                        showarrow=False,
-                        font=dict(
-                            size=9,
-                            color=colores_ligas[liga],
-                            family='Inter, sans-serif'
-                        ),
-                        xanchor='center',
-                        yanchor='bottom'
-                    )
-                    
-                    # LÍNEA VERTICAL PARA STOCK (punteada, delgada)
-                    fig.add_trace(go.Scatter(
-                        x=[x_stock, x_stock],
-                        y=[0, valor_stock],
-                        mode='lines',
-                        line=dict(
-                            color=colores_ligas[liga],
-                            width=3,  # Más delgada que ventas
-                            dash='dash'  # Punteada
-                        ),
-                        showlegend=False,
-                        hovertemplate=f'<b>{liga} - Stock</b><br>{bodega}<br>{valor_stock:.1f}%<extra></extra>',
-                        name=f'{liga} - Stock'
-                    ))
-                    
-                    # MARCA CUADRADA PARA STOCK (extremo de línea punteada)
-                    fig.add_trace(go.Scatter(
-                        x=[x_stock],
-                        y=[valor_stock],
-                        mode='markers',
-                        marker=dict(
-                            color=colores_ligas[liga],
-                            size=6,
-                            symbol='square',
-                            line=dict(width=1, color='white')
-                        ),
-                        showlegend=False,
-                        hoverinfo='skip'
-                    ))
-                    
-                    # ANOTACIÓN PARA STOCK (rotada -90 grados)
-                    fig.add_annotation(
-                        x=x_stock,
-                        y=valor_stock + text_y_offset_stock,
-                        text=f'{valor_stock:.1f}%',
-                        textangle=-90,
-                        showarrow=False,
-                        font=dict(
-                            size=8,
-                            color=colores_ligas[liga],
-                            family='Inter, sans-serif'
-                        ),
-                        xanchor='center',
-                        yanchor='bottom'
-                    )
-            
-            # Configurar layout
-            fig.update_layout(
-                title=titulo_grafico,
-                xaxis_title='Bodegas/Tiendas',
-                yaxis_title='Porcentaje (%)',
-                height=600,
-                showlegend=False,
-                xaxis=dict(
-                    tickmode='array',
-                    tickvals=[i * 0.8 for i in range(len(nombres_bodegas))],  # Ajustar posiciones de etiquetas
-                    ticktext=nombres_bodegas
-                ),
-                margin=dict(l=60, r=60, t=100, b=80)
-            )
-            
-            # Configurar ejes
-            fig.update_xaxes(
-                tickangle=45,
-                range=[-0.4, (len(nombres_bodegas) - 1) * 0.8 + 0.4]  # Ajustar rango para el nuevo espaciado
-            )
-            fig.update_yaxes(range=[0, 100])
-            
-            # Agregar líneas de cuadrícula
-            fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
-            
-            return fig
-        
-        # Crear header de sección para comparación
-        professional_design.create_section_header(
-            f"Comparación Stock vs Ventas por Bodega - {pais}",
-            "Comparación visual entre distribución de stock (transparente) y ventas (sólido) por liga",
-            "📊"
-        )
-        
-        # Crear gráfico comparativo para tiendas de ciudad
-        if len(df_principales) > 0 and len(df_principales_ventas) > 0:
-            st.markdown("#### 🏪 Tiendas de Ciudad - Comparación Stock vs Ventas")
-            fig_comparativo_principales = crear_grafico_comparativo_stock_ventas(
-                df_principales,
-                df_principales_ventas, 
-                f'Stock vs Ventas - Tiendas de Ciudad ({pais})', 
-                ligas
-            )
-            if fig_comparativo_principales:
-                st.plotly_chart(fig_comparativo_principales, use_container_width=True)
-                
-                # Mostrar leyenda de ligas justo después del gráfico
-                crear_leyenda_ligas()
-        
-        # Crear gráfico comparativo para outlets
-        if len(df_outlets) > 0 and len(df_outlets_ventas) > 0:
-            st.markdown("#### 🛒 Outlets - Comparación Stock vs Ventas")
-            fig_comparativo_outlets = crear_grafico_comparativo_stock_ventas(
-                df_outlets,
-                df_outlets_ventas, 
-                f'Stock vs Ventas - Outlets ({pais})', 
-                ligas
-            )
-            if fig_comparativo_outlets:
-                st.plotly_chart(fig_comparativo_outlets, use_container_width=True)
-                
-                # Mostrar leyenda de ligas justo después del gráfico
-                crear_leyenda_ligas()
-        
-        # Crear gráfico comparativo para tiendas departamentales
-        if len(df_secundarias) > 0 and len(df_secundarias_ventas) > 0:
-            st.markdown(f"#### 🏬 {nombre_tiendas_secundarias} - Comparación Stock vs Ventas")
-            fig_comparativo_secundarias = crear_grafico_comparativo_stock_ventas(
-                df_secundarias,
-                df_secundarias_ventas, 
-                f'Stock vs Ventas - {nombre_tiendas_secundarias} ({pais})', 
-                ligas
-            )
-            if fig_comparativo_secundarias:
-                st.plotly_chart(fig_comparativo_secundarias, use_container_width=True)
-                
-                # Mostrar leyenda de ligas justo después del gráfico
-                crear_leyenda_ligas()
-        
-        # Crear y mostrar gráfico comparativo de tienda outlet especial (solo para El Salvador)
-        if pais == "El Salvador" and len(df_outlet_especial) > 0 and len(df_outlet_especial_ventas) > 0:
-            st.markdown("#### 🏪 Tienda Outlet - Comparación Stock vs Ventas")
-            fig_comparativo_outlet_especial = crear_grafico_comparativo_stock_ventas(
-                df_outlet_especial,
-                df_outlet_especial_ventas, 
-                f'Stock vs Ventas - Tienda Outlet ({pais})', 
-                ligas
-            )
-            if fig_comparativo_outlet_especial:
-                st.plotly_chart(fig_comparativo_outlet_especial, use_container_width=True)
-                
-                # Mostrar leyenda de ligas justo después del gráfico
-                crear_leyenda_ligas()
-        
-        # NUEVA SECCIÓN: Exportar Distribuciones cuando hay ventas (al final de todo)
-        if pais in ["Guatemala", "El Salvador"]:
-            tiene_ventas_final = any('Ventas' in str(col) for col in df_bodegas.columns)
-            if tiene_ventas_final:
-                # Crear diccionario completo con todas las tablas (stock y ventas)
-                tablas_completas = {
-                    'df_principales': df_principales if len(df_principales) > 0 else pd.DataFrame(),
-                    'df_outlets': df_outlets if len(df_outlets) > 0 else pd.DataFrame(),
-                    'df_secundarias': df_secundarias if len(df_secundarias) > 0 else pd.DataFrame(),
-                    'df_principales_ventas': df_principales_ventas if len(df_principales_ventas) > 0 else pd.DataFrame(),
-                    'df_outlets_ventas': df_outlets_ventas if len(df_outlets_ventas) > 0 else pd.DataFrame(),
-                    'df_secundarias_ventas': df_secundarias_ventas if len(df_secundarias_ventas) > 0 else pd.DataFrame()
-                }
-                
-                # Agregar Tienda Outlet especial para El Salvador
-                if pais == "El Salvador":
-                    tablas_completas['df_outlet_especial'] = df_outlet_especial if len(df_outlet_especial) > 0 else pd.DataFrame()
-                    tablas_completas['df_outlet_especial_ventas'] = df_outlet_especial_ventas if len(df_outlet_especial_ventas) > 0 else pd.DataFrame()
-                agregar_seccion_exportar_distribuciones(tablas_completas, pais, tiene_ventas_final)
-        
-    else:
-        # Mostrar mensaje informativo para otros países
-        st.info(f"📊 Los gráficos de distribución de ventas solo están disponibles para Guatemala cuando se cargan datos de ventas.")
-    
-    # NUEVA SECCIÓN: Exportar Distribuciones (para Guatemala y El Salvador)
-    # Recolectar las tablas reales para exportación
-    if pais in ["Guatemala", "El Salvador"]:
-        tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
-        
-        # Crear diccionario con las tablas de stock
-        tablas_reales = {
-            'df_principales': df_principales if len(df_principales) > 0 else pd.DataFrame(),
-            'df_outlets': df_outlets if len(df_outlets) > 0 else pd.DataFrame(),
-            'df_secundarias': df_secundarias if len(df_secundarias) > 0 else pd.DataFrame()
-        }
-        
-        # Agregar Tienda Outlet especial para El Salvador
-        if pais == "El Salvador":
-            tablas_reales['df_outlet_especial'] = df_outlet_especial if len(df_outlet_especial) > 0 else pd.DataFrame()
-        
-        # Si NO hay ventas, mostrar la sección aquí (después de distribución de stock)
-        # Si SÍ hay ventas, la sección se mostrará al final de la función (después de comparación)
-        if not tiene_ventas:
-            agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas)
-    
-    # CSS aplicado de forma más simple y compatible
-    st.markdown("""
-    <style>
-    /* Estilos específicos para la tabla de distribución */
-    [data-testid="stDataFrame"] {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        font-family: 'Inter', sans-serif;
+    # Colores para cada liga
+    colores_ligas = {
+        'MLB': '#1f77b4',      # Azul
+        'NBA': '#ff7f0e',      # Naranja
+        'NFL': '#2ca02c',      # Verde
+        'MOTORSPORT': '#d62728', # Rojo
+        'ENTERTAINMENT': '#9467bd' # Púrpura
     }
     
-    [data-testid="stDataFrame"] thead th {
-        background: #3b82f6;
-        color: white;
-        font-weight: bold;
-        text-align: center;
-        padding: 8px;
-        font-size: 11px;
-        border: none;
-    }
+    # Agregar barras para cada liga
+    for liga in ligas:
+        fig.add_trace(go.Bar(
+            name=liga,
+            x=df_distribucion['Bodega'],
+            y=df_distribucion[f'{liga}_porcentaje'],
+            marker_color=colores_ligas[liga],
+            text=[f'{val:.1f}%' for val in df_distribucion[f'{liga}_porcentaje']],
+            textposition='outside',
+            textfont=dict(size=10, color='black')
+        ))
     
-    [data-testid="stDataFrame"] tbody td {
-        text-align: center;
-        padding: 6px 8px;
-        font-size: 11px;
-        border-bottom: 1px solid #f3f4f6;
-    }
+    # Configurar layout
+    fig.update_layout(
+        title={
+            'text': f'Distribución Porcentual de Ligas por Bodega - {pais}',
+            'font': {'size': 20, 'family': 'Inter', 'color': '#374151'},
+            'x': 0.5
+        },
+        xaxis_title='Bodegas/Tiendas',
+        yaxis_title='Porcentaje (%)',
+        barmode='group',
+        bargap=0.6,
+        bargroupgap=0.1,
+        legend={
+            'orientation': "h",
+            'yanchor': "bottom",
+            'y': 1.02,
+            'xanchor': "right",
+            'x': 1,
+            'font': {'size': 12, 'family': 'Inter', 'color': '#374151'}
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font={'family': 'Inter'},
+        height=600,
+        margin={'b': 100, 't': 80, 'l': 60, 'r': 60}
+    )
     
-    [data-testid="stDataFrame"] tbody td:first-child {
-        text-align: left;
-        font-weight: bold;
-        background: #f8fafc;
-        color: #374151;
-        padding-left: 12px;
-    }
+    # Configurar ejes por separado para evitar problemas de compatibilidad
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont={'size': 12, 'family': 'Inter', 'color': '#6b7280'}
+    )
+    fig.update_yaxes(
+        range=[0, 100],
+        tickfont={'size': 12, 'family': 'Inter', 'color': '#6b7280'}
+    )
     
-    [data-testid="stDataFrame"] tbody tr:nth-child(even) {
-        background: #f9fafb;
-    }
+    # Agregar líneas de cuadrícula
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(0,0,0,0.1)')
     
-    [data-testid="stDataFrame"] tbody tr:hover {
-        background: #eff6ff;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Mostrar gráfica
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Mostrar tabla resumen debajo de la gráfica
+    st.markdown("#### 📋 Resumen Distribución por Bodega")
+    
+    # Crear tabla para mostrar
+    tabla_resumen = df_distribucion[['Bodega'] + [f'{liga}_porcentaje' for liga in ligas] + ['Total']].copy()
+    
+    # Renombrar columnas para mejor presentación
+    columnas_rename = {'Bodega': 'Bodega', 'Total': 'Total Stock (Planas+Curvas)'}
+    for liga in ligas:
+        columnas_rename[f'{liga}_porcentaje'] = f'{liga} (%)'
+    
+    tabla_resumen = tabla_resumen.rename(columns=columnas_rename)
+    
+    # Formatear porcentajes
+    for liga in ligas:
+        tabla_resumen[f'{liga} (%)'] = tabla_resumen[f'{liga} (%)'].apply(lambda x: f'{x:.1f}%')
+    
+    # Formatear total con comas
+    tabla_resumen['Total Stock (Planas+Curvas)'] = tabla_resumen['Total Stock (Planas+Curvas)'].apply(lambda x: f'{x:,}')
+    
+    # Mostrar tabla
+    st.dataframe(
+        tabla_resumen,
+        use_container_width=True,
+        hide_index=True
+    )
 
 # Instancia del visualizador de gráficas
 chart_visualizer = ChartVisualizer(stock_analyzer, country_manager)
@@ -4358,7 +3217,7 @@ def mostrar_tabla_consolidada(tabla, pais):
         html = '<table style="border-collapse: collapse; text-align: center; font-size: 10px; width: 100%;">'
         
         # Fila 1: Ligas (con colspan)
-        html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
+        html += '<tr style="background-color: #4a7a8c; color: white; font-weight: bold;">'
         html += '<td rowspan="3" style="border: 1px solid #ddd; padding: 3px; vertical-align: middle; font-size: 10px; width: 60px;">Bodega</td>'
         
         for liga, count in liga_counts.items():
@@ -4399,7 +3258,7 @@ def mostrar_tabla_consolidada(tabla, pais):
         # Filas de datos
         for idx, row in df.iterrows():
             if idx == len(df) - 1:  # Fila TOTAL
-                html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
+                html += '<tr style="background-color: #d35400; color: white; font-weight: bold;">'
             else:
                 html += '<tr>'
             
@@ -4472,32 +3331,6 @@ def mostrar_tabla_consolidada(tabla, pais):
     st.markdown(tabla_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Sección de exportación (para Guatemala y El Salvador)
-    if pais in ["Guatemala", "El Salvador"]:
-        # Configurar header según el país
-        codigo_pais = "GT" if pais == "Guatemala" else "SV"
-        professional_design.create_section_header(
-            f"Exportar Reporte - {pais}", 
-            "Generar archivo Excel con formato profesional",
-            codigo_pais
-        )
-        
-        col1, col2 = st.columns([3, 2])
-        
-        with col1:
-            # Obtener nombre del archivo desde session state o usar valor por defecto
-            archivo_default = "GUATEMALA.csv" if pais == "Guatemala" else "EL_SALVADOR.csv"
-            session_key = 'archivo_guatemala_name' if pais == "Guatemala" else 'archivo_el_salvador_name'
-            archivo_nombre = st.session_state.get(session_key, archivo_default)
-            export_key = "nombre_gt_export" if pais == "Guatemala" else "nombre_sv_export"
-            nombre_archivo = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key=export_key)
-        
-        with col2:
-            st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-            button_key = "excel_gt_export" if pais == "Guatemala" else "excel_sv_export"
-            if st.button(f"🚀 Generar Excel {pais}", key=button_key, use_container_width=True):
-                exportar_excel_consolidado(tabla, nombre_archivo, pais)
-    
     # Mostrar métricas resumidas mejoradas
     selected_league = st.session_state.get('selected_league', None)
     # Convertir "Todas" a None para mostrar todas las ligas
@@ -4528,47 +3361,29 @@ def mostrar_tabla_consolidada(tabla, pais):
     
     # Definir métricas según disponibilidad de datos de ventas
     if hay_total_usd:
-        cols = st.columns(5)
-        metricas = [
-            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#000000"),
-            ('TOTAL APPAREL', 'Apparel Total', "👕", "#000000"),
-            ('ACCESSORIES', 'Accessories Total', "🧦", "#000000"),
-            ('TOTAL STOCK', 'Inventario Total', "📦", "#000000"),
-            ('TOTAL (USD)', 'Total Ventas', "💰", "#000000")
-        ]
-    else:
         cols = st.columns(4)
         metricas = [
-            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#000000"),
-            ('TOTAL APPAREL', 'Apparel Total', "👕", "#000000"),
-            ('ACCESSORIES', 'Accessories Total', "🧦", "#000000"),
-            ('TOTAL STOCK', 'Inventario Total', "📦", "#000000")
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563"),
+            ('TOTAL (USD)', 'Total Ventas', "💰", "#10b981")
+        ]
+    else:
+        cols = st.columns(3)
+        metricas = [
+            ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#6b7280"),
+            ('TOTAL APPAREL', 'Apparel Total', "👕", "#9ca3af"),
+            ('TOTAL STOCK', 'Inventario Total', "📦", "#4b5563")
         ]
     
     for i, (col, nombre, emoji, color) in enumerate(metricas):
         with cols[i]:
             # Buscar la columna en la estructura de 3 niveles (totales)
             valor = 0
-            if col == 'ACCESSORIES':
-                # Para ACCESSORIES, buscar en la estructura específica
-                try:
-                    # Buscar columna con estructura (ACCESSORIES, Accessories, Stock)
-                    for tabla_col in tabla.columns:
-                        if (len(tabla_col) == 3 and 
-                            tabla_col[0] == 'ACCESSORIES' and 
-                            tabla_col[1] == 'Accessories' and 
-                            tabla_col[2] == 'Stock'):
-                            # Tomar solo la fila TOTAL (última fila)
-                            valor = tabla[tabla_col].iloc[-1]
-                            break
-                except:
-                    valor = 0
-            else:
-                # Para las demás métricas, usar la lógica original
-                for tabla_col in tabla.columns:
-                    if len(tabla_col) == 3 and tabla_col[2] == col:
-                        valor = tabla[tabla_col].iloc[-1]
-                        break
+            for tabla_col in tabla.columns:
+                if len(tabla_col) == 3 and tabla_col[2] == col:
+                    valor = tabla[tabla_col].iloc[-1]
+                    break
             
             # Determinar el texto de descripción según el tipo de métrica
             if col == 'TOTAL (USD)':
@@ -4576,15 +3391,13 @@ def mostrar_tabla_consolidada(tabla, pais):
                 valor_formato = f"${valor:,.2f}"
             else:
                 descripcion = f"unidades en stock{f' - {selected_league}' if selected_league else ''}"
-                # Convertir a entero para eliminar decimales
-                valor_entero = int(valor) if valor else 0
-                valor_formato = f"{valor_entero:,}"
+                valor_formato = f"{valor:,}"
             
             st.markdown(f"""
             <div class="metric-card" style="border-left: 4px solid {color};">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-size: 2rem; color: #000000;">{emoji}</span>
-                    <span style="color: {color}; font-weight: 600; font-size: 1.1rem;">{nombre.upper()}</span>
+                    <span style="font-size: 1.5rem;">{emoji}</span>
+                    <span style="color: {color}; font-weight: 600; font-size: 0.9rem;">{nombre.upper()}</span>
                 </div>
                 <div style="font-size: 2rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
                     {valor_formato}
@@ -4610,443 +3423,9 @@ def mostrar_tabla_consolidada(tabla, pais):
         )
     mostrar_grafica_comparativa(tabla, pais)
     
-    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (para Guatemala y El Salvador)
-    if pais in ["Guatemala", "El Salvador"]:
+    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (solo para Guatemala)
+    if pais == "Guatemala":
         mostrar_distribucion_ligas_por_bodega(tabla, pais)
-
-def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
-    """Agrega la sección de exportación de distribuciones idéntica a la sección existente"""
-    # Crear header de sección idéntico a la sección de exportación existente
-    professional_design = ProfessionalDesign()
-    codigo_pais = "GT" if pais == "Guatemala" else "SV"
-    professional_design.create_section_header(
-        f"Exportar Distribuciones - {pais}", 
-        "Generar archivo Excel con distribuciones por bodega",
-        codigo_pais
-    )
-    
-    col1, col2 = st.columns([3, 2])
-    
-    with col1:
-        # Input idéntico al existente
-        archivo_default = "GUATEMALA.csv" if pais == "Guatemala" else "EL_SALVADOR.csv"
-        session_key = 'archivo_guatemala_name' if pais == "Guatemala" else 'archivo_el_salvador_name'
-        archivo_nombre = st.session_state.get(session_key, archivo_default)
-        dist_key = "nombre_dist_export" if pais == "Guatemala" else "nombre_dist_export_sv"
-        nombre_archivo_dist = st.text_input("📝 Nombre del archivo origen", archivo_nombre, key=dist_key)
-    
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-        button_dist_key = "excel_dist_export" if pais == "Guatemala" else "excel_dist_export_sv"
-        if st.button("🚀 Generar Excel Distribuciones", key=button_dist_key, use_container_width=True):
-            exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas)
-
-def exportar_excel_distribuciones_reales(tablas_reales, pais, tiene_ventas):
-    """Exporta las tablas reales de distribución tal como aparecen en Streamlit"""
-    if not tablas_reales:
-        st.warning(f"No hay tablas de distribución para exportar de {pais}")
-        return
-    
-    try:
-        logger.info(f"Iniciando exportación de distribuciones reales para {pais}")
-        
-        # Definir nombres dinámicos según el país
-        if pais == "Guatemala":
-            nombre_tiendas_secundarias = "Tiendas Departamentales"
-        else:
-            nombre_tiendas_secundarias = "Tiendas Franquicia"
-        
-        # Crear archivo Excel
-        nombre_excel = f"distribucion_bodegas_{pais.lower().replace(' ', '_')}_{config.fecha_reporte}.xlsx"
-        output = pd.ExcelWriter(nombre_excel, engine='openpyxl')
-        
-        if not tiene_ventas:
-            # Solo hay stock - crear una pestaña con las 3 tablas
-            sheet_name = "Distribución Stock"
-            row_offset = 0
-            
-            # Escribir tabla de Tiendas de Ciudad
-            if 'df_principales' in tablas_reales and len(tablas_reales['df_principales']) > 0:
-                # Agregar título
-                titulo_principales = pd.DataFrame([['🏪 TIENDAS DE CIUDAD']], columns=[''])
-                titulo_principales.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                
-                tablas_reales['df_principales'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_principales']) + 3
-            
-            # Escribir tabla de Outlets
-            if 'df_outlets' in tablas_reales and len(tablas_reales['df_outlets']) > 0:
-                titulo_outlets = pd.DataFrame([['🛒 OUTLETS']], columns=[''])
-                titulo_outlets.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                
-                tablas_reales['df_outlets'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_outlets']) + 3
-            
-            # Escribir tabla de Tiendas Departamentales
-            if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
-                titulo_secundarias = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()}']], columns=[''])
-                titulo_secundarias.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                
-                tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_secundarias']) + 3
-            
-            # Escribir tabla de Tienda Outlet (solo para El Salvador)
-            if 'df_outlet_especial' in tablas_reales and len(tablas_reales['df_outlet_especial']) > 0:
-                titulo_outlet_especial = pd.DataFrame([['🏪 TIENDA OUTLET']], columns=[''])
-                titulo_outlet_especial.to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                
-                tablas_reales['df_outlet_especial'].to_excel(output, sheet_name=sheet_name, startrow=row_offset, index=False)
-        
-        else:
-            # Hay stock y ventas - crear 3 pestañas
-            
-            # PESTAÑA 1: Distribución Stock
-            sheet_name_stock = "Distribución Stock"
-            row_offset = 0
-            
-            if 'df_principales' in tablas_reales and len(tablas_reales['df_principales']) > 0:
-                titulo = pd.DataFrame([['🏪 TIENDAS DE CIUDAD']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_principales'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_principales']) + 3
-            
-            if 'df_outlets' in tablas_reales and len(tablas_reales['df_outlets']) > 0:
-                titulo = pd.DataFrame([['🛒 OUTLETS']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_outlets'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_outlets']) + 3
-            
-            if 'df_secundarias' in tablas_reales and len(tablas_reales['df_secundarias']) > 0:
-                titulo = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()}']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_secundarias'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_secundarias']) + 3
-            
-            # Escribir tabla de Tienda Outlet en pestaña de stock (solo para El Salvador)
-            if 'df_outlet_especial' in tablas_reales and len(tablas_reales['df_outlet_especial']) > 0:
-                titulo = pd.DataFrame([['🏪 TIENDA OUTLET']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_outlet_especial'].to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-            
-            # PESTAÑA 2: Distribución Ventas
-            sheet_name_ventas = "Distribución Ventas"
-            row_offset = 0
-            
-            if 'df_principales_ventas' in tablas_reales and len(tablas_reales['df_principales_ventas']) > 0:
-                titulo = pd.DataFrame([['🏪 TIENDAS DE CIUDAD - VENTAS']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_principales_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_principales_ventas']) + 3
-            
-            if 'df_outlets_ventas' in tablas_reales and len(tablas_reales['df_outlets_ventas']) > 0:
-                titulo = pd.DataFrame([['🛒 OUTLETS - VENTAS']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_outlets_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_outlets_ventas']) + 3
-            
-            if 'df_secundarias_ventas' in tablas_reales and len(tablas_reales['df_secundarias_ventas']) > 0:
-                titulo = pd.DataFrame([[f'🏬 {nombre_tiendas_secundarias.upper()} - VENTAS']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_secundarias_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-                row_offset += len(tablas_reales['df_secundarias_ventas']) + 3
-            
-            # Escribir tabla de Tienda Outlet - Ventas (solo para El Salvador)
-            if 'df_outlet_especial_ventas' in tablas_reales and len(tablas_reales['df_outlet_especial_ventas']) > 0:
-                titulo = pd.DataFrame([['🏪 TIENDA OUTLET - VENTAS']], columns=[''])
-                titulo.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False, header=False)
-                row_offset += 2
-                tablas_reales['df_outlet_especial_ventas'].to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-            
-            # Nota: Se removió la pestaña de comparación como se solicitó
-        
-        # Aplicar formato básico a todas las pestañas
-        workbook = output.book
-        header_fill = PatternFill(start_color='4a7a8c', end_color='4a7a8c', fill_type='solid')
-        header_font = Font(color='FFFFFF', bold=True, size=12)
-        titulo_fill = PatternFill(start_color='2d3748', end_color='2d3748', fill_type='solid')
-        titulo_font = Font(color='FFFFFF', bold=True, size=14)
-        border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-        center_alignment = Alignment(horizontal='center', vertical='center')
-        
-        for sheet_name in workbook.sheetnames:
-            worksheet = workbook[sheet_name]
-            
-            # Aplicar formato a todas las celdas
-            for row in worksheet.iter_rows():
-                for cell in row:
-                    cell.border = border
-                    cell.alignment = center_alignment
-                    
-                    # Formato numérico con 2 decimales
-                    if isinstance(cell.value, (int, float)) and cell.value != 0:
-                        cell.number_format = '0.00'
-                    
-                    # Formato para títulos de secciones (🏪, 🛒, 🏬)
-                    if cell.value and isinstance(cell.value, str) and any(emoji in str(cell.value) for emoji in ['🏪', '🛒', '🏬']):
-                        cell.fill = titulo_fill
-                        cell.font = titulo_font
-                    # Formato para headers de tablas
-                    elif cell.row > 1 and cell.value and isinstance(cell.value, str) and 'Bodega' in str(cell.value):
-                        cell.fill = header_fill
-                        cell.font = header_font
-            
-            # Ajustar ancho de columnas
-            for column in worksheet.columns:
-                max_length = 0
-                column_letter = get_column_letter(column[0].column)
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(cell.value)
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 20)
-                worksheet.column_dimensions[column_letter].width = adjusted_width
-        
-        output.close()
-        
-        # Descargar archivo
-        with open(nombre_excel, "rb") as f:
-            if tiene_ventas:
-                label_text = f"Descargar Distribuciones Completas {pais}"
-            else:
-                label_text = f"Descargar Distribución Stock {pais}"
-            
-            st.download_button(
-                label=label_text,
-                data=f,
-                file_name=f"DISTRIBUCION_BODEGAS_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_distribucion_real_{pais}"
-            )
-        
-        # Limpiar archivo temporal
-        os.remove(nombre_excel)
-        logger.info(f"Exportación de distribuciones reales completada para {pais}")
-        
-    except Exception as e:
-        logger.error(f"Error al exportar distribuciones reales {pais}: {str(e)}")
-        st.error(f"Error al exportar distribuciones reales {pais}: {str(e)}")
-
-def exportar_excel_distribuciones(df_bodegas, nombres_reales_bodegas, pais):
-    """Exporta las tablas de distribución por bodega a Excel con pestañas según los datos disponibles"""
-    if df_bodegas is None:
-        st.warning(f"No hay datos de distribución para exportar de {pais}")
-        return
-    
-    try:
-        logger.info(f"Iniciando exportación de distribuciones para {pais}")
-        
-        # Definir nombres dinámicos según el país
-        if pais == "Guatemala":
-            nombre_tiendas_secundarias = "Tiendas Departamentales"
-        else:
-            nombre_tiendas_secundarias = "Tiendas Franquicia"
-        
-        # Detectar si hay datos de ventas
-        tiene_ventas = any('Ventas' in str(col) for col in df_bodegas.columns)
-        
-        # Crear archivo Excel
-        nombre_excel = f"distribucion_bodegas_{pais.lower().replace(' ', '_')}_{config.fecha_reporte}.xlsx"
-        output = pd.ExcelWriter(nombre_excel, engine='openpyxl')
-        
-        # Configurar ligas
-        ligas = ['MLB', 'NBA', 'NFL', 'MOTORSPORT', 'ENTERTAINMENT']
-        es_multiindex = isinstance(df_bodegas.columns, pd.MultiIndex)
-        
-        # Función auxiliar para crear tablas de distribución
-        def crear_tablas_distribucion(df_bodegas, nombres_bodegas, tipo_datos="Stock"):
-            # Procesar datos de distribución
-            distribucion_data = []
-            
-            for i, bodega_idx in enumerate(df_bodegas.index):
-                nombre_bodega = nombres_bodegas[i] if i < len(nombres_bodegas) else bodega_idx
-                bodega_data = {'Bodega': nombre_bodega}
-                total_bodega = 0
-                
-                # Calcular totales por liga
-                for liga in ligas:
-                    if es_multiindex:
-                        if tipo_datos == "Stock":
-                            col_planas = (liga, 'Planas', 'Stock')
-                            col_curvas = (liga, 'Curvas', 'Stock')
-                        else:  # Ventas
-                            col_planas = (liga, 'Planas', 'Ventas')
-                            col_curvas = (liga, 'Curvas', 'Ventas')
-                    else:
-                        if tipo_datos == "Stock":
-                            col_planas = f"{liga} - Planas - Stock"
-                            col_curvas = f"{liga} - Curvas - Stock"
-                        else:  # Ventas
-                            col_planas = f"{liga} - Planas - Ventas"
-                            col_curvas = f"{liga} - Curvas - Ventas"
-                    
-                    valor_planas = df_bodegas.loc[bodega_idx, col_planas] if col_planas in df_bodegas.columns else 0
-                    valor_curvas = df_bodegas.loc[bodega_idx, col_curvas] if col_curvas in df_bodegas.columns else 0
-                    
-                    try:
-                        valor_planas = float(valor_planas) if valor_planas != 0 else 0
-                        valor_curvas = float(valor_curvas) if valor_curvas != 0 else 0
-                    except:
-                        valor_planas = 0
-                        valor_curvas = 0
-                    
-                    valor_liga = valor_planas + valor_curvas
-                    bodega_data[liga] = valor_liga
-                    total_bodega += valor_liga
-                
-                # Calcular porcentajes
-                if total_bodega > 0:
-                    for liga in ligas:
-                        pct = (bodega_data[liga] / total_bodega) * 100
-                        bodega_data[f'{liga} %'] = round(pct, 1)
-                else:
-                    for liga in ligas:
-                        bodega_data[f'{liga} %'] = 0.0
-                
-                bodega_data['Total'] = total_bodega
-                distribucion_data.append(bodega_data)
-            
-            df_distribucion = pd.DataFrame(distribucion_data)
-            
-            # Separar en tres tipos de bodegas
-            df_principales = df_distribucion[df_distribucion['Bodega'].str.contains('Principal|Ciudad', case=False, na=False)]
-            df_outlets = df_distribucion[df_distribucion['Bodega'].str.contains('Outlet', case=False, na=False)]
-            df_secundarias = df_distribucion[~df_distribucion['Bodega'].str.contains('Principal|Ciudad|Outlet', case=False, na=False)]
-            
-            return df_principales, df_outlets, df_secundarias
-        
-        # Exportar datos de stock
-        df_principales_stock, df_outlets_stock, df_secundarias_stock = crear_tablas_distribucion(df_bodegas, nombres_reales_bodegas, "Stock")
-        
-        # Crear pestaña de Stock
-        sheet_name_stock = "Distribución Stock"
-        
-        # Escribir las tres tablas en la pestaña de stock
-        row_offset = 0
-        
-        # Tiendas de Ciudad
-        if len(df_principales_stock) > 0:
-            df_principales_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-            row_offset += len(df_principales_stock) + 3  # Espacio entre tablas
-        
-        # Outlets
-        if len(df_outlets_stock) > 0:
-            df_outlets_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-            row_offset += len(df_outlets_stock) + 3
-        
-        # Tiendas Departamentales
-        if len(df_secundarias_stock) > 0:
-            df_secundarias_stock.to_excel(output, sheet_name=sheet_name_stock, startrow=row_offset, index=False)
-        
-        # Si hay datos de ventas, crear pestañas adicionales
-        if tiene_ventas:
-            # Exportar datos de ventas
-            df_principales_ventas, df_outlets_ventas, df_secundarias_ventas = crear_tablas_distribucion(df_bodegas, nombres_reales_bodegas, "Ventas")
-            
-            # Crear pestaña de Ventas
-            sheet_name_ventas = "Distribución Ventas"
-            row_offset = 0
-            
-            if len(df_principales_ventas) > 0:
-                df_principales_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-                row_offset += len(df_principales_ventas) + 3
-            
-            if len(df_outlets_ventas) > 0:
-                df_outlets_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-                row_offset += len(df_outlets_ventas) + 3
-            
-            if len(df_secundarias_ventas) > 0:
-                df_secundarias_ventas.to_excel(output, sheet_name=sheet_name_ventas, startrow=row_offset, index=False)
-            
-            # Crear pestaña de Comparación (datos combinados)
-            sheet_name_comparacion = "Comparación Stock vs Ventas"
-            row_offset = 0
-            
-            # Combinar datos de stock y ventas para comparación
-            if len(df_principales_stock) > 0 and len(df_principales_ventas) > 0:
-                df_comparacion_principales = df_principales_stock.merge(df_principales_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
-                df_comparacion_principales.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
-                row_offset += len(df_comparacion_principales) + 3
-            
-            if len(df_outlets_stock) > 0 and len(df_outlets_ventas) > 0:
-                df_comparacion_outlets = df_outlets_stock.merge(df_outlets_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
-                df_comparacion_outlets.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
-                row_offset += len(df_comparacion_outlets) + 3
-            
-            if len(df_secundarias_stock) > 0 and len(df_secundarias_ventas) > 0:
-                df_comparacion_secundarias = df_secundarias_stock.merge(df_secundarias_ventas, on='Bodega', suffixes=(' (Stock)', ' (Ventas)'))
-                df_comparacion_secundarias.to_excel(output, sheet_name=sheet_name_comparacion, startrow=row_offset, index=False)
-        
-        # Aplicar formato básico a todas las pestañas
-        workbook = output.book
-        header_fill = PatternFill(start_color='4a7a8c', end_color='4a7a8c', fill_type='solid')
-        header_font = Font(color='FFFFFF', bold=True, size=12)
-        border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-        center_alignment = Alignment(horizontal='center', vertical='center')
-        
-        for sheet_name in workbook.sheetnames:
-            worksheet = workbook[sheet_name]
-            
-            # Aplicar formato a todas las celdas
-            for row in worksheet.iter_rows():
-                for cell in row:
-                    cell.border = border
-                    cell.alignment = center_alignment
-                    
-                    # Formato para headers
-                    if cell.row == 1 or (cell.value and isinstance(cell.value, str) and 'Bodega' in str(cell.value)):
-                        cell.fill = header_fill
-                        cell.font = header_font
-            
-            # Ajustar ancho de columnas
-            for column in worksheet.columns:
-                max_length = 0
-                column_letter = get_column_letter(column[0].column)
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(cell.value)
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 20)
-                worksheet.column_dimensions[column_letter].width = adjusted_width
-        
-        output.close()
-        
-        # Descargar archivo
-        with open(nombre_excel, "rb") as f:
-            if tiene_ventas:
-                label_text = f"Descargar Distribuciones Completas {pais}"
-            else:
-                label_text = f"Descargar Distribución Stock {pais}"
-            
-            st.download_button(
-                label=label_text,
-                data=f,
-                file_name=f"DISTRIBUCION_BODEGAS_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_distribucion_{pais}"
-            )
-        
-        # Limpiar archivo temporal
-        os.remove(nombre_excel)
-        logger.info(f"Exportación de distribuciones completada para {pais}")
-        
-    except Exception as e:
-        logger.error(f"Error al exportar distribuciones {pais}: {str(e)}")
-        st.error(f"Error al exportar distribuciones {pais}: {str(e)}")
 
 def exportar_excel_consolidado(tabla, nombre_archivo, pais):
     """Exporta la tabla consolidada a Excel con formato profesional"""
@@ -5128,26 +3507,23 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         
         # Aplicar semáforo a la columna "% DE CUMPLIMIENTO"
         col_cumplimiento = None
-        col_total_headwear = None
-        
-        # Buscar columnas por nombre que contenga las palabras clave
         for col in range(1, worksheet.max_column + 1):
-            cell_value = worksheet.cell(row=1, column=col).value
-            if cell_value:
-                if "% DE CUMPLIMIENTO" in str(cell_value):
-                    col_cumplimiento = col
-                elif "TOTAL HEADWEAR" in str(cell_value):
-                    col_total_headwear = col
+            if worksheet.cell(row=1, column=col).value == "% DE CUMPLIMIENTO":
+                col_cumplimiento = col
+                break
         
-        if col_cumplimiento and col_total_headwear:
-            logger.info(f"Aplicando semáforo - Col cumplimiento: {col_cumplimiento}, Col total headwear: {col_total_headwear}")
+        if col_cumplimiento:
             capacidades = country_manager.get_capacidades(pais)
             
             for row in range(2, worksheet.max_row + 1):
                 bodega = worksheet.cell(row=row, column=1).value
                 
-                # Obtener total_headwear de la columna encontrada
-                total_headwear = worksheet.cell(row=row, column=col_total_headwear).value or 0
+                # Buscar total_headwear en la fila correspondiente
+                total_headwear = 0
+                for col in range(1, worksheet.max_column + 1):
+                    if worksheet.cell(row=1, column=col).value == "TOTAL HEADWEAR":
+                        total_headwear = worksheet.cell(row=row, column=col).value or 0
+                        break
                 
                 if bodega == 'TOTAL':
                     capacidad = country_manager.get_country_data(pais).get_total_capacity()
@@ -5171,12 +3547,6 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
                     cell.font = Font(color='FFFFFF', bold=True, size=14)
                 else:
                     cell.font = semaforo_font
-        else:
-            logger.warning(f"No se pudieron encontrar las columnas para el semáforo - Col cumplimiento: {col_cumplimiento}, Col total headwear: {col_total_headwear}")
-            logger.info("Columnas disponibles en Excel:")
-            for col in range(1, worksheet.max_column + 1):
-                cell_value = worksheet.cell(row=1, column=col).value
-                logger.info(f"  Columna {col}: {cell_value}")
         
         # Autoajustar columnas
         for column in worksheet.columns:
@@ -5197,11 +3567,11 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         
         # Agregar leyenda del semáforo
         worksheet.cell(row=info_row+4, column=1, value="Leyenda Semáforo:").font = Font(bold=True)
-        worksheet.cell(row=info_row+5, column=1, value="Verde: 0%-15%").fill = verde_fill
+        worksheet.cell(row=info_row+5, column=1, value="Verde: 100%-115%").fill = verde_fill
         worksheet.cell(row=info_row+5, column=1).font = semaforo_font
-        worksheet.cell(row=info_row+6, column=1, value="Amarillo: >15%").fill = amarillo_fill
+        worksheet.cell(row=info_row+6, column=1, value="Amarillo: >115%").fill = amarillo_fill
         worksheet.cell(row=info_row+6, column=1).font = semaforo_font
-        worksheet.cell(row=info_row+7, column=1, value="Rojo: <0%").fill = rojo_fill
+        worksheet.cell(row=info_row+7, column=1, value="Rojo: <100%").fill = rojo_fill
         worksheet.cell(row=info_row+7, column=1).font = semaforo_font
         worksheet.cell(row=info_row+8, column=1, value="Gris: Sin capacidad definida").fill = gris_fill
         worksheet.cell(row=info_row+8, column=1).font = semaforo_font
@@ -5211,7 +3581,7 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         # Descargar archivo
         with open(nombre_excel, "rb") as f:
             st.download_button(
-                label=f"Descargar Reporte {pais}",
+                label=f"📤 Descargar Reporte {pais}",
                 data=f,
                 file_name=f"STOCK_CONSOLIDADO_{pais.upper().replace(' ', '_')}_{config.fecha_reporte}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -5260,16 +3630,12 @@ def main():
         col_guatemala, col_ventas = st.columns(2)
         
         with col_guatemala:
-            archivo_guatemala = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv", "GUATEMALA")
+            archivo_guatemala = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv", "Guatemala")
             
         with col_ventas:
-            archivo_ventas_guatemala = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_GUATEMALA.csv", "Guatemala_ventas", "GUATEMALA")
+            archivo_ventas_guatemala = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_GUATEMALA.csv", "Guatemala_ventas")
         
         if archivo_guatemala is not None:
-            # Guardar nombre del archivo en session state para la exportación
-            if hasattr(archivo_guatemala, 'name'):
-                st.session_state.archivo_guatemala_name = archivo_guatemala.name
-            
             # Crear hash del DataFrame para cache
             df_hash = archivo_guatemala.to_dict('records')
             
@@ -5290,6 +3656,23 @@ def main():
             # Mostrar resultados Guatemala
             mostrar_tabla_consolidada(tabla_guatemala, "Guatemala")
             
+            # Sección de exportación dentro de la pestaña
+            professional_design.create_section_header(
+                "Exportar Reporte - Guatemala", 
+                "Generar archivo Excel con formato profesional",
+                "GT"
+            )
+            
+            col1, col2 = st.columns([3, 2])
+            
+            with col1:
+                nombre_original_gt = archivo_guatemala.name if hasattr(archivo_guatemala, 'name') else "GUATEMALA.csv"
+                nombre_archivo_gt = st.text_input("📝 Nombre del archivo origen", nombre_original_gt, key="nombre_gt")
+            
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
+                if st.button("🚀 Generar Excel Guatemala", key="excel_gt", use_container_width=True):
+                    exportar_excel_consolidado(tabla_guatemala, nombre_archivo_gt, "Guatemala")
         # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
         if archivo_guatemala is None or archivo_ventas_guatemala is None:
             col_msg_guatemala, col_msg_ventas = st.columns(2)
@@ -5299,10 +3682,10 @@ def main():
                     st.markdown("""
                     <div class="country-card country-card-gt">
                         <div class="country-flag">🇬🇹</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #0ea5e9;">Stock</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(186, 230, 253, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(186, 230, 253, 0.3);">
                             Selecciona tu archivo GUATEMALA.csv para comenzar el análisis completo del inventario<br>
-                            <strong style="color: #1e3a8a;">24 tiendas</strong> en operación
+                            <strong style="color: #0ea5e9;">24 tiendas</strong> en operación
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -5312,15 +3695,15 @@ def main():
                     st.markdown("""
                     <div class="country-card country-card-gt">
                         <div class="country-flag">🇬🇹</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Guatemala - Sistema de <span style="color: #0ea5e9;">Ventas</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(186, 230, 253, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(186, 230, 253, 0.3);">
                             Selecciona tu archivo VENTAS_GUATEMALA.csv para comenzar el análisis completo de ventas<br>
-                            <strong style="color: #22c55e;">24 tiendas</strong> en operación
+                            <strong style="color: #0ea5e9;">24 tiendas</strong> en operación
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
                 else:
-                    st.success("✅ Archivo VENTAS_GUATEMALA.csv cargado correctamente")
+                    st.success("✅ Archivo ENTAS_GUATEMALA.csv cargado correctamente")
 
     # PESTAÑA PANAMA
     with tab_panama:
@@ -5383,7 +3766,7 @@ def main():
             "HN"
         )
         
-        archivo_honduras = data_loader.cargar_archivo("📁 Subir archivo HONDURAS.csv", "HONDURAS")
+        archivo_honduras = data_loader.cargar_archivo("📁 Subir archivo HONDURAS.csv", "Honduras")
         
         if archivo_honduras is not None:
             # Crear hash del DataFrame para cache
@@ -5433,24 +3816,13 @@ def main():
     with tab_el_salvador:
         professional_design.create_section_header(
             "Análisis de Stock - El Salvador", 
-            "Gestión de inventario para 9 tiendas en territorio salvadoreño",
+            "Gestión de inventario para 9 tiendas en El Salvador",
             "SV"
         )
         
-        # Crear dos columnas para los espacios de carga (igual que Guatemala)
-        col_el_salvador, col_ventas_sv = st.columns(2)
-        
-        with col_el_salvador:
-            archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "EL_SALVADOR")
-            
-        with col_ventas_sv:
-            archivo_ventas_el_salvador = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_EL_SALVADOR.csv", "El_Salvador_ventas", "EL_SALVADOR")
+        archivo_el_salvador = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "El Salvador")
         
         if archivo_el_salvador is not None:
-            # Guardar nombre del archivo en session state para la exportación
-            if hasattr(archivo_el_salvador, 'name'):
-                st.session_state.archivo_el_salvador_name = archivo_el_salvador.name
-            
             # Crear hash del DataFrame para cache
             df_hash = archivo_el_salvador.to_dict('records')
             
@@ -5459,47 +3831,40 @@ def main():
             # Convertir "Todas" a None para mostrar todas las ligas
             if selected_league == "Todas":
                 selected_league = None
-            df_ventas_hash = archivo_ventas_el_salvador.to_dict('records') if archivo_ventas_el_salvador is not None else None
-            
-            # Limpiar cache si hay cambios
-            if 'cache_cleared_sv' not in st.session_state:
-                st.cache_data.clear()
-                st.session_state.cache_cleared_sv = True
-                
-            tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league, df_ventas_hash)
+            tabla_el_salvador = data_processor.procesar_datos_consolidados(df_hash, "El Salvador", selected_league)
             
             # Mostrar resultados El Salvador
             mostrar_tabla_consolidada(tabla_el_salvador, "El Salvador")
             
-        # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
-        if archivo_el_salvador is None or archivo_ventas_el_salvador is None:
-            col_msg_el_salvador, col_msg_ventas_sv = st.columns(2)
+            # Sección de exportación dentro de la pestaña
+            professional_design.create_section_header(
+                "Exportar Reporte - El Salvador", 
+                "Generar archivo Excel con formato profesional",
+                "SV"
+            )
             
-            with col_msg_el_salvador:
-                if archivo_el_salvador is None:
-                    st.markdown("""
-                    <div class="country-card country-card-sv">
-                        <div class="country-flag">🇸🇻</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
-                            Selecciona tu archivo EL_SALVADOR.csv para comenzar el análisis completo del inventario<br>
-                            <strong style="color: #1e3a8a;">9 tiendas</strong> en operación
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
+            col1, col2 = st.columns([3, 2])
             
-            with col_msg_ventas_sv:
-                if archivo_ventas_el_salvador is None:
-                    st.markdown("""
-                    <div class="country-card country-card-sv">
-                        <div class="country-flag">🇸🇻</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
-                            Selecciona tu archivo VENTAS_EL_SALVADOR.csv para análisis de ventas en USD<br>
-                            <strong style="color: #22c55e;">Datos de ventas</strong> opcionales
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
+            with col1:
+                nombre_original_sv = archivo_el_salvador.name if hasattr(archivo_el_salvador, 'name') else "EL_SALVADOR.csv"
+                nombre_archivo_sv = st.text_input("📝 Nombre del archivo origen", nombre_original_sv, key="nombre_sv")
+            
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
+                if st.button("🚀 Generar Excel El Salvador", key="excel_sv", use_container_width=True):
+                    exportar_excel_consolidado(tabla_el_salvador, nombre_archivo_sv, "El Salvador")
+        else:
+            # Mensaje de bienvenida cuando no hay archivo
+            st.markdown("""
+            <div class="country-card country-card-sv">
+                <div class="country-flag">🇸🇻</div>
+                <h3 class="country-title" style="color: #1e3a8a; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">El Salvador - Sistema de Stock</h3>
+                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                    Selecciona tu archivo EL_SALVADOR.csv para comenzar el análisis de las 9 bodegas de El Salvador<br>
+                    <strong style="color: #1e3a8a;">9 tiendas</strong> en operación
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
     # PESTAÑA COSTA RICA
     with tab_costa_rica:
@@ -5509,7 +3874,7 @@ def main():
             "CR"
         )
         
-        archivo_costa_rica = data_loader.cargar_archivo("📁 Subir archivo COSTA_RICA.csv", "COSTA_RICA")
+        archivo_costa_rica = data_loader.cargar_archivo("📁 Subir archivo COSTA_RICA.csv", "Costa Rica")
         
         if archivo_costa_rica is not None:
             # Crear hash del DataFrame para cache
