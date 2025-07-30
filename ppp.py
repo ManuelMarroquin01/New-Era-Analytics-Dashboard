@@ -1449,6 +1449,14 @@ class CountryManager:
                 capacidades={
                     "NE Multiplaza Panamá": 6318, "NE Westland": 2972, "NE Metromall": 4422,
                     "NE Albrookmall": 4224, "Almacén general": 0, "Bodega Central Albrook": 0
+                },
+                tienda_mapping={
+                    # Mapeo: Bodega (Stock) -> Tienda (Ventas)
+                    "NE Westland": "NE WESTLAND MALL",
+                    "NE Multiplaza Panamá": "NE MULTIPLAZA PANAMÁ",
+                    "NE Metromall": "NE METROMALL",
+                    "NE Albrookmall": "NE ALBROOK MALL"
+                    # Nota: "Bodega Central Albrook" y "Almacén general" no tienen equivalente en ventas
                 }
             )
         }
@@ -2060,6 +2068,167 @@ class SalesProcessor:
         
         return ventas_desglosadas
 
+    def procesar_ventas_panama(self, df_ventas: pd.DataFrame) -> Dict[str, Dict[str, Dict[str, float]]]:
+        """
+        Procesa el archivo de ventas de PANAMA y retorna ventas desglosadas por bodega, liga y subcategoría
+        Estructura: {bodega: {liga: {subcategoria: ventas}}}
+        """
+        if df_ventas is None or df_ventas.empty:
+            return {}
+        
+        print(f"Columnas disponibles en archivo de ventas PANAMA: {list(df_ventas.columns)}")
+        
+        # Verificar columnas necesarias
+        columnas_necesarias = ['U_Marca', 'U_Segmento', 'U_Liga', 'U_Silueta', 'USD_Total_SI_CD']
+        columna_tienda = None
+        
+        # Buscar columna de tienda
+        posibles_columnas_tienda = ['Tienda', 'Bodega', 'Store', 'Location']
+        for col in posibles_columnas_tienda:
+            if col in df_ventas.columns:
+                columna_tienda = col
+                break
+        
+        if columna_tienda is None:
+            print("No se encontró columna de tienda en PANAMA")
+            return {}
+            
+        columnas_necesarias.append(columna_tienda)
+        
+        # Verificar que existan todas las columnas
+        for col in columnas_necesarias:
+            if col not in df_ventas.columns:
+                print(f"No se encontró columna {col} en PANAMA")
+                return {}
+        
+        print(f"Usando columna de tienda para PANAMA: {columna_tienda}")
+        
+        # Filtrar por marca NEW ERA
+        df_new_era = df_ventas[df_ventas['U_Marca'].str.upper() == 'NEW ERA'].copy()
+        
+        # Usar mapeo específico para PANAMA
+        mapeo_panama = self.country_manager.get_country_data("PANAMA").tienda_mapping
+        mapeo_inverso = {v: k for k, v in mapeo_panama.items()}
+        df_new_era['Bodega_Mapeada'] = df_new_era[columna_tienda].map(mapeo_inverso)
+        
+        # Crear mapeo normalizado para PANAMA (para manejar pequeñas diferencias en espacios)
+        mapeo_normalizado_pa = {self._normalize_text(v): k for k, v in mapeo_panama.items()}
+        
+        # Intentar mapeo normalizado para no mapeadas
+        tiendas_no_mapeadas = df_new_era[df_new_era['Bodega_Mapeada'].isna()]
+        if not tiendas_no_mapeadas.empty:
+            df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), 'Bodega_Mapeada'] = \
+                df_new_era.loc[df_new_era['Bodega_Mapeada'].isna(), columna_tienda].apply(
+                    lambda x: mapeo_normalizado_pa.get(self._normalize_text(x))
+                )
+        
+        # Filtrar solo registros con mapeo exitoso
+        df_mapeado = df_new_era[df_new_era['Bodega_Mapeada'].notna()].copy()
+        
+        # Importar ProductClassification para clasificar siluetas (IGUAL QUE OTROS PAÍSES)
+        product_classifier = ProductClassification(siluetas_planas=[], siluetas_curvas=[])
+        
+        # Clasificar siluetas solo para HEADWEAR (IGUAL QUE OTROS PAÍSES)
+        df_mapeado['Tipo'] = df_mapeado.apply(
+            lambda row: product_classifier.clasificar_silueta(row['U_Silueta']) 
+            if row['U_Segmento'] == 'HEADWEAR' else None, 
+            axis=1
+        )
+        
+        print(f"Registros totales NEW ERA PANAMA: {len(df_new_era)}")
+        print(f"Registros con mapeo exitoso PANAMA: {len(df_mapeado)}")
+        print(f"Tiendas encontradas en archivo PANAMA: {df_new_era[columna_tienda].unique()}")
+        print(f"Bodegas mapeadas PANAMA: {df_mapeado['Bodega_Mapeada'].unique()}")
+        print(f"Mapeo PANAMA usado: {mapeo_panama}")
+        print(f"Mapeo inverso PANAMA: {mapeo_inverso}")
+        
+        # DEBUG: Mostrar bodegas que se mapearon exitosamente
+        print(f"🎯 BODEGAS MAPEADAS EXITOSAMENTE EN PANAMA:")
+        for bodega in df_mapeado['Bodega_Mapeada'].unique():
+            registros_bodega = len(df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega])
+            print(f"  - {bodega}: {registros_bodega} registros")
+        
+        if df_mapeado.empty:
+            print("No hay registros mapeados para procesar en PANAMA")
+            return {}
+        
+        # Definir categorías de ligas específicas para PANAMA (igual que Guatemala)
+        categorias_ligas = {
+            "MLB": ["MLB"],
+            "NBA": ["NBA"],
+            "NFL": ["NFL"],
+            "MOTORSPORT": ["MOTORSPORT"],
+            "ENTERTAINMENT": [
+                "NEW ERA BRANDED", "ENTERTAINMENT", "MARCA PAIS", "WARNER BROS",
+                "NONE LICENSED", "EUROPEAN SOCCER"
+            ],
+            "ACCESSORIES": ["ACCESSORIES"]
+        }
+        
+        # Debug: Ver qué ligas están en el archivo  
+        ligas_encontradas = sorted(df_mapeado['U_Liga'].unique())
+        print(f"LIGAS ENCONTRADAS EN ARCHIVO PANAMA: {ligas_encontradas}")
+        
+        # Debug: Ver qué siluetas están en el archivo
+        siluetas_encontradas = sorted(df_mapeado[df_mapeado['U_Segmento'] == 'HEADWEAR']['U_Silueta'].unique())
+        print(f"SILUETAS HEADWEAR ENCONTRADAS EN PANAMA: {siluetas_encontradas}")
+        
+        print(f"Muestra de datos mapeados PANAMA:")
+        if not df_mapeado.empty:
+            muestra = df_mapeado[['Bodega_Mapeada', columna_tienda, 'U_Liga', 'U_Segmento', 'U_Silueta', 'USD_Total_SI_CD']].head(10)
+            print(muestra.to_string())
+        
+        ventas_desglosadas = {}
+        
+        # Procesar por bodega
+        for bodega in df_mapeado['Bodega_Mapeada'].unique():
+            df_bodega = df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega]
+            ventas_desglosadas[bodega] = {}
+            
+            # Procesar por liga (IGUAL QUE GUATEMALA)
+            for categoria, ligas in categorias_ligas.items():
+                ventas_desglosadas[bodega][categoria] = {}
+                
+                if categoria == 'ACCESSORIES':
+                    # Para ACCESSORIES, filtrar directamente por segmento
+                    df_accessories = df_bodega[df_bodega['U_Segmento'] == 'ACCESSORIES']
+                    ventas_desglosadas[bodega][categoria]['Stock'] = df_accessories['USD_Total_SI_CD'].sum()
+                    ventas_desglosadas[bodega][categoria]['Ventas'] = df_accessories['USD_Total_SI_CD'].sum()
+                else:
+                    # Lógica original para otras ligas (IGUAL QUE GUATEMALA)
+                    df_liga = df_bodega[df_bodega['U_Liga'].isin(ligas)]
+                    
+                    # Planas (HEADWEAR + Planas) - USANDO PRODUCT CLASSIFIER
+                    df_planas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Planas')]
+                    ventas_desglosadas[bodega][categoria]['Planas'] = df_planas['USD_Total_SI_CD'].sum()
+                    
+                    # Curvas (HEADWEAR + Curvas) - USANDO PRODUCT CLASSIFIER  
+                    df_curvas = df_liga[(df_liga['U_Segmento'] == 'HEADWEAR') & (df_liga['Tipo'] == 'Curvas')]
+                    ventas_desglosadas[bodega][categoria]['Curvas'] = df_curvas['USD_Total_SI_CD'].sum()
+                    
+                    # Apparel
+                    df_apparel = df_liga[df_liga['U_Segmento'] == 'APPAREL']
+                    ventas_desglosadas[bodega][categoria]['Apparel'] = df_apparel['USD_Total_SI_CD'].sum()
+        
+        print(f"Ventas PANAMA desglosadas calculadas para {len(ventas_desglosadas)} bodegas")
+        
+        # Debug final: Mostrar resumen de ventas calculadas
+        print("RESUMEN VENTAS PANAMA:")
+        for bodega, categorias in ventas_desglosadas.items():
+            print(f"  {bodega}:")
+            for categoria, subcategorias in categorias.items():
+                total_cat = 0
+                if categoria == 'ACCESSORIES':
+                    total_cat = subcategorias.get('Ventas', 0)
+                else:
+                    total_cat = subcategorias.get('Planas', 0) + subcategorias.get('Curvas', 0) + subcategorias.get('Apparel', 0)
+                if total_cat > 0:
+                    print(f"    {categoria}: ${total_cat} ({subcategorias})")
+                else:
+                    print(f"    {categoria}: $0 (SIN DATOS)")
+        
+        return ventas_desglosadas
+
 # Instancia del procesador de ventas
 sales_processor = SalesProcessor()
 
@@ -2435,18 +2604,18 @@ class DataProcessor:
             tabla_final = _self._calculate_totals(tabla_final, pais, selected_league)
             
             # Agregar columna Ventas (USD) para ACCESSORIES solo si hay datos de ventas
-            if (df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"] and 
+            if (df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"] and 
                 'ACCESSORIES - Stock' in tabla_final.columns and 
                 'ACCESSORIES - Ventas (USD)' not in tabla_final.columns):
                 tabla_final['ACCESSORIES - Ventas (USD)'] = 0.0
             
-            # Agregar columnas de ventas si hay datos de ventas para Guatemala, El Salvador, Costa Rica u Honduras
-            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]:
+            # Agregar columnas de ventas si hay datos de ventas para Guatemala, El Salvador, Costa Rica, Honduras o PANAMA
+            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]:
                 df_ventas = pd.DataFrame(df_ventas_hash)
                 tabla_final = _self._add_sales_columns(tabla_final, df_ventas, selected_league, pais)
             
             # Calcular TOTAL (USD) SOLO si hay archivo de ventas cargado
-            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]:
+            if df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]:
                 if selected_league:
                     # Para liga específica, solo sumar columnas de ventas de esa liga
                     columnas_usd = [col for col in tabla_final.columns if 
@@ -2465,7 +2634,7 @@ class DataProcessor:
             # Si no hay archivo de ventas, NO crear la columna TOTAL (USD)
             
             # Determinar si hay datos de ventas para pasarlo a _format_table
-            hay_ventas = df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]
+            hay_ventas = df_ventas_hash is not None and pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]
             tabla_final = _self._format_table(tabla_final, selected_league, hay_ventas)
             
             logger.info(f"Procesamiento completado para {pais}")
@@ -2790,6 +2959,24 @@ class DataProcessor:
                     import streamlit as st
                     st.warning("⚠️ **Algunas bodegas no tienen datos de ventas**")
                     st.write(f"❌ **Sin datos de ventas**: {list(bodegas_tabla - bodegas_ventas)}")
+        elif pais == "PANAMA":
+            print(f"Procesando ventas PANAMA - Archivo recibido: {df_ventas is not None}")
+            if df_ventas is not None:
+                print(f"Filas en archivo ventas PANAMA: {len(df_ventas)}")
+            ventas_desglosadas = sales_processor.procesar_ventas_panama(df_ventas)
+            
+            # Verificar si hay bodegas que no coinciden (solo mostrar si hay problema)
+            if ventas_desglosadas:
+                bodegas_tabla = set(tabla_final.index) - {'TOTAL'}
+                # Para PANAMA, excluir bodegas centrales de la verificación (es normal que no tengan ventas)
+                bodegas_centrales_panama = {'Almacén general', 'Bodega Central Albrook'}
+                bodegas_tabla = bodegas_tabla - bodegas_centrales_panama
+                
+                bodegas_ventas = set(ventas_desglosadas.keys())
+                if not bodegas_tabla.issubset(bodegas_ventas):
+                    import streamlit as st
+                    st.warning("⚠️ **Algunas bodegas no tienen datos de ventas**")
+                    st.write(f"❌ **Sin datos de ventas**: {list(bodegas_tabla - bodegas_ventas)}")
         else:
             ventas_desglosadas = {}
         
@@ -3076,7 +3263,9 @@ class ChartVisualizer:
                 elif pais == "El Salvador":
                     df_grafica = df_grafica[df_grafica['Bodega'] != 'New Era Central'].copy()
                 elif pais == "PANAMA":
-                    df_grafica = df_grafica[df_grafica['Bodega'] != 'Almacén general'].copy()
+                    df_grafica = df_grafica[
+                        (~df_grafica['Bodega'].isin(['Almacén general', 'Bodega Central Albrook']))
+                    ].copy()
                 elif pais == "Costa Rica":
                     df_grafica = df_grafica[df_grafica['Bodega'] != 'Bodega Central NEW ERA'].copy()
                 
@@ -3093,7 +3282,9 @@ class ChartVisualizer:
         elif pais == "El Salvador":
             datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'New Era Central'].copy()
         elif pais == "PANAMA":
-            datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'Almacén general'].copy()
+            datos_grafica = datos_grafica[
+                (~datos_grafica[bodega_col].isin(['Almacén general', 'Bodega Central Albrook']))
+            ].copy()
         elif pais == "Costa Rica":
             datos_grafica = datos_grafica[datos_grafica[bodega_col] != 'Bodega Central NEW ERA'].copy()
         
@@ -3715,9 +3906,14 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     # Filtrar solo las bodegas (excluir fila TOTAL)
     df_bodegas = tabla[tabla.index != 'TOTAL'].copy()
     
-    # Excluir "Bodega Central NEW ERA" de las distribuciones para Costa Rica
+    # Excluir bodegas centrales de las distribuciones
     if pais == "Costa Rica" and "Bodega Central NEW ERA" in df_bodegas.index:
         df_bodegas = df_bodegas.drop("Bodega Central NEW ERA")
+    elif pais == "PANAMA":
+        bodegas_panama_excluir = ['Almacén general', 'Bodega Central Albrook']
+        for bodega in bodegas_panama_excluir:
+            if bodega in df_bodegas.index:
+                df_bodegas = df_bodegas.drop(bodega)
     
     if len(df_bodegas) == 0:
         st.warning("No se encontraron bodegas en los datos")
@@ -3840,6 +4036,9 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
     # Para Costa Rica, también excluir "Bodega Central NEW ERA"
     if pais == "Costa Rica":
         bodegas_excluir.append('Bodega Central NEW ERA')
+    # Para PANAMA, excluir bodegas centrales
+    elif pais == "PANAMA":
+        bodegas_excluir.extend(['Almacén general', 'Bodega Central Albrook'])
     
     df_distribucion = df_distribucion[
         ~df_distribucion['Bodega'].isin(bodegas_excluir)
@@ -3895,9 +4094,13 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             ~df_distribucion['Bodega'].isin(bodegas_principales + bodegas_outlets)
         ].copy()
         
-        # Excluir "Bodega Central NEW ERA" específicamente para Costa Rica de todas las categorías
+        # Excluir bodegas centrales específicamente de todas las categorías
         if pais == "Costa Rica":
             df_secundarias = df_secundarias[df_secundarias['Bodega'] != 'Bodega Central NEW ERA'].copy()
+        elif pais == "PANAMA":
+            df_secundarias = df_secundarias[
+                ~df_secundarias['Bodega'].isin(['Almacén general', 'Bodega Central Albrook'])
+            ].copy()
         
         df_outlet_especial = pd.DataFrame()  # DataFrame vacío para otros países
     
@@ -4313,7 +4516,7 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Verificar si hay datos de ventas disponibles (para Guatemala, El Salvador, Costa Rica y Honduras)
-    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"] and any('Ventas' in str(col) for col in df_bodegas.columns):
+    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"] and any('Ventas' in str(col) for col in df_bodegas.columns):
         # Crear header de sección para ventas
         professional_design.create_section_header(
             f"Distribución de Ventas por Bodega - {pais}",
@@ -4328,8 +4531,10 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             # Usar nombre real de bodega si está disponible
             nombre_bodega = nombres_reales_bodegas[i] if i < len(nombres_reales_bodegas) else bodega_idx
             
-            # Excluir "Bodega Central NEW ERA" de las distribuciones de ventas para Costa Rica
+            # Excluir bodegas centrales de las distribuciones de ventas
             if pais == "Costa Rica" and nombre_bodega == "Bodega Central NEW ERA":
+                continue
+            elif pais == "PANAMA" and nombre_bodega in ['Almacén general', 'Bodega Central Albrook']:
                 continue
             bodega_data_ventas = {'Bodega': nombre_bodega}
             total_ventas_bodega = 0
@@ -4381,8 +4586,13 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
             st.warning("No hay datos de ventas disponibles para mostrar gráficos.")
         else:
             # Filtrar CENTRAL NEW ERA, New Era Central y TOTAL del gráfico
+            bodegas_excluir_ventas = ['CENTRAL NEW ERA', 'New Era Central', 'TOTAL']
+            # Para PANAMA, excluir bodegas centrales
+            if pais == "PANAMA":
+                bodegas_excluir_ventas.extend(['Almacén general', 'Bodega Central Albrook'])
+            
             df_distribucion_ventas = df_distribucion_ventas[
-                ~df_distribucion_ventas['Bodega'].isin(['CENTRAL NEW ERA', 'New Era Central', 'TOTAL'])
+                ~df_distribucion_ventas['Bodega'].isin(bodegas_excluir_ventas)
             ].copy()
             
             if len(df_distribucion_ventas) > 0:
@@ -4402,9 +4612,13 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                         ~df_distribucion_ventas['Bodega'].isin(bodegas_principales + bodegas_outlets)
                     ].copy()
                     
-                    # Excluir "Bodega Central NEW ERA" específicamente para Costa Rica de ventas
+                    # Excluir bodegas centrales específicamente de ventas
                     if pais == "Costa Rica":
                         df_secundarias_ventas = df_secundarias_ventas[df_secundarias_ventas['Bodega'] != 'Bodega Central NEW ERA'].copy()
+                    elif pais == "PANAMA":
+                        df_secundarias_ventas = df_secundarias_ventas[
+                            ~df_secundarias_ventas['Bodega'].isin(['Almacén general', 'Bodega Central Albrook'])
+                        ].copy()
                 
                 # Crear y mostrar gráfico de tiendas principales con ventas
                 if len(df_principales_ventas) > 0:
@@ -4706,7 +4920,7 @@ def mostrar_distribucion_ligas_por_bodega(tabla: pd.DataFrame, pais: str) -> Non
                 crear_leyenda_ligas()
         
         # NUEVA SECCIÓN: Exportar Distribuciones cuando hay ventas (al final de todo)
-        if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]:
+        if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]:
             tiene_ventas_final = any('Ventas' in str(col) for col in df_bodegas.columns)
             if tiene_ventas_final:
                 # Crear diccionario completo con todas las tablas (stock y ventas)
@@ -5025,8 +5239,8 @@ def mostrar_tabla_consolidada(tabla, pais):
     st.markdown(tabla_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Sección de exportación (para Guatemala, El Salvador, Costa Rica y Honduras)
-    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]:
+    # Sección de exportación (para Guatemala, El Salvador, Costa Rica, Honduras y PANAMA)
+    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]:
         # Configurar header según el país
         if pais == "Guatemala":
             codigo_pais = "GT"
@@ -5034,6 +5248,8 @@ def mostrar_tabla_consolidada(tabla, pais):
             codigo_pais = "CR"
         elif pais == "Honduras":
             codigo_pais = "HN"
+        elif pais == "PANAMA":
+            codigo_pais = "PA"
         else:  # El Salvador
             codigo_pais = "SV"
         professional_design.create_section_header(
@@ -5191,8 +5407,8 @@ def mostrar_tabla_consolidada(tabla, pais):
         )
     mostrar_grafica_comparativa(tabla, pais)
     
-    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (para Guatemala, El Salvador, Costa Rica y Honduras)
-    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras"]:
+    # AGREGAR NUEVA SECCIÓN: Distribución de Ligas por Bodega (para Guatemala, El Salvador, Costa Rica, Honduras y PANAMA)
+    if pais in ["Guatemala", "El Salvador", "Costa Rica", "Honduras", "PANAMA"]:
         mostrar_distribucion_ligas_por_bodega(tabla, pais)
 
 def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
@@ -5490,8 +5706,10 @@ def exportar_excel_distribuciones(df_bodegas, nombres_reales_bodegas, pais):
             for i, bodega_idx in enumerate(df_bodegas.index):
                 nombre_bodega = nombres_bodegas[i] if i < len(nombres_bodegas) else bodega_idx
                 
-                # Excluir "Bodega Central NEW ERA" de las distribuciones para Costa Rica
+                # Excluir bodegas centrales de las distribuciones
                 if pais == "Costa Rica" and nombre_bodega == "Bodega Central NEW ERA":
+                    continue
+                elif pais == "PANAMA" and nombre_bodega in ['Almacén general', 'Bodega Central Albrook']:
                     continue
                     
                 bodega_data = {'Bodega': nombre_bodega}
@@ -5948,54 +6166,75 @@ def main():
     with tab_panama:
         professional_design.create_section_header(
             "Análisis de Stock - Panamá", 
-            "Gestión de inventario para 6 tiendas estratégicas en Panamá"
+            "Gestión de inventario para 6 tiendas estratégicas en Panamá",
+            "PA"
         )
         
-        archivo_panama = data_loader.cargar_archivo("📁 Subir archivo PANAMA.csv", "PANAMA")
+        # Crear dos columnas para los espacios de carga (igual que Guatemala)
+        col_panama, col_ventas_pa = st.columns(2)
+        
+        with col_panama:
+            archivo_panama = data_loader.cargar_archivo("📁 Subir archivo PANAMA.csv", "PANAMA")
+            
+        with col_ventas_pa:
+            archivo_ventas_panama = data_loader.cargar_archivo_ventas("📁 Subir archivo VENTAS_PANAMA.csv", "Panama_ventas", "PANAMA")
         
         if archivo_panama is not None:
+            # Guardar nombre del archivo en session state para la exportación
+            if hasattr(archivo_panama, 'name'):
+                st.session_state.archivo_panama_name = archivo_panama.name
+            
             # Crear hash del DataFrame para cache
             df_hash = archivo_panama.to_dict('records')
             
-            # Procesar datos Panamá (con cache)
+            # Procesar datos PANAMA (con cache)
             selected_league = st.session_state.get('selected_league', None)
             # Convertir "Todas" a None para mostrar todas las ligas
             if selected_league == "Todas":
                 selected_league = None
-            tabla_panama = data_processor.procesar_datos_consolidados(df_hash, "PANAMA", selected_league)
+            df_ventas_hash = archivo_ventas_panama.to_dict('records') if archivo_ventas_panama is not None else None
             
-            # Mostrar resultados Panamá
+            # Limpiar cache si hay cambios
+            if 'cache_cleared' not in st.session_state:
+                st.cache_data.clear()
+                st.session_state.cache_cleared = True
+            
+            tabla_panama = data_processor.procesar_datos_consolidados(df_hash, "PANAMA", selected_league, df_ventas_hash)
+            
+            # Mostrar resultados PANAMA
             mostrar_tabla_consolidada(tabla_panama, "PANAMA")
+        
+        # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
+        if archivo_panama is None or archivo_ventas_panama is None:
+            col_msg_panama, col_msg_ventas_pa = st.columns(2)
             
-            # Sección de exportación dentro de la pestaña
-            professional_design.create_section_header(
-                "Exportar Reporte - Panamá", 
-                "Generar archivo Excel con formato profesional",
-                "PA"
-            )
+            with col_msg_panama:
+                if archivo_panama is None:
+                    st.markdown("""
+                    <div class="country-card country-card-pa">
+                        <div class="country-flag">🇵🇦</div>
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Panamá - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
+                            Selecciona tu archivo PANAMA.csv para comenzar el análisis completo del inventario<br>
+                            <strong style="color: #1e3a8a;">6 tiendas</strong> en operación
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
             
-            col1, col2 = st.columns([3, 2])
-            
-            with col1:
-                nombre_original_pa = archivo_panama.name if hasattr(archivo_panama, 'name') else "PANAMA.csv"
-                nombre_archivo_pa = st.text_input("📝 Nombre del archivo origen", nombre_original_pa, key="nombre_pa")
-            
-            with col2:
-                st.markdown("<br>", unsafe_allow_html=True)  # Espaciado
-                if st.button("🚀 Generar Excel PANAMA", key="excel_pa", use_container_width=True):
-                    exportar_excel_consolidado(tabla_panama, nombre_archivo_pa, "PANAMA")
-        else:
-            # Mensaje de bienvenida cuando no hay archivo
-            st.markdown("""
-            <div class="country-card country-card-pa">
-                <div class="country-flag">🇵🇦</div>
-                <h3 class="country-title" style="color: #dc2626; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Panamá - Sistema de Stock</h3>
-                <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(254, 202, 202, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(254, 202, 202, 0.3);">
-                    Selecciona tu archivo PANAMA.csv para comenzar el análisis de las 6 bodegas de Panamá<br>
-                    <strong style="color: #dc2626;">6 tiendas</strong> en operación
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            with col_msg_ventas_pa:
+                if archivo_ventas_panama is None:
+                    st.markdown("""
+                    <div class="country-card country-card-pa">
+                        <div class="country-flag">🇵🇦</div>
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Panamá - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
+                            Selecciona tu archivo VENTAS_PANAMA.csv para análisis de ventas en USD<br>
+                            <strong style="color: #22c55e;">Análisis de ingresos</strong> por tienda
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.success("✅ Archivo VENTAS_PANAMA.csv cargado correctamente")
 
     # PESTAÑA HONDURAS
     with tab_honduras:
@@ -6059,11 +6298,11 @@ def main():
                 if archivo_ventas_honduras is None:
                     st.markdown("""
                     <div class="country-card country-card-hn">
-                        <div class="country-flag">💰</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Honduras - Sistema de <span style="color: #dc2626;">Ventas</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(254, 202, 202, 0.2); padding: 1rem; border-radius: 12px; border: 1px solid rgba(254, 202, 202, 0.4);">
+                        <div class="country-flag">🇭🇳</div>
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Honduras - Sistema de <span style="color: #22c55e;">Ventas</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(134, 239, 172, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(134, 239, 172, 0.3);">
                             Selecciona tu archivo VENTAS_HONDURAS.csv para análisis de ventas en USD<br>
-                            <strong style="color: #dc2626;">Análisis de ingresos</strong> por tienda
+                            <strong style="color: #22c55e;">Análisis de ingresos</strong> por tienda
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -6191,10 +6430,10 @@ def main():
                     st.markdown("""
                     <div class="country-card country-card-cr">
                         <div class="country-flag">🇨🇷</div>
-                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Costa Rica - Sistema de <span style="color: #16a34a;">Stock</span></h3>
-                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(187, 247, 208, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(187, 247, 208, 0.3);">
+                        <h3 class="country-title" style="color: #000000; font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;">Costa Rica - Sistema de <span style="color: #1e3a8a;">Stock</span></h3>
+                        <p class="country-description" style="color: #64748b; font-size: 1rem; font-weight: 500; line-height: 1.6; margin-bottom: 0; background: rgba(191, 219, 254, 0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(191, 219, 254, 0.3);">
                             Selecciona tu archivo COSTA_RICA.csv para comenzar el análisis completo del inventario<br>
-                            <strong style="color: #16a34a;">2 tiendas</strong> en operación
+                            <strong style="color: #1e3a8a;">2 tiendas</strong> en operación
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
