@@ -8750,13 +8750,6 @@ def main():
             tabla_solo_ventas = data_processor.procesar_solo_ventas_guatemala(df_ventas_hash, selected_league)
             
             if tabla_solo_ventas is not None:
-                # Mostrar header específico para solo-ventas
-                professional_design.create_section_header(
-                    "Tabla Consolidada - Guatemala (Solo Ventas)", 
-                    "Análisis basado en cantidades vendidas por bodega y categoría",
-                    "📊"
-                )
-                
                 # Mostrar tabla consolidada adaptada (sin capacidades ni % cumplimiento)
                 mostrar_tabla_solo_ventas_guatemala(tabla_solo_ventas)
             else:
