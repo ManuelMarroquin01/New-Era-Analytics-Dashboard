@@ -4520,87 +4520,163 @@ class DataProcessor:
         # Crear tabla vacía con las bodegas disponibles
         tabla_final = pd.DataFrame(index=bodegas_disponibles)
         
-        # Definir columnas según el formato esperado (igual que Guatemala/El Salvador)
-        columnas_por_liga = {
-            "MLB": ["MLB - Planas", "MLB - Curvas", "MLB - Apparel"],
-            "NBA": ["NBA - Planas", "NBA - Curvas", "NBA - Apparel"],
-            "NFL": ["NFL - Planas", "NFL - Curvas", "NFL - Apparel"],
-            "MOTORSPORT": ["MOTORSPORT - Planas", "MOTORSPORT - Curvas", "MOTORSPORT - Apparel"],
-            "ENTERTAINMENT": ["ENTERTAINMENT - Planas", "ENTERTAINMENT - Curvas", "ENTERTAINMENT - Apparel"],
-            "ACCESSORIES": ["ACCESSORIES - Stock"]
+        # Crear estructura de tabla similar a Guatemala
+        categorias_ligas = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT", "ACCESSORIES"]
+        tabla_final = pd.DataFrame()
+        
+        # Inicializar tabla con bodegas de los datos procesados
+        for bodega in cantidades_desglosadas.keys():
+            if "Central" in bodega or "central" in bodega:  # Excluir bodega central
+                continue
+                
+            fila_bodega = {'Bodega': bodega}
+            
+            # Procesar cada liga
+            for categoria in categorias_ligas:
+                if categoria == "ACCESSORIES":
+                    # Para ACCESSORIES, dos columnas: Cantidad y TOTAL USD
+                    col_cantidad = f"{categoria} - Cantidad"
+                    col_usd = f"{categoria} - TOTAL USD"
+                    if (bodega in cantidades_desglosadas and 
+                        categoria in cantidades_desglosadas[bodega] and
+                        'Stock' in cantidades_desglosadas[bodega][categoria]):
+                        subcat_data = cantidades_desglosadas[bodega][categoria]['Stock']
+                        if isinstance(subcat_data, dict):
+                            fila_bodega[col_cantidad] = subcat_data.get('Cantidad', 0)
+                            fila_bodega[col_usd] = subcat_data.get('USD', 0)
+                        else:
+                            fila_bodega[col_cantidad] = 0
+                            fila_bodega[col_usd] = 0
+                    else:
+                        fila_bodega[col_cantidad] = 0
+                        fila_bodega[col_usd] = 0
+                else:
+                    # Para otras ligas: Planas, Curvas, Apparel (cada una con Cantidad y TOTAL USD)
+                    for subcategoria in ["Planas", "Curvas", "Apparel"]:
+                        col_cantidad = f"{categoria} - {subcategoria} - Cantidad"
+                        col_usd = f"{categoria} - {subcategoria} - TOTAL USD"
+                        
+                        if (bodega in cantidades_desglosadas and 
+                            categoria in cantidades_desglosadas[bodega] and
+                            subcategoria in cantidades_desglosadas[bodega][categoria]):
+                            subcat_data = cantidades_desglosadas[bodega][categoria][subcategoria]
+                            if isinstance(subcat_data, dict):
+                                fila_bodega[col_cantidad] = subcat_data.get('Cantidad', 0)
+                                fila_bodega[col_usd] = subcat_data.get('USD', 0)
+                            else:
+                                fila_bodega[col_cantidad] = 0
+                                fila_bodega[col_usd] = 0
+                        else:
+                            fila_bodega[col_cantidad] = 0
+                            fila_bodega[col_usd] = 0
+            
+            # Calcular totales por bodega (solo cantidades, sin USD para totales)
+            categorias_principales = ["MLB", "NBA", "NFL", "MOTORSPORT", "ENTERTAINMENT"]
+            total_planas = sum([fila_bodega.get(f"{cat} - Planas - Cantidad", 0) for cat in categorias_principales])
+            total_curvas = sum([fila_bodega.get(f"{cat} - Curvas - Cantidad", 0) for cat in categorias_principales])
+            total_apparel = sum([fila_bodega.get(f"{cat} - Apparel - Cantidad", 0) for cat in categorias_principales])
+            
+            fila_bodega['TOTAL PLANAS'] = total_planas
+            fila_bodega['TOTAL CURVAS'] = total_curvas
+            fila_bodega['TOTAL APPAREL'] = total_apparel
+            fila_bodega['TOTAL HEADWEAR'] = total_planas + total_curvas
+            fila_bodega['TOTAL STOCK'] = total_planas + total_curvas + total_apparel + fila_bodega.get('ACCESSORIES - Cantidad', 0)
+            
+            # Calcular TOTAL USD como suma horizontal de todas las celdas TOTAL USD de la fila
+            total_usd = 0
+            # Sumar USD de todas las ligas principales (Planas, Curvas, Apparel)
+            for categoria in categorias_principales:
+                total_usd += fila_bodega.get(f"{categoria} - Planas - TOTAL USD", 0)
+                total_usd += fila_bodega.get(f"{categoria} - Curvas - TOTAL USD", 0)
+                total_usd += fila_bodega.get(f"{categoria} - Apparel - TOTAL USD", 0)
+            # Sumar USD de ACCESSORIES
+            total_usd += fila_bodega.get('ACCESSORIES - TOTAL USD', 0)
+            
+            fila_bodega['TOTAL USD'] = total_usd
+            
+            # Agregar fila a la tabla
+            tabla_final = pd.concat([tabla_final, pd.DataFrame([fila_bodega], index=[bodega])])
+        
+        # Calcular fila de totales
+        if not tabla_final.empty:
+            fila_totales = {}
+            fila_totales['Bodega'] = 'TOTAL'
+            
+            # Sumar todas las columnas numéricas
+            for col in tabla_final.columns:
+                if col != 'Bodega':
+                    try:
+                        fila_totales[col] = tabla_final[col].sum()
+                    except:
+                        fila_totales[col] = 0
+            
+            # Agregar fila de totales
+            tabla_final = pd.concat([tabla_final, pd.DataFrame([fila_totales], index=['TOTAL'])])
+        
+        # Aplicar filtro de liga si se especifica
+        if selected_league and selected_league != "Todas":
+            columnas_a_mantener = ['Bodega']
+            for col in tabla_final.columns:
+                if col != 'Bodega':
+                    if col.startswith(selected_league) or col.startswith('TOTAL'):
+                        columnas_a_mantener.append(col)
+            tabla_final = tabla_final[columnas_a_mantener]
+        
+        # Crear mapeo para MultiIndex (igual que Guatemala)
+        mapeo_columnas = {}
+        
+        # Mapeo de columnas regulares a formato MultiIndex
+        for categoria in categorias_ligas:
+            if categoria == "ACCESSORIES":
+                mapeo_columnas[f"{categoria} - Cantidad"] = (categoria, 'Accessories', 'Cantidad')
+                mapeo_columnas[f"{categoria} - TOTAL USD"] = (categoria, 'Accessories', 'TOTAL USD')
+            else:
+                for subcategoria in ["Planas", "Curvas", "Apparel"]:
+                    mapeo_columnas[f"{categoria} - {subcategoria} - Cantidad"] = (categoria, subcategoria, 'Cantidad')
+                    mapeo_columnas[f"{categoria} - {subcategoria} - TOTAL USD"] = (categoria, subcategoria, 'TOTAL USD')
+        
+        # Mapeo de totales
+        totales_mapping = {
+            'Bodega': ('INFO', 'INFO', 'Bodega'),
+            'TOTAL PLANAS': ('TOTAL', 'PLANAS', 'Cantidad'),
+            'TOTAL CURVAS': ('TOTAL', 'CURVAS', 'Cantidad'),
+            'TOTAL APPAREL': ('TOTAL', 'APPAREL', 'Cantidad'),
+            'TOTAL HEADWEAR': ('TOTAL', 'HEADWEAR', 'Cantidad'),
+            'TOTAL STOCK': ('TOTAL', 'STOCK', 'Cantidad'),
+            'TOTAL USD': ('TOTAL', 'USD', 'TOTAL USD')
         }
         
-        # Solo agregar columnas para la liga seleccionada, o todas si es "Todas"
-        if selected_league and selected_league != "Todas":
-            columnas_a_usar = columnas_por_liga.get(selected_league, [])
-        else:
-            columnas_a_usar = []
-            for cols in columnas_por_liga.values():
-                columnas_a_usar.extend(cols)
+        # Combinar mapeos
+        for col_original, col_multi in totales_mapping.items():
+            if col_original in tabla_final.columns:
+                mapeo_columnas[col_original] = col_multi
         
-        # Inicializar todas las columnas en 0
-        for col in columnas_a_usar:
-            tabla_final[col] = 0.0
+        # Crear MultiIndex
+        columnas_multi = []
         
-        # Llenar datos de cantidades (usar columna 'Cantidad' del diccionario)
-        for bodega in bodegas_disponibles:
-            bodega_data = cantidades_desglosadas[bodega]
-            
-            for liga, subcategorias in bodega_data.items():
-                if liga == "ACCESSORIES":
-                    col_name = f"{liga} - Stock"
-                    if col_name in tabla_final.columns:
-                        stock_data = subcategorias.get('Stock', {})
-                        if isinstance(stock_data, dict) and 'Cantidad' in stock_data:
-                            tabla_final.loc[bodega, col_name] = stock_data['Cantidad']
-                else:
-                    for subcat in ['Planas', 'Curvas', 'Apparel']:
-                        col_name = f"{liga} - {subcat}"
-                        if col_name in tabla_final.columns:
-                            subcat_data = subcategorias.get(subcat, {})
-                            if isinstance(subcat_data, dict) and 'Cantidad' in subcat_data:
-                                tabla_final.loc[bodega, col_name] = subcat_data['Cantidad']
+        # Agregar Bodega primero si existe
+        if 'Bodega' in tabla_final.columns:
+            columnas_multi.append(mapeo_columnas['Bodega'])
         
-        # Agregar fila TOTAL
-        total_row = {}
+        # Luego agregar las demás columnas
         for col in tabla_final.columns:
-            total_row[col] = tabla_final[col].sum()
-        
-        # Crear DataFrame con la fila TOTAL y concatenar
-        total_df = pd.DataFrame([total_row], index=['TOTAL'])
-        tabla_final = pd.concat([tabla_final, total_df])
-        
-        # Agregar columna TOTAL USD al final
-        tabla_final['TOTAL USD'] = 0.0
-        
-        # Calcular TOTAL USD por bodega usando los valores USD de cantidades_desglosadas
-        for bodega in bodegas_disponibles:
-            total_usd_bodega = 0.0
-            bodega_data = cantidades_desglosadas[bodega]
-            
-            for liga, subcategorias in bodega_data.items():
-                if selected_league and selected_league != "Todas" and liga != selected_league:
-                    continue
-                    
-                if liga == "ACCESSORIES":
-                    stock_data = subcategorias.get('Stock', {})
-                    if isinstance(stock_data, dict) and 'USD' in stock_data:
-                        total_usd_bodega += stock_data['USD']
+            if col != 'Bodega':  # Excluir Bodega ya que la agregamos primero
+                if col in mapeo_columnas:
+                    columnas_multi.append(mapeo_columnas[col])
                 else:
-                    for subcat in ['Planas', 'Curvas', 'Apparel']:
-                        subcat_data = subcategorias.get(subcat, {})
-                        if isinstance(subcat_data, dict) and 'USD' in subcat_data:
-                            total_usd_bodega += subcat_data['USD']
-            
-            tabla_final.loc[bodega, 'TOTAL USD'] = total_usd_bodega
+                    columnas_multi.append(('OTROS', 'OTROS', col))
         
-        # Calcular TOTAL USD para la fila TOTAL
-        tabla_final.loc['TOTAL', 'TOTAL USD'] = tabla_final.loc[bodegas_disponibles, 'TOTAL USD'].sum()
+        # Reordenar DataFrame para que Bodega esté primero
+        if 'Bodega' in tabla_final.columns:
+            cols = ['Bodega'] + [col for col in tabla_final.columns if col != 'Bodega']
+            tabla_final = tabla_final[cols]
         
-        # Formatear tabla con MultiIndex (sin capacidades ni % cumplimiento)
-        tabla_final = _self._format_table_solo_ventas(tabla_final, selected_league)
+        multi_index = pd.MultiIndex.from_tuples(
+            columnas_multi,
+            names=['Liga', 'Subcategoría', 'Tipo']
+        )
+        tabla_final.columns = multi_index
         
-        print(f"Tabla solo-ventas Costa Rica generada con {len(tabla_final)} filas y {len(tabla_final.columns)} columnas")
         return tabla_final
 
     def _format_table_solo_ventas(self, tabla_final: pd.DataFrame, selected_league: str = None) -> pd.DataFrame:
@@ -7146,13 +7222,19 @@ def mostrar_tabla_solo_ventas_guatemala(tabla):
                     
                     # Buscar TOTAL HEADWEAR
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL HEADWEAR':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'HEADWEAR' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_headwear = tabla[tabla_col].iloc[-1]
                             break
                     
                     # Buscar TOTAL APPAREL
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL APPAREL':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'APPAREL' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_apparel = tabla[tabla_col].iloc[-1]
                             break
                     
@@ -7184,11 +7266,25 @@ def mostrar_tabla_solo_ventas_guatemala(tabla):
                 except:
                     valor = 0
             else:
-                # Para las demás métricas, usar la lógica adaptada
-                for tabla_col in tabla.columns:
-                    if len(tabla_col) == 3 and tabla_col[2] == col:
-                        valor = tabla[tabla_col].iloc[-1]
-                        break
+                # Para las demás métricas (TOTAL HEADWEAR, TOTAL APPAREL)
+                try:
+                    for tabla_col in tabla.columns:
+                        if col == 'TOTAL HEADWEAR':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'HEADWEAR' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                        elif col == 'TOTAL APPAREL':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'APPAREL' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                except:
+                    valor = 0
             
             # Formato según tipo de métrica
             if col == 'TOTAL USD':
@@ -7451,13 +7547,19 @@ def mostrar_tabla_solo_ventas_el_salvador(tabla):
                     
                     # Buscar TOTAL HEADWEAR
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL HEADWEAR':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'HEADWEAR' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_headwear = tabla[tabla_col].iloc[-1]
                             break
                     
                     # Buscar TOTAL APPAREL
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL APPAREL':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'APPAREL' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_apparel = tabla[tabla_col].iloc[-1]
                             break
                     
@@ -7489,11 +7591,25 @@ def mostrar_tabla_solo_ventas_el_salvador(tabla):
                 except:
                     valor = 0
             else:
-                # Para las demás métricas, usar la lógica adaptada
-                for tabla_col in tabla.columns:
-                    if len(tabla_col) == 3 and tabla_col[2] == col:
-                        valor = tabla[tabla_col].iloc[-1]
-                        break
+                # Para las demás métricas (TOTAL HEADWEAR, TOTAL APPAREL)
+                try:
+                    for tabla_col in tabla.columns:
+                        if col == 'TOTAL HEADWEAR':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'HEADWEAR' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                        elif col == 'TOTAL APPAREL':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'APPAREL' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                except:
+                    valor = 0
             
             # Formato según tipo de métrica
             if col == 'TOTAL USD':
@@ -7756,13 +7872,19 @@ def mostrar_tabla_solo_ventas_honduras(tabla):
                     
                     # Buscar TOTAL HEADWEAR
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL HEADWEAR':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'HEADWEAR' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_headwear = tabla[tabla_col].iloc[-1]
                             break
                     
                     # Buscar TOTAL APPAREL
                     for tabla_col in tabla.columns:
-                        if len(tabla_col) == 3 and tabla_col[2] == 'TOTAL APPAREL':
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'APPAREL' and 
+                            tabla_col[2] == 'Cantidad'):
                             total_apparel = tabla[tabla_col].iloc[-1]
                             break
                     
@@ -7794,11 +7916,25 @@ def mostrar_tabla_solo_ventas_honduras(tabla):
                 except:
                     valor = 0
             else:
-                # Para las demás métricas, usar la lógica adaptada
-                for tabla_col in tabla.columns:
-                    if len(tabla_col) == 3 and tabla_col[2] == col:
-                        valor = tabla[tabla_col].iloc[-1]
-                        break
+                # Para las demás métricas (TOTAL HEADWEAR, TOTAL APPAREL)
+                try:
+                    for tabla_col in tabla.columns:
+                        if col == 'TOTAL HEADWEAR':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'HEADWEAR' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                        elif col == 'TOTAL APPAREL':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'APPAREL' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                except:
+                    valor = 0
             
             # Formato según tipo de métrica
             if col == 'TOTAL USD':
@@ -8009,6 +8145,138 @@ def mostrar_tabla_solo_ventas_costa_rica(tabla):
     tabla_html = crear_tabla_html_solo_ventas(tabla_formateada)
     st.markdown(tabla_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Mostrar métricas resumidas adaptadas para cantidades
+    professional_design.create_section_header(
+        "Métricas de Ventas - Costa Rica", 
+        "Resumen ejecutivo de cantidades vendidas por categoría",
+        "📈"
+    )
+    
+    # Definir métricas para cantidades
+    cols = st.columns(5)
+    metricas = [
+        ('TOTAL HEADWEAR', 'Headwear Total', "🧢", "#000000"),
+        ('TOTAL APPAREL', 'Apparel Total', "👕", "#000000"),
+        ('ACCESSORIES', 'Accessories Total', "🧦", "#000000"),
+        ('TOTAL CANTIDADES', 'Total Cantidades Vendidas', "📊", "#000000"),
+        ('TOTAL USD', 'Total USD Vendidos', "💰", "#000000")
+    ]
+    
+    for i, (col, nombre, emoji, color) in enumerate(metricas):
+        with cols[i]:
+            # Buscar la columna en la estructura de 3 niveles (totales)
+            valor = 0
+            if col == 'ACCESSORIES':
+                # Para ACCESSORIES, buscar en la estructura específica
+                try:
+                    # Buscar columna con estructura (ACCESSORIES, Accessories, Cantidad)
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'ACCESSORIES' and 
+                            tabla_col[1] == 'Accessories' and 
+                            tabla_col[2] == 'Cantidad'):
+                            # Tomar solo la fila TOTAL (última fila)
+                            valor = tabla[tabla_col].iloc[-1]
+                            break
+                except:
+                    valor = 0
+            elif col == 'TOTAL CANTIDADES':
+                # Para TOTAL CANTIDADES, sumar TOTAL HEADWEAR + TOTAL APPAREL + ACCESSORIES
+                try:
+                    total_headwear = 0
+                    total_apparel = 0
+                    total_accessories = 0
+                    
+                    # Buscar TOTAL HEADWEAR
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'HEADWEAR' and 
+                            tabla_col[2] == 'Cantidad'):
+                            total_headwear = tabla[tabla_col].iloc[-1]
+                            break
+                    
+                    # Buscar TOTAL APPAREL
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'APPAREL' and 
+                            tabla_col[2] == 'Cantidad'):
+                            total_apparel = tabla[tabla_col].iloc[-1]
+                            break
+                    
+                    # Buscar ACCESSORIES Cantidad
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'ACCESSORIES' and 
+                            tabla_col[1] == 'Accessories' and 
+                            tabla_col[2] == 'Cantidad'):
+                            total_accessories = tabla[tabla_col].iloc[-1]
+                            break
+                    
+                    valor = total_headwear + total_apparel + total_accessories
+                except:
+                    valor = 0
+            elif col == 'TOTAL USD':
+                # Para TOTAL USD, usar la columna consolidada 'TOTAL USD' que ya existe
+                try:
+                    # Buscar la columna consolidada TOTAL USD
+                    for tabla_col in tabla.columns:
+                        if (len(tabla_col) == 3 and 
+                            tabla_col[0] == 'TOTAL' and 
+                            tabla_col[1] == 'USD' and 
+                            tabla_col[2] == 'TOTAL USD'):
+                            valor = tabla[tabla_col].iloc[-1]
+                            break
+                    else:
+                        valor = 0
+                except:
+                    valor = 0
+            else:
+                # Para las demás métricas (TOTAL HEADWEAR, TOTAL APPAREL)
+                try:
+                    for tabla_col in tabla.columns:
+                        if col == 'TOTAL HEADWEAR':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'HEADWEAR' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                        elif col == 'TOTAL APPAREL':
+                            if (len(tabla_col) == 3 and 
+                                tabla_col[0] == 'TOTAL' and 
+                                tabla_col[1] == 'APPAREL' and 
+                                tabla_col[2] == 'Cantidad'):
+                                valor = tabla[tabla_col].iloc[-1]
+                                break
+                except:
+                    valor = 0
+            
+            # Formato según tipo de métrica
+            if col == 'TOTAL USD':
+                descripcion = "USD en ventas"
+                valor_formato = f"${valor:,.2f}" if valor else "$0.00"
+            else:
+                descripcion = "unidades vendidas"
+                valor_entero = int(valor) if valor else 0
+                valor_formato = f"{valor_entero:,}"
+            
+            st.markdown(f"""
+            <div class="metric-card" style="border-left: 4px solid {color};">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 2rem; color: #000000;">{emoji}</span>
+                    <span style="color: {color}; font-weight: 600; font-size: 1.1rem;">{nombre.upper()}</span>
+                </div>
+                <div style="font-size: 2rem; font-weight: 700; color: #374151; margin-bottom: 0.25rem;">
+                    {valor_formato}
+                </div>
+                <div style="color: #6b7280; font-size: 0.85rem;">
+                    {descripcion}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
     """Agrega la sección de exportación de distribuciones idéntica a la sección existente"""
@@ -9098,8 +9366,29 @@ def main():
             mostrar_tabla_consolidada(tabla_costa_rica, "Costa Rica")
             
         elif archivo_ventas_costa_rica is not None:
-            # CASO 2: Solo archivo de ventas cargado para Costa Rica - NO HACER NADA
-            pass
+            # CASO 2: Solo archivo de ventas cargado (NUEVA FUNCIONALIDAD)
+            st.info("📊 **Modo Solo-Ventas activado:** Mostrando análisis basado únicamente en datos de cantidad vendida")
+            
+            # Crear hash del DataFrame de ventas para cache
+            df_ventas_hash = archivo_ventas_costa_rica.to_dict('records')
+            
+            # Procesar datos solo-ventas Costa Rica
+            selected_league = st.session_state.get('selected_league', None)
+            if selected_league == "Todas":
+                selected_league = None
+                
+            # Limpiar cache si hay cambios
+            if 'cache_cleared_ventas_cr' not in st.session_state:
+                st.cache_data.clear()
+                st.session_state.cache_cleared_ventas_cr = True
+            
+            tabla_solo_ventas = data_processor.procesar_solo_ventas_costa_rica(df_ventas_hash, selected_league)
+            
+            if tabla_solo_ventas is not None:
+                # Mostrar tabla consolidada adaptada (sin capacidades ni % cumplimiento)
+                mostrar_tabla_solo_ventas_costa_rica(tabla_solo_ventas)
+            else:
+                st.error("❌ No se pudieron procesar los datos de ventas. Verifica el formato del archivo.")
             
         # Mostrar mensajes de bienvenida en columnas cuando no hay archivos
         if archivo_costa_rica is None or archivo_ventas_costa_rica is None:
