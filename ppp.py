@@ -8,6 +8,7 @@ import warnings
 import logging
 from typing import Dict, Optional, List, Tuple, Any
 from dataclasses import dataclass
+from io import BytesIO
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 import openpyxl
@@ -3313,6 +3314,10 @@ class DataLoader:
             'COSTA_RICA': {
                 'stock': 'COSTA_RICA',
                 'ventas': 'VENTAS_COSTA_RICA'
+            },
+            'GT': {
+                'stock': 'GT',
+                'ventas': 'GT'
             }
         }
     
@@ -3401,13 +3406,20 @@ class DataLoader:
             logger.info(f"Iniciando carga de archivo para {pais}")
             
             df = self._read_csv(archivo)
-            df = self._clean_data(df)
-            df = self._filter_by_country(df, pais)
-            self._validate_columns(df, pais)
             
-            # Actualizar la fecha del último trabajo con stock
-            current_date = datetime.now().strftime('%d/%m/%Y')
-            st.session_state.last_stock_work_date = current_date
+            # Para archivos de óptimos, procesamiento mínimo
+            if pais == 'GT':
+                # Solo limpiar nombres de columnas para archivo de óptimos
+                df.columns = df.columns.str.strip()
+            else:
+                # Procesamiento completo para archivos de stock normales
+                df = self._clean_data(df)
+                df = self._filter_by_country(df, pais)
+                self._validate_columns(df, pais)
+                
+                # Actualizar la fecha del último trabajo con stock
+                current_date = datetime.now().strftime('%d/%m/%Y')
+                st.session_state.last_stock_work_date = current_date
             
             elapsed_time = time.time() - start_time
             logger.info(f"Archivo {pais} cargado exitosamente en {elapsed_time:.2f}s - Registros: {len(df):,}")
@@ -9594,6 +9606,615 @@ def exportar_excel_consolidado(tabla, nombre_archivo, pais):
         logger.error(f"Error al exportar {pais}: {str(e)}")
         st.error(f"Error al exportar {pais}: {str(e)}")
 
+def obtener_optimos_mvp() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por código y bodega
+    {codigo: {bodega: cantidad_optima}}
+    """
+    # Mapeo de bodegas según orden de la tabla HTML
+    bodegas_orden = [
+        "NE Miraflores", "NE Oakland", "NE Plaza Magdalena", "NE Portales", "NE Cayala",
+        "NE Pradera Escuintla", "NE Puerto Barrios", "NE Interplaza Escuintla", "NE InterXela",
+        "NE Pradera Chiquimula", "NE Vistares", "NE Concepcion", "NE Peri Roosvelt",
+        "NE Paseo Antigua", "NE Pradera Xela", "NE Chimaltenango", "NE Pradera Huehuetenango",
+        "NE Metroplaza Jutiapa", "NE Naranjo", "NE Metrocentro Outlet", "NE Outlet Santa clara",
+        "NE Metronorte", "NE Plaza Videre"
+    ]
+    
+    # Datos de cantidades óptimas con conversión A=48, B=36, C=18, OUTLET=18
+    optimos_data = {
+        "10030709": [20, 20, 18, 12, 12, 18, 18, 12, 18, 12, 12, 18, 12, 12, 12, 12, 18, 12, 12, 12, 18, 12, 0],
+        "10030708": [10, 10, 8, 6, 6, 8, 8, 6, 8, 6, 6, 8, 6, 6, 6, 6, 8, 6, 6, 6, 8, 6, 0],
+        "10112874": [6, 6, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 2, 2, 3, 2, 3, 2, 3, 2, 3, 3, 0],
+        # Códigos con patrón A, A, B, C, B, A, A, B, B, B, OUTLET, B, C, C, B, C, B, OUTLET, C, OUTLET, C, C
+        "11591122": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591128": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591150": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591175": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70331909": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70331911": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70331962": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10975804": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10975815": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10975835": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70192970": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70353249": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70353266": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70360899": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70360903": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70428987": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70430338": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70457634": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591024": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591025": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591026": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591043": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591046": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591047": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591077": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11591078": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11941921": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70556851": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70556867": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70556869": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "70558225": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10047511": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10047531": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "10047538": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11405605": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11405614": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650335": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650337": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650340": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650342": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650343": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "12650344": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0],
+        "11169822": [48, 48, 36, 18, 36, 48, 48, 36, 36, 36, 18, 36, 18, 18, 36, 18, 36, 18, 18, 18, 18, 18, 0]
+    }
+    
+    # Convertir a diccionario por código y bodega
+    optimos_dict = {}
+    for codigo, cantidades in optimos_data.items():
+        optimos_dict[codigo] = {}
+        for i, bodega in enumerate(bodegas_orden):
+            if i < len(cantidades):
+                optimos_dict[codigo][bodega] = cantidades[i]
+    
+    return optimos_dict
+
+def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa los datos de stock para códigos MVP específicos en Guatemala
+    Retorna una tabla con filas: códigos + segmento + silueta + colección + descripción
+    Columnas: bodegas de Guatemala
+    """
+    if df_stock is None or df_stock.empty:
+        return pd.DataFrame()
+    
+    # Códigos MVP específicos
+    codigos_mvp = [
+        '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
+        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
+        '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
+        '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
+        '12650344', '70192970', '70331909', '70331911', '70331962', '70353249', 
+        '70353266', '70360899', '70360903', '70428987', '70430338', '70457634', 
+        '70556851', '70556867', '70556869', '70558225'
+    ]
+    
+    # Filtrar por marca NEW ERA
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    if df_mvp.empty:
+        print("No se encontraron códigos MVP en el archivo de stock")
+        return pd.DataFrame()
+    
+    # Verificar columnas necesarias
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', 'Stock_Actual']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"No se encontró columna {col} en el archivo de stock")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de Guatemala (las mismas de la tabla consolidada)
+    bodegas_guatemala = [
+        "NE Oakland", "NE Cayala", "NE Miraflores", "NE Portales", "NE InterXela",
+        "NE Metronorte", "NE Concepcion", "NE Interplaza Escuintla", "NE Pradera Huehuetenango",
+        "NE Naranjo", "NE Metrocentro Outlet", "NE Vistares", "NE Peri Roosvelt",
+        "NE Outlet Santa clara", "NE Plaza Magdalena", "NE Pradera Chiquimula",
+        "NE Pradera Escuintla", "NE Paseo Antigua", "NE Pradera Xela", "NE Chimaltenango",
+        "NE Plaza Videre", "NE Metroplaza Jutiapa", "NE Puerto Barrios"
+    ]
+    
+    # Filtrar solo bodegas de Guatemala
+    df_mvp_guatemala = df_mvp[df_mvp['Bodega'].isin(bodegas_guatemala)].copy()
+    
+    if df_mvp_guatemala.empty:
+        print("No se encontraron datos MVP en bodegas de Guatemala")
+        return pd.DataFrame()
+    
+    # Crear tabla pivoteada
+    # Agrupar por código, segmento, silueta, colección y descripción
+    df_agrupado = df_mvp_guatemala.groupby([
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', 'Bodega'
+    ])['Stock_Actual'].sum().reset_index()
+    
+    # Pivotar para tener bodegas como columnas
+    tabla_pivoteada = df_agrupado.pivot_table(
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion'],
+        columns='Bodega',
+        values='Stock_Actual',
+        fill_value=0,
+        aggfunc='sum'
+    )
+    
+    # Asegurar que todas las bodegas estén presentes como columnas
+    for bodega in bodegas_guatemala:
+        if bodega not in tabla_pivoteada.columns:
+            tabla_pivoteada[bodega] = 0
+    
+    # Reordenar columnas según el orden de bodegas_guatemala
+    tabla_pivoteada = tabla_pivoteada.reindex(columns=bodegas_guatemala, fill_value=0)
+    
+    # Calcular totales por columna (bodega) para ordenar de mayor a menor
+    totales_por_bodega = tabla_pivoteada.sum(axis=0)
+    
+    # Ordenar bodegas por total de stock de mayor a menor
+    bodegas_ordenadas = totales_por_bodega.sort_values(ascending=False).index.tolist()
+    
+    # Obtener datos de óptimos
+    optimos_mvp = obtener_optimos_mvp()
+    
+    # Crear nueva tabla con columnas intercaladas (stock actual + stock óptimo)
+    tabla_con_optimos = pd.DataFrame(index=tabla_pivoteada.index)
+    
+    # Agregar columnas intercaladas para cada bodega
+    for bodega in bodegas_ordenadas:
+        # Columna de stock actual
+        tabla_con_optimos[bodega] = tabla_pivoteada[bodega]
+        
+        # Columna de stock óptimo
+        col_optimo = f"Stock Óptimo {bodega}"
+        tabla_con_optimos[col_optimo] = 0
+        
+        # Llenar valores óptimos para cada código
+        for codigo_tuple in tabla_pivoteada.index:
+            if isinstance(codigo_tuple, tuple) and len(codigo_tuple) >= 1:
+                codigo = str(codigo_tuple[0])
+            else:
+                codigo = str(codigo_tuple)
+            
+            if codigo in optimos_mvp and bodega in optimos_mvp[codigo]:
+                tabla_con_optimos.loc[codigo_tuple, col_optimo] = optimos_mvp[codigo][bodega]
+    
+    # Agregar columna de total por fila (solo stock actual)
+    tabla_con_optimos['TOTAL'] = tabla_pivoteada.sum(axis=1)
+    
+    # Reemplazar tabla_pivoteada con la nueva tabla
+    tabla_pivoteada = tabla_con_optimos
+    
+    # Agregar fila de totales por columna
+    fila_totales = tabla_pivoteada.sum(axis=0)
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    tabla_pivoteada = pd.concat([tabla_pivoteada, fila_totales.to_frame().T])
+    
+    return tabla_pivoteada
+
+def procesar_archivo_optimos_gt(df_optimos: pd.DataFrame) -> Dict[str, Dict[str, float]]:
+    """
+    Procesa el archivo CSV de cantidades óptimas para Guatemala
+    Retorna: {codigo: {bodega: cantidad_optima}}
+    """
+    if df_optimos is None or df_optimos.empty:
+        print("DataFrame de óptimos está vacío o es None")
+        return {}
+    
+    print(f"Archivo de óptimos cargado con {len(df_optimos)} filas y {len(df_optimos.columns)} columnas")
+    print(f"Columnas disponibles: {list(df_optimos.columns)}")
+    
+    # Buscar columna de código
+    codigo_col = None
+    for col in df_optimos.columns:
+        if 'codigo' in col.lower() or 'estilo' in col.lower() or col.lower() in ['u_estilo', 'código']:
+            codigo_col = col
+            break
+    
+    if codigo_col is None:
+        print("No se encontró columna de código en archivo de óptimos")
+        print("Buscando en la primera columna como código por defecto...")
+        if len(df_optimos.columns) > 0:
+            codigo_col = df_optimos.columns[0]
+            print(f"Usando primera columna como código: {codigo_col}")
+        else:
+            print("No hay columnas disponibles")
+            return {}
+    
+    # Obtener bodegas de Guatemala
+    bodegas_guatemala = [
+        "NE Oakland", "NE Cayala", "NE Miraflores", "NE Portales", "NE InterXela",
+        "NE Metronorte", "NE Concepcion", "NE Interplaza Escuintla", "NE Pradera Huehuetenango",
+        "NE Naranjo", "NE Metrocentro Outlet", "NE Vistares", "NE Peri Roosvelt",
+        "NE Outlet Santa clara", "NE Plaza Magdalena", "NE Pradera Chiquimula",
+        "NE Pradera Escuintla", "NE Paseo Antigua", "NE Pradera Xela", "NE Chimaltenango",
+        "NE Plaza Videre", "NE Metroplaza Jutiapa", "NE Puerto Barrios"
+    ]
+    
+    # Mapear columnas de archivo con bodegas (nombres similares)
+    def encontrar_bodega_similar(col_name: str) -> str:
+        """Encuentra la bodega más similar basada en nombres"""
+        col_clean = col_name.lower().replace('ne ', '').replace('_', ' ').strip()
+        
+        # Primero buscar coincidencia exacta
+        for bodega in bodegas_guatemala:
+            if col_name == bodega:
+                return bodega
+        
+        # Luego buscar coincidencias parciales
+        for bodega in bodegas_guatemala:
+            bodega_clean = bodega.lower().replace('ne ', '').replace('_', ' ').strip()
+            # Buscar coincidencias parciales
+            if col_clean in bodega_clean or bodega_clean in col_clean:
+                return bodega
+            # Buscar palabras clave
+            col_words = col_clean.split()
+            bodega_words = bodega_clean.split()
+            if len(set(col_words) & set(bodega_words)) >= 1:
+                return bodega
+        
+        # Si no encuentra nada, intentar mapeo más flexible
+        print(f"No se pudo mapear columna '{col_name}' con ninguna bodega")
+        return None
+    
+    # Debug: Mostrar mapeo de columnas con bodegas
+    print("Mapeo de columnas de archivo con bodegas:")
+    bodegas_mapeadas = {}
+    for col in df_optimos.columns:
+        if col != codigo_col:
+            bodega_mapeada = encontrar_bodega_similar(col)
+            bodegas_mapeadas[col] = bodega_mapeada
+            print(f"  '{col}' -> '{bodega_mapeada}'")
+    
+    # Crear mapeo de códigos a óptimos por bodega
+    optimos_dict = {}
+    
+    for _, row in df_optimos.iterrows():
+        codigo = str(row[codigo_col]).strip()
+        if not codigo or codigo == 'nan':
+            continue
+            
+        optimos_dict[codigo] = {}
+        
+        # Mapear cada columna con bodegas
+        for col in df_optimos.columns:
+            if col != codigo_col:
+                bodega_mapeada = bodegas_mapeadas[col]
+                if bodega_mapeada:
+                    try:
+                        cantidad = float(row[col]) if pd.notnull(row[col]) else 0
+                        optimos_dict[codigo][bodega_mapeada] = cantidad
+                    except Exception as e:
+                        print(f"Error procesando {codigo}-{bodega_mapeada}: {e}")
+                        optimos_dict[codigo][bodega_mapeada] = 0
+    
+    print(f"Procesados {len(optimos_dict)} códigos con cantidades óptimas")
+    
+    if len(optimos_dict) > 0:
+        # Mostrar ejemplo del primer código procesado
+        primer_codigo = list(optimos_dict.keys())[0]
+        print(f"Ejemplo - Código {primer_codigo}: {optimos_dict[primer_codigo]}")
+    
+    return optimos_dict
+
+def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
+    """
+    Calcula el color del semáforo basado en desviación del óptimo
+    Verde: ±5%, Amarillo: ±5% a ±20%, Rojo: >±20%
+    """
+    if optimo == 0:
+        return "#f8f9fa" if real == 0 else "#f8d7da"  # Gris si ambos son 0, rojo si hay stock pero no debería
+    
+    desviacion = abs(real - optimo) / optimo * 100
+    
+    if desviacion <= 5:
+        return "#d4edda"  # Verde claro - Óptimo
+    elif desviacion <= 20:
+        return "#fff3cd"  # Amarillo claro - Aceptable
+    else:
+        return "#f8d7da"  # Rojo claro - Crítico
+
+def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame):
+    """Muestra la tabla de stock de códigos MVP para Guatemala"""
+    print("DEBUG: Entrando en función mostrar_stock_mvps_guatemala")
+    if df_stock is None or df_stock.empty:
+        print("DEBUG: df_stock es None o está vacío")
+        st.warning("No se pudo cargar el archivo de stock para mostrar MVP")
+        return
+    else:
+        print(f"DEBUG: df_stock tiene {len(df_stock)} filas y {len(df_stock.columns)} columnas")
+    
+    # Crear sección
+    professional_design.create_section_header(
+        "Stock de MVPS - Guatemala", 
+        "Stock actual de códigos MVP específicos por bodega",
+        "🏆"
+    )
+    
+    # Procesar datos
+    tabla_mvp = procesar_stock_mvps_guatemala(df_stock)
+    
+    if tabla_mvp.empty:
+        st.warning("No se encontraron datos de códigos MVP en el stock de Guatemala")
+        return
+    
+    # Sistema de semáforo automático basado en reglas predefinidas
+    
+    # Mostrar métricas resumen
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        st.metric("Total Productos MVP", f"{total_productos:,}")
+    
+    with col2:
+        total_stock = tabla_mvp.loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL'), 'TOTAL']
+        st.metric("Total Stock MVP", f"{int(total_stock):,}")
+    
+    with col3:
+        productos_con_stock = (tabla_mvp['TOTAL'] > 0).sum() - 1  # -1 para excluir fila TOTAL
+        st.metric("Productos con Stock", f"{productos_con_stock:,}")
+    
+    with col4:
+        if total_productos > 0:
+            cobertura = (productos_con_stock / total_productos) * 100
+            st.metric("% Cobertura", f"{cobertura:.1f}%")
+    
+    # Formatear tabla para mostrar
+    tabla_formateada = tabla_mvp.copy()
+    
+    # Formatear números con separadores de miles
+    for col in tabla_formateada.columns:
+        tabla_formateada[col] = tabla_formateada[col].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "0")
+    
+    # Resetear índice para mostrar las columnas de información
+    tabla_display = tabla_formateada.reset_index()
+    
+    # Renombrar columnas para mejor visualización
+    tabla_display = tabla_display.rename(columns={
+        'U_Estilo': 'Código',
+        'U_Segmento': 'Segmento', 
+        'U_Silueta': 'Silueta',
+        'U_Coleccion_NE': 'Colección',
+        'U_Descripcion': 'Descripción'
+    })
+    
+    # Si el rename no funcionó, usar nombres de columnas directamente
+    if 'Código' not in tabla_display.columns:
+        # Tomar las primeras 5 columnas como información y renombrarlas
+        cols = tabla_display.columns.tolist()
+        if len(cols) >= 5:
+            tabla_display = tabla_display.rename(columns={
+                cols[0]: 'Código',
+                cols[1]: 'Segmento', 
+                cols[2]: 'Silueta',
+                cols[3]: 'Colección',
+                cols[4]: 'Descripción'
+            })
+    
+    # Crear tabla HTML con formato profesional (similar a tabla consolidada)
+    def crear_tabla_html_mvp(df):
+        """Crea tabla HTML con formato profesional para MVP con semáforo automático"""
+        print(f"DEBUG: Iniciando creación de tabla HTML")
+        print(f"DEBUG: Columnas disponibles en df: {list(df.columns)}")
+        
+        # Crear HTML de la tabla
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 8px; width: 100%; table-layout: fixed;">'
+        
+        # Fila 1: Encabezado principal
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold;">'
+        
+        # Encabezados de información
+        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción']
+        widths = [60, 60, 60, 80, 120]
+        
+        for header, width in zip(info_headers, widths):
+            html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; width: {width}px;">{header}</td>'
+        
+        # Encontrar columnas de información reales
+        info_cols_reales = []
+        for info_col in info_headers:
+            for col in df.columns:
+                if info_col in str(col) or (info_col == 'Código' and col == df.columns[0]):
+                    info_cols_reales.append(col)
+                    break
+        
+        print(f"DEBUG: Columnas de info detectadas: {info_cols_reales}")
+        
+        # Agregar columnas de bodegas (excluyendo columnas de Stock Óptimo)
+        for col in df.columns:
+            if col not in info_cols_reales and 'Stock Óptimo' not in col:
+                print(f"DEBUG: Procesando columna encabezado: {col}")
+                if col == 'TOTAL':
+                    print("DEBUG: Detectada columna TOTAL, agregando título")
+                    html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: bold; background-color: #000000; color: white; width: 50px;">TOTAL</td>'
+                else:
+                    html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; width: 40px;">{col}</td>'
+        
+        html += '</tr>'
+        
+        # Filas de datos
+        for i, (_, row) in enumerate(df.iterrows()):
+            # Alternar colores de fila
+            if i % 2 == 0:
+                row_color = "#ffffff"
+            else:
+                row_color = "#f8f9fa"
+            
+            # Fila TOTAL con color especial
+            # Buscar columna que contenga 'Código' o el primer campo
+            codigo_col = None
+            for col in df.columns:
+                if 'Código' in str(col) or col == df.columns[0]:
+                    codigo_col = col
+                    break
+            
+            if codigo_col and str(row[codigo_col]) == 'TOTAL':
+                row_color = "#000000"  # Fondo negro para fila TOTAL
+                font_weight = "bold"
+                text_color = "color: white;"  # Letras blancas para fila TOTAL
+            else:
+                font_weight = "normal"
+                text_color = ""
+            
+            html += f'<tr style="background-color: {row_color};">'
+            
+            # Columnas de información
+            info_cols_esperadas = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción']
+            for info_col in info_cols_esperadas:
+                # Buscar la columna real que corresponde
+                col_real = None
+                for col in df.columns:
+                    if info_col in str(col) or (info_col == 'Código' and col == df.columns[0]):
+                        col_real = col
+                        break
+                
+                if col_real is not None:
+                    if info_col in ['Código', 'Segmento', 'Silueta']:
+                        align = "center"
+                    else:
+                        align = "left"
+                        
+                    html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: {font_weight}; text-align: {align}; {text_color}">{row[col_real]}</td>'
+                else:
+                    # Si no encuentra la columna, poner celda vacía
+                    html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: {font_weight}; {text_color}">-</td>'
+            
+            # Columnas de stock (bodegas)
+            info_cols_reales = []
+            for info_col in info_cols_esperadas:
+                for col in df.columns:
+                    if info_col in str(col) or (info_col == 'Código' and col == df.columns[0]):
+                        info_cols_reales.append(col)
+                        break
+            
+            for col in df.columns:
+                if col not in info_cols_reales and 'Stock Óptimo' not in col:
+                    valor = row[col]
+                    
+                    # Detectar si es la fila de TOTAL
+                    es_fila_total = False
+                    for col_codigo in df.columns:
+                        if 'Código' in str(col_codigo):
+                            if str(row[col_codigo]) == 'TOTAL':
+                                es_fila_total = True
+                                break
+                    if not es_fila_total and len(df.columns) > 0:
+                        # Si no encuentra columna Código, usar primera columna
+                        if str(row[df.columns[0]]) == 'TOTAL':
+                            es_fila_total = True
+                    
+                    # Formato especial para columna TOTAL
+                    if col == 'TOTAL':
+                        if es_fila_total:
+                            # Columna TOTAL en fila de totales: fondo negro y letras blancas
+                            html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: bold; background-color: #000000; color: white; text-align: center;">{valor}</td>'
+                        else:
+                            # Columna TOTAL normal: fondo gris claro
+                            html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: bold; background-color: #f8f9fa; text-align: center;">{valor}</td>'
+                    elif es_fila_total:
+                        # Fila de totales: fondo negro y letras blancas
+                        html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; font-weight: bold; background-color: #000000; color: white; text-align: center;">{valor}</td>'
+                    else:
+                        # Color de fondo basado en comparación con óptimos
+                        try:
+                            valor_num = int(valor.replace(',', '')) if isinstance(valor, str) else int(valor)
+                            
+                            # Nuevo sistema de semáforo comparativo (stock actual vs óptimo)
+                            # Buscar la columna de stock óptimo correspondiente
+                            col_optimo = f"Stock Óptimo {col}"
+                            stock_optimo = 0
+                            
+                            # Obtener valor óptimo si existe la columna (aunque esté oculta)
+                            if col_optimo in df.columns:
+                                try:
+                                    stock_optimo = int(str(row[col_optimo]).replace(',', '')) if pd.notnull(row[col_optimo]) else 0
+                                except:
+                                    stock_optimo = 0
+                            
+                            # Aplicar semáforo comparativo
+                            if stock_optimo == 0:
+                                # Si no hay óptimo definido, usar color neutro
+                                bg_color = "#f8f9fa"  # Gris claro
+                            else:
+                                # Calcular porcentaje de desviación
+                                desviacion = abs(valor_num - stock_optimo) / stock_optimo * 100
+                                
+                                if desviacion <= 5:
+                                    # VERDE: ±5% del óptimo
+                                    bg_color = "#d4edda"  # Verde claro
+                                elif desviacion <= 20:
+                                    # AMARILLO: ±5% a ±20% del óptimo
+                                    bg_color = "#fff3cd"  # Amarillo claro
+                                else:
+                                    # ROJO: >±20% del óptimo (excedente o faltante)
+                                    bg_color = "#f8d7da"  # Rojo claro
+                        except:
+                            bg_color = "#f8f9fa"
+                            
+                        html += f'<td style="border: 1px solid #ddd; padding: 4px; font-size: 8px; text-align: center; background-color: {bg_color};">{valor}</td>'
+            
+            html += '</tr>'
+        
+        html += '</table>'
+        return html
+    
+    # Mostrar tabla con formato HTML profesional y semáforo automático
+    print(f"DEBUG PRINCIPAL: A punto de crear tabla HTML con {len(tabla_display)} filas y {len(tabla_display.columns)} columnas")
+    print(f"DEBUG PRINCIPAL: Columnas en tabla_display: {list(tabla_display.columns)}")
+    html_tabla = crear_tabla_html_mvp(tabla_display)
+    st.markdown(html_tabla, unsafe_allow_html=True)
+    
+    # Botón de exportación
+    if st.button("📥 Exportar Stock MVP a Excel", key="export_mvp_guatemala"):
+        try:
+            # Crear archivo Excel
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                tabla_display.to_excel(writer, sheet_name='Stock_MVP_Guatemala', index=False)
+                
+                # Formatear worksheet
+                worksheet = writer.sheets['Stock_MVP_Guatemala']
+                
+                # Ajustar ancho de columnas
+                for column in worksheet.columns:
+                    max_length = 0
+                    column_letter = column[0].column_letter
+                    for cell in column:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        except:
+                            pass
+                    adjusted_width = min(max_length + 2, 50)
+                    worksheet.column_dimensions[column_letter].width = adjusted_width
+            
+            # Descargar archivo
+            st.download_button(
+                label="📥 Descargar Archivo Excel",
+                data=output.getvalue(),
+                file_name=f"Stock_MVP_Guatemala_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="download_mvp_guatemala"
+            )
+            
+            st.success("✅ Archivo Excel generado exitosamente")
+            
+        except Exception as e:
+            st.error(f"Error al generar Excel: {str(e)}")
+
 def main():
     """Función principal"""
     logger.info("Iniciando aplicación New Era Analytics Dashboard")
@@ -9658,6 +10279,10 @@ def main():
             
             # Mostrar resultados Guatemala
             mostrar_tabla_consolidada(tabla_guatemala, "Guatemala")
+            
+            # Nueva sección: Stock de MVPs para Guatemala
+            st.markdown("---")
+            mostrar_stock_mvps_guatemala(archivo_guatemala)
             
         elif archivo_ventas_guatemala is not None:
             # CASO 2: Solo archivo de ventas cargado (NUEVA FUNCIONALIDAD)
