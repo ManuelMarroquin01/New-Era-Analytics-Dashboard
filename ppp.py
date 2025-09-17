@@ -7255,6 +7255,10 @@ def mostrar_tabla_consolidada(tabla, pais):
                 archivo_default = "HONDURAS.csv"
                 session_key = 'archivo_honduras_name'
                 export_key = "nombre_hn_export"
+            elif pais == "PANAMA":
+                archivo_default = "PANAMA.csv"
+                session_key = 'archivo_panama_name'
+                export_key = "nombre_pa_export"
             else:  # El Salvador
                 archivo_default = "EL_SALVADOR.csv"
                 session_key = 'archivo_el_salvador_name'
@@ -7271,6 +7275,8 @@ def mostrar_tabla_consolidada(tabla, pais):
                 button_key = "excel_cr_export"
             elif pais == "Honduras":
                 button_key = "excel_hn_export"
+            elif pais == "PANAMA":
+                button_key = "excel_pa_export"
             else:  # El Salvador
                 button_key = "excel_sv_export"
             if st.button(f"🚀 Generar Excel {pais}", key=button_key, use_container_width=True):
@@ -9037,6 +9043,10 @@ def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
             archivo_default = "HONDURAS.csv"
             session_key = 'archivo_honduras_name'
             dist_key = "nombre_dist_export_hn"
+        elif pais == "PANAMA":
+            archivo_default = "PANAMA.csv"
+            session_key = 'archivo_panama_name'
+            dist_key = "nombre_dist_export_pa"
         else:  # El Salvador
             archivo_default = "EL_SALVADOR.csv"
             session_key = 'archivo_el_salvador_name'
@@ -9053,6 +9063,8 @@ def agregar_seccion_exportar_distribuciones(tablas_reales, pais, tiene_ventas):
             button_dist_key = "excel_dist_export_cr"
         elif pais == "Honduras":
             button_dist_key = "excel_dist_export_hn"
+        elif pais == "PANAMA":
+            button_dist_key = "excel_dist_export_pa"
         else:  # El Salvador
             button_dist_key = "excel_dist_export_sv"
         if st.button("🚀 Generar Excel Distribuciones", key=button_dist_key, use_container_width=True):
