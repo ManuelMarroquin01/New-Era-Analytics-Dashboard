@@ -7092,6 +7092,13 @@ def mostrar_tabla_consolidada(tabla, pais):
         
         html += '</tr>'
         
+        # Encontrar la columna "% DE CUMPLIMIENTO" para aplicar semáforo
+        col_cumplimiento_index = None
+        for idx, col in enumerate(df.columns):
+            if len(col) == 3 and col[2] == '% DE CUMPLIMIENTO':
+                col_cumplimiento_index = idx
+                break
+        
         # Filas de datos
         for idx, row in df.iterrows():
             if idx == len(df) - 1:  # Fila TOTAL
@@ -7099,9 +7106,54 @@ def mostrar_tabla_consolidada(tabla, pais):
             else:
                 html += '<tr>'
             
-            for col in df.columns:
+            for col_idx, col in enumerate(df.columns):
                 value = row[col]
-                html += f'<td style="border: 1px solid #ddd; padding: 2px; font-size: 7px;">{value}</td>'
+                
+                # Aplicar semáforo solo a la columna % DE CUMPLIMIENTO (y no a fila TOTAL)
+                if col_idx == col_cumplimiento_index and idx < len(df) - 1:
+                    # Obtener capacidades para calcular color del semáforo
+                    bodega = None
+                    total_headwear = None
+                    
+                    # Buscar valores necesarios para el cálculo del semáforo
+                    for search_col in df.columns:
+                        if len(search_col) == 3 and search_col[2] == 'Bodega':
+                            bodega = row[search_col]
+                        elif len(search_col) == 3 and search_col[2] == 'TOTAL HEADWEAR':
+                            total_headwear = row[search_col]
+                    
+                    # Calcular color del semáforo
+                    if bodega and total_headwear is not None:
+                        capacidades = country_manager.get_capacidades(pais)
+                        capacidad = capacidades.get(bodega, 0)
+                        
+                        if capacidad > 0:
+                            # Convertir total_headwear a número si está como string
+                            try:
+                                if isinstance(total_headwear, str):
+                                    # Remover comas y convertir a float
+                                    total_headwear_num = float(total_headwear.replace(',', ''))
+                                else:
+                                    total_headwear_num = float(total_headwear)
+                                
+                                color = stock_analyzer.obtener_color_semaforo(total_headwear_num, capacidad)
+                                
+                                if color == "verde":
+                                    color_css = "#d4edda"  # Verde (mismo que MVP)
+                                elif color == "amarillo":
+                                    color_css = "#fff3cd"  # Amarillo (mismo que MVP)
+                                else:
+                                    color_css = "#f8d7da"  # Rojo (mismo que MVP)
+                            except (ValueError, TypeError):
+                                color_css = "#f8f9fa"  # Gris para errores de conversión (mismo que MVP)
+                        else:
+                            color_css = "#f8f9fa"  # Gris para N/A (mismo que MVP)
+                        
+                        html += f'<td style="border: 1px solid #ddd; padding: 2px; font-size: 7px; background-color: {color_css}; color: black; font-weight: bold;">{value}</td>'
+                    else:
+                        html += f'<td style="border: 1px solid #ddd; padding: 2px; font-size: 7px;">{value}</td>'
+                else:
+                    html += f'<td style="border: 1px solid #ddd; padding: 2px; font-size: 7px;">{value}</td>'
             
             html += '</tr>'
         
