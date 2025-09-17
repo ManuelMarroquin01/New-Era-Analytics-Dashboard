@@ -2198,8 +2198,8 @@ class SalesProcessor:
         print(f"Registros con mapeo exitoso PANAMA: {len(df_mapeado)}")
         print(f"Tiendas encontradas en archivo PANAMA: {df_new_era[columna_tienda].unique()}")
         print(f"Bodegas mapeadas PANAMA: {df_mapeado['Bodega_Mapeada'].unique()}")
-        print(f"Mapeo PANAMA usado: {mapeo_panama}")
-        print(f"Mapeo inverso PANAMA: {mapeo_inverso}")
+        print(f"Todas las variaciones PANAMA: {todas_variaciones}")
+        print(f"Sistema de mapeo PANAMA: {self.country_mappings.get('PANAMA', {})}")
         
         # DEBUG: Mostrar bodegas que se mapearon exitosamente
         print(f"🎯 BODEGAS MAPEADAS EXITOSAMENTE EN PANAMA:")
@@ -4795,12 +4795,12 @@ class DataProcessor:
         # Mapeo de totales
         totales_mapping = {
             'Bodega': ('INFO', 'INFO', 'Bodega'),
-            'TOTAL PLANAS': ('TOTAL', 'PLANAS', 'Cantidad'),
-            'TOTAL CURVAS': ('TOTAL', 'CURVAS', 'Cantidad'),
-            'TOTAL APPAREL': ('TOTAL', 'APPAREL', 'Cantidad'),
-            'TOTAL HEADWEAR': ('TOTAL', 'HEADWEAR', 'Cantidad'),
-            'TOTAL STOCK': ('TOTAL', 'STOCK', 'Cantidad'),
-            'TOTAL USD': ('TOTAL', 'USD', 'TOTAL USD')
+            'TOTAL PLANAS': ('TOTAL', 'TOTAL PLANAS', 'Cantidad'),
+            'TOTAL CURVAS': ('TOTAL', 'TOTAL CURVAS', 'Cantidad'),
+            'TOTAL APPAREL': ('TOTAL', 'TOTAL APPAREL', 'Cantidad'),
+            'TOTAL HEADWEAR': ('TOTAL', 'TOTAL HEADWEAR', 'Cantidad'),
+            'TOTAL STOCK': ('TOTAL', 'TOTAL STOCK', 'Cantidad'),
+            'TOTAL USD': ('TOTAL', 'TOTAL USD', 'TOTAL USD')
         }
         
         # Combinar mapeos
@@ -4981,12 +4981,12 @@ class DataProcessor:
         # Mapeo de totales
         totales_mapping = {
             'Bodega': ('INFO', 'INFO', 'Bodega'),
-            'TOTAL PLANAS': ('TOTAL', 'PLANAS', 'Cantidad'),
-            'TOTAL CURVAS': ('TOTAL', 'CURVAS', 'Cantidad'),
-            'TOTAL APPAREL': ('TOTAL', 'APPAREL', 'Cantidad'),
-            'TOTAL HEADWEAR': ('TOTAL', 'HEADWEAR', 'Cantidad'),
-            'TOTAL STOCK': ('TOTAL', 'STOCK', 'Cantidad'),
-            'TOTAL USD': ('TOTAL', 'USD', 'TOTAL USD')
+            'TOTAL PLANAS': ('TOTAL', 'TOTAL PLANAS', 'Cantidad'),
+            'TOTAL CURVAS': ('TOTAL', 'TOTAL CURVAS', 'Cantidad'),
+            'TOTAL APPAREL': ('TOTAL', 'TOTAL APPAREL', 'Cantidad'),
+            'TOTAL HEADWEAR': ('TOTAL', 'TOTAL HEADWEAR', 'Cantidad'),
+            'TOTAL STOCK': ('TOTAL', 'TOTAL STOCK', 'Cantidad'),
+            'TOTAL USD': ('TOTAL', 'TOTAL USD', 'TOTAL USD')
         }
         
         # Combinar mapeos
