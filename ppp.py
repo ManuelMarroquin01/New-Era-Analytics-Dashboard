@@ -1423,7 +1423,7 @@ class CountryManager:
                     "NE –Multiplaza SPS": "NE MULTIPLAZA SPS",
                     "NE – Cascadas Mall Tegucigalpa": "NEW ERA CASCADAS MALL TEGUCIGALPA",
                     "NE – Multiplaza Tegucigalpa": "NEW ERA MULTIPLAZA TEGUCIGALPA",
-                    "NE – Mega Mall SPS": "NE MEGA\xa0 MALL SAN PEDRO SULA",
+                    "NE – Mega Mall SPS": "NE MEGA  MALL SAN PEDRO SULA",
                     "NE – City Mall Tegucigalpa": "NE CITY MALL TEGUCIGALPA"
                 }
             ),
@@ -1534,7 +1534,7 @@ class SalesProcessor:
             "NE_MULTIPLAZA_SPS": ["NE –Multiplaza SPS", "NE MULTIPLAZA SPS"],
             "NE_CASCADAS_MALL_TEGUCIGALPA": ["NE – Cascadas Mall Tegucigalpa", "NEW ERA CASCADAS MALL TEGUCIGALPA"],
             "NE_MULTIPLAZA_TEGUCIGALPA": ["NE – Multiplaza Tegucigalpa", "NEW ERA MULTIPLAZA TEGUCIGALPA"],
-            "NE_MEGA_MALL_SPS": ["NE – Mega Mall SPS", "NE MEGA  MALL SAN PEDRO SULA"],
+            "NE_MEGA_MALL_SPS": ["NE – Mega Mall SPS", "NE MEGA\xa0 MALL SAN PEDRO SULA"],
             "NE_CITY_MALL_TEGUCIGALPA": ["NE – City Mall Tegucigalpa", "NE CITY MALL TEGUCIGALPA"]
         }
         
@@ -1985,7 +1985,14 @@ class SalesProcessor:
         Procesa el archivo de ventas de Honduras y retorna ventas desglosadas por bodega, liga y subcategoría
         Estructura: {bodega: {liga: {subcategoria: ventas}}}
         """
+        print("🔥🔥🔥 EJECUTANDO procesar_ventas_honduras() 🔥🔥🔥")
+        print(f"🔥 Archivo recibido: {df_ventas is not None}")
+        if df_ventas is not None:
+            print(f"🔥 Filas en archivo: {len(df_ventas)}")
+            print(f"🔥 Columnas: {list(df_ventas.columns)}")
+        
         if df_ventas is None or df_ventas.empty:
+            print("🔥 ARCHIVO VACÍO O NULO - RETORNANDO {}")
             return {}
         
         print(f"Columnas disponibles en archivo de ventas Honduras: {list(df_ventas.columns)}")
@@ -2049,6 +2056,24 @@ class SalesProcessor:
         for bodega in df_mapeado['Bodega_Mapeada'].unique():
             registros_bodega = len(df_mapeado[df_mapeado['Bodega_Mapeada'] == bodega])
             print(f"  - {bodega}: {registros_bodega} registros")
+        
+        # DEBUG ESPECÍFICO PARA MEGA MALL SPS
+        print(f"\n🔍 DEBUG ESPECÍFICO MEGA MALL SPS:")
+        print(f"Todas las variaciones Honduras: {todas_variaciones}")
+        mega_mall_variants = [v for v in todas_variaciones if 'MEGA' in v.upper() and 'MALL' in v.upper()]
+        print(f"Variaciones que contienen MEGA MALL: {mega_mall_variants}")
+        
+        # Verificar si hay registros en el archivo original que contengan MEGA MALL
+        tiendas_mega = df_new_era[df_new_era[columna_tienda].str.contains('MEGA.*MALL', case=False, na=False)]
+        print(f"Registros con MEGA MALL en archivo original: {len(tiendas_mega)}")
+        if len(tiendas_mega) > 0:
+            print(f"Nombres exactos encontrados: {tiendas_mega[columna_tienda].unique()}")
+            
+        # Verificar mapeo específico
+        for tienda_original in df_new_era[columna_tienda].unique():
+            if 'MEGA' in str(tienda_original).upper() and 'MALL' in str(tienda_original).upper():
+                mapeo_resultado = self.normalize_bodega_name(tienda_original, target_format="stock", pais="Honduras")
+                print(f"Mapeo: '{tienda_original}' → '{mapeo_resultado}'")
         
         if df_mapeado.empty:
             print("No hay registros mapeados para procesar en Honduras")
@@ -2685,6 +2710,7 @@ class SalesProcessor:
         print(f"Tiendas encontradas en archivo Honduras: {df_new_era[columna_tienda].unique()}")
         print(f"Bodegas mapeadas Honduras: {df_mapeado['Bodega_Mapeada'].unique()}")
         
+        
         if df_mapeado.empty:
             print("No hay registros mapeados para procesar en Honduras (solo-ventas)")
             return {}
@@ -2755,6 +2781,7 @@ class SalesProcessor:
                     }
         
         print(f"Cantidades Honduras desglosadas calculadas para {len(cantidades_desglosadas)} bodegas")
+        
         
         # Debug final: Mostrar resumen de cantidades calculadas
         print("RESUMEN CANTIDADES HONDURAS (solo-ventas):")
@@ -3916,6 +3943,8 @@ class DataProcessor:
     
     def _add_sales_columns(self, tabla_final: pd.DataFrame, df_ventas: pd.DataFrame, selected_league: str = None, pais: str = "Guatemala") -> pd.DataFrame:
         """Agrega las columnas de ventas desglosadas por liga y subcategoría"""
+        import streamlit as st
+        
         # Procesar datos de ventas usando el SalesProcessor según el país
         if pais == "Guatemala":
             ventas_desglosadas = sales_processor.procesar_ventas_guatemala(df_ventas)
@@ -3924,9 +3953,6 @@ class DataProcessor:
         elif pais == "Costa Rica":
             ventas_desglosadas = sales_processor.procesar_ventas_costa_rica(df_ventas)
         elif pais == "Honduras":
-            print(f"Procesando ventas Honduras - Archivo recibido: {df_ventas is not None}")
-            if df_ventas is not None:
-                print(f"Filas en archivo ventas Honduras: {len(df_ventas)}")
             # Para la verificación, usar la misma función que usa la tabla (cantidades en lugar de ventas USD)
             ventas_desglosadas = sales_processor.procesar_cantidades_honduras(df_ventas)
             
@@ -3976,24 +4002,12 @@ class DataProcessor:
                 return bodega_tabla
             
             if pais in ["Guatemala", "El Salvador", "Honduras", "Costa Rica", "PANAMA"]:
-                # Debug para Honduras
-                if pais == "Honduras" and "Mega Mall" in bodega_tabla:
-                    print(f"🔍 DEBUG MEGA MALL - Buscando correspondencia para: '{bodega_tabla}'")
-                    print(f"🔍 Bodegas disponibles en ventas: {list(ventas_desglosadas.keys())}")
-                    canonical_stock = sales_processor.get_canonical_name(bodega_tabla, pais)
-                    print(f"🔍 Nombre canónico de stock: {canonical_stock}")
-                
                 # Buscar usando mapeo bidireccional
                 for venta_bodega in ventas_desglosadas.keys():
                     canonical_venta = sales_processor.get_canonical_name(venta_bodega, pais)
                     canonical_stock = sales_processor.get_canonical_name(bodega_tabla, pais)
                     
-                    if pais == "Honduras" and "Mega Mall" in bodega_tabla:
-                        print(f"🔍 Comparando: '{venta_bodega}' (canónico: {canonical_venta}) vs '{bodega_tabla}' (canónico: {canonical_stock})")
-                    
                     if canonical_stock == canonical_venta:
-                        if pais == "Honduras" and "Mega Mall" in bodega_tabla:
-                            print(f"✅ ¡ENCONTRADO! {bodega_tabla} → {venta_bodega}")
                         return venta_bodega
             
             return None
