@@ -3345,6 +3345,31 @@ class DataLoader:
             'GT': {
                 'stock': 'GT',
                 'ventas': 'GT'
+            },
+            # CONFIGURACIONES TEMPORALES - ESPACIO ADICIONAL
+            'GUATEMALA_TEMP': {
+                'stock': 'GUATEMALA',
+                'ventas': 'VENTAS_GUATEMALA'
+            },
+            'EL_SALVADOR_TEMP': {
+                'stock': 'EL_SALVADOR', 
+                'ventas': 'VENTAS_EL_SALVADOR'
+            },
+            'HONDURAS_TEMP': {
+                'stock': 'HONDURAS',
+                'ventas': 'VENTAS_HONDURAS'
+            },
+            'COSTA_RICA_TEMP': {
+                'stock': 'COSTA_RICA',
+                'ventas': 'VENTAS_COSTA_RICA'
+            },
+            'PANAMA_TEMP': {
+                'stock': 'PANAMA',
+                'ventas': 'VENTAS_PANAMA'
+            },
+            'GUATEMALA_MVP_TEMP': {
+                'stock': 'GUATEMALA',
+                'ventas': 'VENTAS_GUATEMALA'
             }
         }
     
@@ -10004,7 +10029,7 @@ def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
     else:
         return "#f8d7da"  # Rojo claro - Crítico
 
-def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame):
+def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Guatemala"""
     print("DEBUG: Entrando en función mostrar_stock_mvps_guatemala")
     if df_stock is None or df_stock.empty:
@@ -10255,8 +10280,9 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame):
     html_tabla = crear_tabla_html_mvp(tabla_display)
     st.markdown(html_tabla, unsafe_allow_html=True)
     
-    # Botón de exportación
-    if st.button("📥 Exportar Stock MVP a Excel", key="export_mvp_guatemala"):
+    # Botón de exportación con key único
+    export_key = f"export_mvp_guatemala{key_suffix}"
+    if st.button("📥 Exportar Stock MVP a Excel", key=export_key):
         try:
             # Crear archivo Excel
             output = BytesIO()
@@ -10306,13 +10332,14 @@ def main():
     # Descripción con diseño mejorado
     professional_design.create_leagues_section()
     
-    # Crear pestañas para cada país con iconos mejorados
-    tab_guatemala, tab_el_salvador, tab_honduras, tab_costa_rica, tab_panama = st.tabs([
+    # Crear pestañas para cada país con iconos mejorados + pestaña temporal MVPs
+    tab_guatemala, tab_el_salvador, tab_honduras, tab_costa_rica, tab_panama, tab_mvps_temporal = st.tabs([
         "Guatemala", 
         "El Salvador", 
         "Honduras", 
         "Costa Rica",
-        "Panamá"
+        "Panamá",
+        "🏆 MVPs (Temporal)"
     ])
     
     # PESTAÑA GUATEMALA
@@ -10360,7 +10387,7 @@ def main():
             
             # Nueva sección: Stock de MVPs para Guatemala
             st.markdown("---")
-            mostrar_stock_mvps_guatemala(archivo_guatemala)
+            mostrar_stock_mvps_guatemala(archivo_guatemala, "_main")
             
         elif archivo_ventas_guatemala is not None:
             # CASO 2: Solo archivo de ventas cargado (NUEVA FUNCIONALIDAD)
@@ -10810,6 +10837,204 @@ def main():
                     """, unsafe_allow_html=True)
                 else:
                     st.success("✅ Archivo VENTAS_COSTA_RICA.csv cargado correctamente")
+    
+    # PESTAÑA TEMPORAL - ESPACIO ADICIONAL COMPLETO
+    with tab_mvps_temporal:
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 25px; border-radius: 15px; margin: 20px 0; text-align: center;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <h2 style="color: white; margin: 0; font-size: 2.2rem; font-weight: 700;">
+                🌎 ESPACIO ADICIONAL COMPLETO 🌎
+            </h2>
+            <p style="color: white; margin: 10px 0 0 0; font-size: 1.1rem; opacity: 0.9;">
+                📊 Dashboard completo adicional - Todos los países + MVPs
+            </p>
+            <p style="color: #ffeb3b; margin: 5px 0 0 0; font-size: 0.9rem; font-weight: 500;">
+                ⚠️ NOTA: Misma funcionalidad que pestañas principales, en espacio dedicado
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Crear sub-pestañas para cada país en el espacio temporal
+        st.markdown("### 📁 Selecciona el País para Análisis:")
+        
+        sub_tab_gt, sub_tab_sv, sub_tab_hn, sub_tab_cr, sub_tab_pa, sub_tab_mvp = st.tabs([
+            "🇬🇹 Guatemala",
+            "🇸🇻 El Salvador", 
+            "🇭🇳 Honduras",
+            "🇨🇷 Costa Rica",
+            "🇵🇦 Panamá",
+            "🏆 Solo MVPs"
+        ])
+        
+        # SUB-PESTAÑA GUATEMALA TEMPORAL
+        with sub_tab_gt:
+            professional_design.create_section_header(
+                "Stock MVPs - Guatemala", 
+                "Análisis exclusivo de códigos MVP (Most Valuable Products)",
+                "🏆"
+            )
+            
+            # Solo carga de archivo de stock (sin ventas)
+            archivo_guatemala_temp = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv", "GUATEMALA_TEMP")
+            
+            if archivo_guatemala_temp is not None:
+                # Guardar nombre del archivo en session state
+                if hasattr(archivo_guatemala_temp, 'name'):
+                    st.session_state.archivo_guatemala_temp_name = archivo_guatemala_temp.name
+                
+                # Solo mostrar tabla de MVPs (sin tabla consolidada)
+                mostrar_stock_mvps_guatemala(archivo_guatemala_temp, "_temp")
+        
+        # SUB-PESTAÑA EL SALVADOR TEMPORAL
+        with sub_tab_sv:
+            professional_design.create_section_header(
+                "Análisis Temporal - El Salvador", 
+                "Espacio adicional para análisis completo de El Salvador",
+                "SV"
+            )
+            
+            # Solo carga de archivo de stock (sin ventas)
+            archivo_salvador_temp = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "EL_SALVADOR_TEMP")
+            
+            if archivo_salvador_temp is not None:
+                if hasattr(archivo_salvador_temp, 'name'):
+                    st.session_state.archivo_salvador_temp_name = archivo_salvador_temp.name
+                
+                # Procesar y mostrar tabla consolidada solo stock
+                df_hash_temp = archivo_salvador_temp.to_dict('records')
+                selected_league = st.session_state.get('selected_league', None)
+                if selected_league == "Todas":
+                    selected_league = None
+                
+                tabla_salvador_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "El Salvador", selected_league, None)
+                mostrar_tabla_consolidada(tabla_salvador_temp, "El Salvador")
+        
+        # SUB-PESTAÑA HONDURAS TEMPORAL
+        with sub_tab_hn:
+            professional_design.create_section_header(
+                "Análisis Temporal - Honduras", 
+                "Espacio adicional para análisis completo de Honduras",
+                "HN"
+            )
+            
+            # Solo carga de archivo de stock (sin ventas)
+            archivo_honduras_temp = data_loader.cargar_archivo("📁 Subir archivo HONDURAS.csv", "HONDURAS_TEMP")
+            
+            if archivo_honduras_temp is not None:
+                if hasattr(archivo_honduras_temp, 'name'):
+                    st.session_state.archivo_honduras_temp_name = archivo_honduras_temp.name
+                
+                df_hash_temp = archivo_honduras_temp.to_dict('records')
+                selected_league = st.session_state.get('selected_league', None)
+                if selected_league == "Todas":
+                    selected_league = None
+                
+                tabla_honduras_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "Honduras", selected_league, None)
+                mostrar_tabla_consolidada(tabla_honduras_temp, "Honduras")
+        
+        # SUB-PESTAÑA COSTA RICA TEMPORAL
+        with sub_tab_cr:
+            professional_design.create_section_header(
+                "Análisis Temporal - Costa Rica", 
+                "Espacio adicional para análisis completo de Costa Rica",
+                "CR"
+            )
+            
+            # Solo carga de archivo de stock (sin ventas)
+            archivo_costa_rica_temp = data_loader.cargar_archivo("📁 Subir archivo COSTA_RICA.csv", "COSTA_RICA_TEMP")
+            
+            if archivo_costa_rica_temp is not None:
+                if hasattr(archivo_costa_rica_temp, 'name'):
+                    st.session_state.archivo_costa_rica_temp_name = archivo_costa_rica_temp.name
+                
+                df_hash_temp = archivo_costa_rica_temp.to_dict('records')
+                selected_league = st.session_state.get('selected_league', None)
+                if selected_league == "Todas":
+                    selected_league = None
+                
+                tabla_costa_rica_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "Costa Rica", selected_league, None)
+                mostrar_tabla_consolidada(tabla_costa_rica_temp, "Costa Rica")
+        
+        # SUB-PESTAÑA PANAMÁ TEMPORAL
+        with sub_tab_pa:
+            professional_design.create_section_header(
+                "Análisis Temporal - Panamá", 
+                "Espacio adicional para análisis completo de Panamá",
+                "PA"
+            )
+            
+            # Solo carga de archivo de stock (sin ventas)
+            archivo_panama_temp = data_loader.cargar_archivo("📁 Subir archivo PANAMA.csv", "PANAMA_TEMP")
+            
+            if archivo_panama_temp is not None:
+                if hasattr(archivo_panama_temp, 'name'):
+                    st.session_state.archivo_panama_temp_name = archivo_panama_temp.name
+                
+                df_hash_temp = archivo_panama_temp.to_dict('records')
+                selected_league = st.session_state.get('selected_league', None)
+                if selected_league == "Todas":
+                    selected_league = None
+                
+                tabla_panama_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "PANAMA", selected_league, None)
+                mostrar_tabla_consolidada(tabla_panama_temp, "PANAMA")
+        
+        # SUB-PESTAÑA SOLO MVPs
+        with sub_tab_mvp:
+            st.markdown("""
+            <div style="background: linear-gradient(90deg, #ff6b35, #f7931e); 
+                        padding: 20px; border-radius: 15px; margin: 10px 0;">
+                <h3 style="color: white; text-align: center; margin: 0;">
+                    🏆 ANÁLISIS MVP EXCLUSIVO 🏆
+                </h3>
+                <p style="color: white; text-align: center; margin: 5px 0;">
+                    Vista dedicada solo para códigos MVP de Guatemala
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Información MVP
+            col_info_mvp, col_control_mvp = st.columns([2, 1])
+            
+            with col_info_mvp:
+                st.info("""
+                📋 **¿Qué son los MVPs?**
+                - **M**ost **V**aluable **P**roducts (Productos Más Valiosos)
+                - 46 códigos específicos de mayor rotación comercial
+                - Análisis detallado de stock por bodega en Guatemala
+                """)
+            
+            with col_control_mvp:
+                archivo_mvp_temp = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv para MVPs", "GUATEMALA_MVP_TEMP")
+                
+                if archivo_mvp_temp is not None:
+                    st.success("✅ Archivo cargado para análisis MVP")
+                    
+                    if st.button("🚀 Mostrar Análisis MVP", type="primary", key="btn_show_mvp_only"):
+                        st.session_state.show_mvp_only = True
+            
+            # Mostrar solo MVPs si se solicita
+            if st.session_state.get('show_mvp_only', False) and archivo_mvp_temp is not None:
+                st.markdown("---")
+                mostrar_stock_mvps_guatemala(archivo_mvp_temp, "_mvp_only")
+                
+                if st.button("🔽 Ocultar MVPs", key="btn_hide_mvp_only"):
+                    st.session_state.show_mvp_only = False
+                    st.rerun()
+        
+        # Nota explicativa final
+        st.markdown("---")
+        st.markdown("""
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
+            <strong>🔄 Espacio Temporal - Solo Stock:</strong><br>
+            • Este espacio está optimizado solo para análisis de Stock (sin archivos de ventas)<br>
+            • Carga únicamente archivos: GUATEMALA.csv, EL_SALVADOR.csv, HONDURAS.csv, COSTA_RICA.csv, PANAMA.csv<br>
+            • Las pestañas principales permanecen intactas con funcionalidad completa (Stock + Ventas)<br>
+            • Perfecto para análisis rápido de inventario y MVPs de Guatemala<br>
+            • Fácil de remover cuando ya no sea necesario
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
