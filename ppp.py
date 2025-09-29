@@ -9736,7 +9736,8 @@ def obtener_optimos_mvp() -> Dict[str, Dict[str, int]]:
         "NE Pradera Xela": "PRADERA XELA",
         "NE Puerto Barrios": "NEW ERA PUERTO BARRIOS",
         "NE Metroplaza Jutiapa": "PRADERA JUTIAPA",
-        "NE Chimaltenango": "NEW ERA CHIMALTENANGO"
+        "NE Chimaltenango": "NEW ERA CHIMALTENANGO",
+        "NE Plaza Magdalena": "NEW ERA COBAN"
     }
     
     # Stock óptimo por códigos (nuevos datos cargados)
@@ -9795,6 +9796,122 @@ def obtener_optimos_mvp() -> Dict[str, Dict[str, int]]:
         for tienda_real, tienda_codigo in mapeo_tiendas.items():
             if tienda_codigo in tiendas_codigo:
                 optimos_dict[codigo][tienda_real] = tiendas_codigo[tienda_codigo]
+    
+    return optimos_dict
+
+
+def obtener_optimos_mvp_elsalvador() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por código y bodega para El Salvador
+    {codigo: {bodega: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real (dashboard) -> Stock Códigos
+    mapeo_tiendas_elsalvador = {
+        "NE METROCENTRO LOURDES": "NE LOURDES",
+        "NE METROCENTRO SAN MIGUEL": "NE SAN MIGUEL",
+        "NE PLAZA MUNDO SOYAPANGO": "NE SOYAPANGO",
+        "NE USULUTÁN": "NE USULUTAN",
+        "NEW ERA EL PASEO": "NE EL PASEO",
+        "NEW ERA METROCENTRO": "NE METROCENTRO",
+        "NEW ERA METROCENTRO SANTA ANA": "NE SANTA ANA",
+        "NEW ERA MULTIPLAZA": "NE MULTIPLAZA"
+    }
+    
+    # Stock óptimo por códigos El Salvador
+    optimos_data_elsalvador = {
+        "10030709": {"NE MULTIPLAZA": 20, "NE EL PASEO": 10, "NE METROCENTRO": 20, "NE SANTA ANA": 20, "NE USULUTAN": 10, "NE LOURDES": 10, "NE SAN MIGUEL": 10, "NE SOYAPANGO": 10},
+        "10030708": {"NE MULTIPLAZA": 10, "NE EL PASEO": 5, "NE METROCENTRO": 10, "NE SANTA ANA": 10, "NE USULUTAN": 5, "NE LOURDES": 5, "NE SAN MIGUEL": 5, "NE SOYAPANGO": 5},
+        "10112874": {"NE MULTIPLAZA": 6, "NE EL PASEO": 1, "NE METROCENTRO": 6, "NE SANTA ANA": 6, "NE USULUTAN": 3, "NE LOURDES": 3, "NE SAN MIGUEL": 3, "NE SOYAPANGO": 1},
+        "11591122": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591128": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591150": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591175": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70331909": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70331911": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70331962": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10975804": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10975815": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10975835": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70192970": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70353249": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70353266": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70360899": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70360903": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70428987": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70430338": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70457634": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591024": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591025": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591026": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591043": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591046": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591047": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591077": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11591078": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11941921": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70556851": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70556867": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70556869": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "70558225": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10047511": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10047531": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "10047538": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11405605": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "11405614": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "12650335": {"NE MULTIPLAZA": 60, "NE EL PASEO": 24, "NE METROCENTRO": 60, "NE SANTA ANA": 60, "NE USULUTAN": 48, "NE LOURDES": 24, "NE SAN MIGUEL": 48, "NE SOYAPANGO": 48},
+        "12650337": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "12650340": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "12650342": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "12650343": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36},
+        "12650344": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36}
+    }
+    
+    # Convertir nombres de tiendas del mapeo
+    optimos_dict = {}
+    for tienda_real, tienda_codigos in mapeo_tiendas_elsalvador.items():
+        for codigo, tiendas_optimos in optimos_data_elsalvador.items():
+            if codigo not in optimos_dict:
+                optimos_dict[codigo] = {}
+            if tienda_codigos in tiendas_optimos:
+                optimos_dict[codigo][tienda_real] = tiendas_optimos[tienda_codigos]
+    
+    return optimos_dict
+
+
+def obtener_optimos_por_tallas_elsalvador() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por talla y tienda para El Salvador
+    {tienda: {talla: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real (dashboard) -> Stock Tallas
+    mapeo_tiendas_tallas_elsalvador = {
+        "NE METROCENTRO LOURDES": "NE LOURDES OUTLET",
+        "NE METROCENTRO SAN MIGUEL": "NE SAN MIGUEL",
+        "NE PLAZA MUNDO SOYAPANGO": "NE SOYAPANGO",
+        "NE USULUTÁN": "NE USULUTAN",
+        "NEW ERA EL PASEO": "NE EL PASEO",
+        "NEW ERA METROCENTRO": "NE METROCENTRO",
+        "NEW ERA METROCENTRO SANTA ANA": "NE SANTA ANA",
+        "NEW ERA MULTIPLAZA": "NE MULTIPLAZA"
+    }
+    
+    # Stock óptimo por tallas El Salvador
+    optimos_tallas_data_elsalvador = {
+        "NE MULTIPLAZA": {"678": 1, "700": 1, "718": 2, "714": 4, "738": 2, "712": 2},
+        "NE EL PASEO": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2},
+        "NE METROCENTRO": {"678": 1, "700": 2, "718": 2, "714": 3, "738": 2, "712": 2},
+        "NE USULUTAN": {"700": 1, "718": 1, "714": 3, "738": 3, "712": 2, "758": 1, "734": 1},
+        "NE LOURDES OUTLET": {},  # Sin distribución de tallas
+        "NE SANTA ANA": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2},
+        "NE SAN MIGUEL": {"700": 1, "718": 1, "714": 3, "738": 3, "712": 2, "758": 1, "734": 1},
+        "NE SOYAPANGO": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2}
+    }
+    
+    # Convertir nombres de tiendas de tallas a nombres del stock real
+    optimos_dict = {}
+    for tienda_real, tienda_tallas in mapeo_tiendas_tallas_elsalvador.items():
+        if tienda_tallas in optimos_tallas_data_elsalvador:
+            optimos_dict[tienda_real] = optimos_tallas_data_elsalvador[tienda_tallas]
     
     return optimos_dict
 
@@ -9860,6 +9977,321 @@ def obtener_optimos_por_tallas() -> Dict[str, Dict[str, int]]:
     
     return optimos_dict
 
+def obtener_optimos_mvp_honduras() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por código y tienda para Honduras
+    {codigo: {tienda: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real -> Stock Códigos
+    mapeo_tiendas_codigo = {
+        "NE – Cascadas Mall Tegucigalpa": "CASCADAS",
+        "NE – CITY MALL SP": "NE CITY MSLL SPS", 
+        "NE – City Mall Tegucigalpa": "CITY MALL",
+        "NE – Mega Mall SPS": "MEGA MALL",
+        "NE – Multiplaza Tegucigalpa": "MULTIPLAZA",
+        "NE –Multiplaza SPS": "NE MULTIPLAZA TEGU"
+    }
+    
+    # Datos de stock óptimo por código para Honduras
+    optimos_codigo_data = {
+        '10030709': {'MID': 12, 'MULTIPLAZA': 12, 'MEGA MALL': 20, 'CITY MALL': 12, 'CASCADAS': 20, 'NE MULTIPLAZA TEGU': 20, 'NE CITY MSLL SPS': 20},
+        '10030708': {'MID': 6, 'MULTIPLAZA': 6, 'MEGA MALL': 10, 'CITY MALL': 6, 'CASCADAS': 10, 'NE MULTIPLAZA TEGU': 10, 'NE CITY MSLL SPS': 10},
+        '10112874': {'MID': 3, 'MULTIPLAZA': 3, 'MEGA MALL': 6, 'CITY MALL': 3, 'CASCADAS': 6, 'NE MULTIPLAZA TEGU': 6, 'NE CITY MSLL SPS': 6},
+        '11591122': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591128': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591150': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591175': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70331909': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70331911': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70331962': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10975804': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10975815': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10975835': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70192970': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70353249': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70353266': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70360899': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70360903': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70428987': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70430338': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70457634': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591024': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591025': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591026': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591043': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591046': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591047': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591077': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11591078': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11941921': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70556851': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70556867': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70556869': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '70558225': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10047511': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10047531': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10047538': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11405605': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11405614': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '12650335': {'MID': 24, 'MULTIPLAZA': 48, 'MEGA MALL': 60, 'CITY MALL': 60, 'CASCADAS': 60, 'NE MULTIPLAZA TEGU': 48, 'NE CITY MSLL SPS': 48},
+        '12650337': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '12650340': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '12650342': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '12650343': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '12650344': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '11169822': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36}
+    }
+    
+    # Convertir usando mapeo de tiendas
+    optimos_dict = {}
+    
+    for codigo, tiendas_optimos in optimos_codigo_data.items():
+        optimos_dict[codigo] = {}
+        
+        # Para cada tienda real (como aparece en stock), buscar su equivalente en datos óptimos
+        for tienda_real, tienda_codigo in mapeo_tiendas_codigo.items():
+            if tienda_codigo in tiendas_optimos:
+                optimos_dict[codigo][tienda_real] = tiendas_optimos[tienda_codigo]
+    
+    return optimos_dict
+
+def obtener_optimos_por_tallas_honduras() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por talla y tienda para Honduras
+    {tienda: {talla: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real -> Stock Tallas 
+    mapeo_tiendas_tallas = {
+        "NE – Cascadas Mall Tegucigalpa": "NE CASCADAS MALL TEGUCIGALPA",
+        "NE – CITY MALL SP": "NE CITY MALL SAN PEDRO SULA", 
+        "NE – City Mall Tegucigalpa": "NE CITY MALL TEGUCIGALPA",
+        "NE – Mega Mall SPS": "NE MEGA MALL SAN PEDRO SULA",
+        "NE – Multiplaza Tegucigalpa": "NE MULTIPLAZA TEGUCIGALPA",
+        "NE –Multiplaza SPS": "NE MULTIPLAZA SAN PEDRO SULA"
+    }
+    
+    # Datos de stock óptimo por tallas para Honduras (6 tiendas)
+    optimos_tallas_data = {
+        "NE CITY MALL TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
+        "NE MULTIPLAZA TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
+        "NE CASCADAS MALL TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
+        "NE MEGA MALL SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0},
+        "NE MULTIPLAZA SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0},
+        "NE CITY MALL SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0}
+    }
+    
+    # Convertir usando mapeo de tiendas
+    optimos_dict = {}
+    
+    for tienda_real, tienda_tallas in mapeo_tiendas_tallas.items():
+        if tienda_tallas in optimos_tallas_data:
+            optimos_dict[tienda_real] = optimos_tallas_data[tienda_tallas]
+    
+    return optimos_dict
+
+def obtener_optimos_mvp_costarica() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por código y tienda para Costa Rica
+    {codigo: {tienda: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real -> Stock Códigos
+    mapeo_tiendas_codigo = {
+        "NE City Mall": "NE CITY MALL ALAJUELA"
+    }
+    
+    # Datos de stock óptimo por código para Costa Rica
+    optimos_codigo_data = {
+        '10030709': {'MID': 15, 'NE CITY MALL ALAJUELA': 15},
+        '10030708': {'MID': 6, 'NE CITY MALL ALAJUELA': 6},
+        '10112874': {'MID': 3, 'NE CITY MALL ALAJUELA': 3},
+        '11591122': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591128': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591150': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591175': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70331909': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70331911': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70331962': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10975804': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10975815': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10975835': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70192970': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70353249': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70353266': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70360899': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70360903': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70428987': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70430338': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70457634': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591024': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591025': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591026': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591043': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591046': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591047': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591077': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11591078': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11941921': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70556851': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70556867': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70556869': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '70558225': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10047511': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10047531': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '10047538': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11405605': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11405614': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '12650335': {'MID': 48, 'NE CITY MALL ALAJUELA': 48},
+        '12650337': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '12650340': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '12650342': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '12650343': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '12650344': {'MID': 36, 'NE CITY MALL ALAJUELA': 36},
+        '11169822': {'MID': 36, 'NE CITY MALL ALAJUELA': 36}
+    }
+    
+    # Convertir usando mapeo de tiendas
+    optimos_dict = {}
+    
+    for codigo, tiendas_optimos in optimos_codigo_data.items():
+        optimos_dict[codigo] = {}
+        
+        # Para cada tienda real (como aparece en stock), buscar su equivalente en datos óptimos
+        for tienda_real, tienda_codigo in mapeo_tiendas_codigo.items():
+            if tienda_codigo in tiendas_optimos:
+                optimos_dict[codigo][tienda_real] = tiendas_optimos[tienda_codigo]
+    
+    return optimos_dict
+
+def obtener_optimos_por_tallas_costarica() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por talla y tienda para Costa Rica
+    {tienda: {talla: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real -> Stock Tallas 
+    mapeo_tiendas_tallas = {
+        "NE City Mall": "NE CITY MALL ALAJUELA"
+    }
+    
+    # Datos de stock óptimo por tallas para Costa Rica (1 tienda)
+    optimos_tallas_data = {
+        "NE CITY MALL ALAJUELA": {'678': 1, '700': 2, '718': 3, '714': 3, '738': 2, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0}
+    }
+    
+    # Convertir usando mapeo de tiendas
+    optimos_dict = {}
+    
+    for tienda_real, tienda_tallas in mapeo_tiendas_tallas.items():
+        if tienda_tallas in optimos_tallas_data:
+            optimos_dict[tienda_real] = optimos_tallas_data[tienda_tallas]
+    
+    return optimos_dict
+
+def obtener_optimos_mvp_panama() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por código y bodega para Panamá
+    {codigo: {bodega: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real (base) -> Stock Códigos -> Stock Tallas
+    mapeo_tiendas = {
+        "MID": "MID",
+        "MULTIPLAZA PANAMA": "MULTIPLAZA PANAMA", 
+        "WESTLAND": "WESTLAND",
+        "METROMALL": "METROMALL",
+        "ALBROOK": "ALBROOK",
+        "KIOSCO T1": "KIOSCO T1"
+    }
+    
+    # Stock óptimo por códigos (datos de Panamá)
+    optimos_data = {
+        "10030709": {"MID": 20, "MULTIPLAZA PANAMA": 12, "WESTLAND": 20, "METROMALL": 18, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10030708": {"MID": 10, "MULTIPLAZA PANAMA": 6, "WESTLAND": 10, "METROMALL": 8, "ALBROOK": 8, "KIOSCO T1": 0},
+        "10112874": {"MID": 6, "MULTIPLAZA PANAMA": 3, "WESTLAND": 6, "METROMALL": 3, "ALBROOK": 3, "KIOSCO T1": 0},
+        "11591122": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591128": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591150": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591175": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70331909": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70331911": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70331962": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10975804": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10975815": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10975835": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70192970": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70353249": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70353266": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70360899": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70360903": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70428987": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70430338": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70457634": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591024": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591025": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591026": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591043": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591046": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591047": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591077": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11591078": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11941921": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70556851": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70556867": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70556869": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "70558225": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10047511": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10047531": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "10047538": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11405605": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "11405614": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "12650335": {"MID": 60, "MULTIPLAZA PANAMA": 24, "WESTLAND": 48, "METROMALL": 48, "ALBROOK": 24, "KIOSCO T1": 0},
+        "12650337": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "12650340": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "12650342": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "12650343": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
+        "12650344": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0}
+    }
+    
+    # Convertir nombres de tiendas de códigos a nombres del stock real
+    optimos_dict = {}
+    for codigo, tiendas_codigo in optimos_data.items():
+        optimos_dict[codigo] = {}
+        for tienda_real, tienda_codigo in mapeo_tiendas.items():
+            if tienda_codigo in tiendas_codigo:
+                optimos_dict[codigo][tienda_real] = tiendas_codigo[tienda_codigo]
+    
+    return optimos_dict
+
+
+def obtener_optimos_por_tallas_panama() -> Dict[str, Dict[str, int]]:
+    """
+    Retorna diccionario con cantidades óptimas por talla y tienda para Panamá
+    {tienda: {talla: cantidad_optima}}
+    """
+    # Mapeo de nombres de tiendas: Stock Real (base) -> Stock Tallas 
+    mapeo_tiendas_tallas = {
+        "MID": "MID",
+        "MULTIPLAZA PANAMA": "NE MULTIPLAZA PTY",
+        "WESTLAND": "NE WESTLAND OUTLET",
+        "METROMALL": "NE METROMALL", 
+        "ALBROOK": "NE ALBROOK MALL",
+        "KIOSCO T1": "KIOSCO T1"
+    }
+    
+    # Stock óptimo por tallas (datos de Panamá)
+    optimos_tallas_data = {
+        "NE MULTIPLAZA PTY": {"678": 1, "700": 1, "718": 3, "714": 3, "738": 1, "712": 2, "758": 1},
+        "NE METROMALL": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1},
+        "NE ALBROOK MALL": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1},
+        "KIOSCO T1": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1}
+    }
+    
+    # Convertir nombres de tiendas de tallas a nombres del stock real
+    optimos_dict = {}
+    for tienda_real, tienda_tallas in mapeo_tiendas_tallas.items():
+        if tienda_tallas in optimos_tallas_data:
+            optimos_dict[tienda_real] = optimos_tallas_data[tienda_tallas]
+    
+    return optimos_dict
+
 def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     """
     Procesa los datos de stock para códigos MVP específicos en Guatemala con nueva lógica
@@ -9895,21 +10327,34 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
     
     # Información de debug para verificar filtrado correcto
-    print(f"DEBUG MVP: Total registros NEW ERA: {len(df_new_era)}")
-    print(f"DEBUG MVP: Códigos MVP filtrados: {len(df_mvp)}")
+    print(f"DEBUG MVP GUATEMALA: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP GUATEMALA: Códigos MVP filtrados: {len(df_mvp)}")
+    print(f"DEBUG MVP GUATEMALA: Columnas disponibles: {list(df_mvp.columns)}")
     
     # Verificar qué códigos MVP están presentes en el archivo
     codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
-    print(f"DEBUG MVP: Códigos encontrados en archivo: {sorted(codigos_encontrados)}")
+    print(f"DEBUG MVP GUATEMALA: Códigos encontrados: {sorted(codigos_encontrados)}")
     
     if df_mvp.empty:
-        print("DEBUG MVP: No se encontraron códigos MVP en el archivo de stock")
+        print("DEBUG MVP GUATEMALA: No se encontraron códigos MVP en el archivo")
         return pd.DataFrame()
     
-    # Verificar columnas necesarias
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', 'Talla', 'Stock_Actual', 'Bodega']
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+        print("GUATEMALA: USANDO COLUMNA U_Talla")
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+        print("GUATEMALA: USANDO COLUMNA Talla")
+    else:
+        print("ERROR GUATEMALA: No se encontró columna de talla")
+        return pd.DataFrame()
+    
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
+            print(f"ERROR GUATEMALA: Columna faltante: {col}")
             return pd.DataFrame()
     
     # Obtener bodegas de Guatemala
@@ -9946,7 +10391,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
             # Para cada bodega de Guatemala
             for bodega in bodegas_guatemala:
                 # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega]['Talla'].astype(str).tolist()
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
                 # Obtener tallas que debería tener según el stock óptimo por tallas
                 if bodega in optimos_por_tallas:
@@ -9958,7 +10403,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                             # Crear nueva fila con stock 0
                             nueva_fila = datos_base.copy()
                             nueva_fila['Bodega'] = bodega
-                            nueva_fila['Talla'] = talla_req
+                            nueva_fila[columna_talla] = talla_req
                             nueva_fila['Stock_Actual'] = 0
                             filas_adicionales.append(nueva_fila)
     
@@ -9969,12 +10414,12 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agrupar por código, segmento, silueta, colección, descripción y talla
     df_agrupado = df_mvp_guatemala.groupby([
-        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', 'Talla', 'Bodega'
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
     
     # Pivotar para tener bodegas como columnas
     tabla_pivoteada = df_agrupado.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', 'Talla'],
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0,
@@ -10047,6 +10492,818 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                             print(f"  Factor: {factor}")
                             print(f"  Tallas calculadas finales: {tallas_calculadas}")
                             print(f"  Suma final: {sum(tallas_calculadas.values())}")
+                        
+                        # Paso 6: Asignar valor para esta talla específica
+                        if talla in tallas_calculadas:
+                            tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+                        else:
+                            tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    else:
+                        tabla_final.loc[codigo_tuple, col_optimo] = 0
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+            else:
+                # Usar stock óptimo por código (sin cambios)
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
+    
+    # Agregar fila de totales por columna
+    fila_totales = tabla_final.sum(axis=0)
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
+    
+    return tabla_final
+
+def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa los datos de stock para códigos MVP específicos en El Salvador con misma lógica que Guatemala
+    - Códigos con tallas específicas usan stock óptimo por tallas
+    - Otros códigos usan stock óptimo por código general
+    - Agrega filas faltantes para tallas requeridas con stock 0
+    """
+    if df_stock is None or df_stock.empty:
+        return pd.DataFrame()
+    
+    # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA
+    codigos_mvp = [
+        '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
+        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
+        '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
+        '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
+        '12650344', '70192970', '70331909', '70331911', '70331962', '70353249', 
+        '70353266', '70360899', '70360903', '70428987', '70430338', '70457634', 
+        '70556851', '70556867', '70556869', '70558225'
+    ]
+    
+    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA
+    codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
+    
+    # Tallas específicas
+    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Filtrar por marca NEW ERA
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    # Información de debug
+    print(f"DEBUG MVP EL SALVADOR: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP EL SALVADOR: Códigos MVP filtrados: {len(df_mvp)}")
+    
+    # Verificar qué códigos MVP están presentes
+    codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
+    print(f"DEBUG MVP EL SALVADOR: Códigos encontrados: {sorted(codigos_encontrados)}")
+    
+    if df_mvp.empty:
+        print("DEBUG MVP EL SALVADOR: No se encontraron códigos MVP en el archivo")
+        return pd.DataFrame()
+    
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+    else:
+        print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
+        return pd.DataFrame()
+    
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"ERROR: Columna faltante: {col}")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de El Salvador
+    bodegas_elsalvador = [
+        "NE METROCENTRO LOURDES", "NE METROCENTRO SAN MIGUEL", "NE PLAZA MUNDO SOYAPANGO",
+        "NE USULUTÁN", "NEW ERA EL PASEO", "NEW ERA METROCENTRO", 
+        "NEW ERA METROCENTRO SANTA ANA", "NEW ERA MULTIPLAZA"
+    ]
+    
+    # Filtrar solo bodegas de El Salvador
+    df_mvp_elsalvador = df_mvp[df_mvp['Bodega'].isin(bodegas_elsalvador)].copy()
+    
+    if df_mvp_elsalvador.empty:
+        return pd.DataFrame()
+    
+    # Obtener datos de óptimos para El Salvador
+    optimos_por_codigo = obtener_optimos_mvp_elsalvador()
+    optimos_por_tallas = obtener_optimos_por_tallas_elsalvador()
+    
+    # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
+    filas_adicionales = []
+    
+    for codigo in codigos_con_tallas:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_elsalvador[df_mvp_elsalvador['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de El Salvador
+            for bodega in bodegas_elsalvador:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Obtener tallas que debería tener según el stock óptimo por tallas
+                if bodega in optimos_por_tallas:
+                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
+                    
+                    # Agregar filas para tallas faltantes
+                    for talla_req in tallas_requeridas:
+                        if talla_req not in tallas_existentes:
+                            # Crear nueva fila con stock 0
+                            nueva_fila = datos_base.copy()
+                            nueva_fila['Bodega'] = bodega
+                            nueva_fila[columna_talla] = talla_req
+                            nueva_fila['Stock_Actual'] = 0
+                            filas_adicionales.append(nueva_fila)
+    
+    # Agregar filas faltantes al DataFrame
+    if filas_adicionales:
+        df_adicional = pd.DataFrame(filas_adicionales)
+        df_mvp_elsalvador = pd.concat([df_mvp_elsalvador, df_adicional], ignore_index=True)
+    
+    # Crear tabla final con estructura MultiIndex
+    bodegas_ordenadas = sorted(bodegas_elsalvador)
+    columnas = []
+    for bodega in bodegas_ordenadas:
+        columnas.extend([f"Real {bodega}", f"Óptimo {bodega}"])
+    
+    # Simplificar agrupación para evitar error
+    df_agrupado = df_mvp_elsalvador.groupby(['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'])['Stock_Actual'].sum().reset_index()
+    
+    # Crear DataFrame expandido directamente
+    df_expandido = df_agrupado.copy()
+    
+    # Crear tabla final MultiIndex
+    df_pivot = df_expandido.pivot_table(
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        columns='Bodega',
+        values='Stock_Actual',
+        fill_value=0
+    )
+    
+    # Crear columnas Real y Óptimo para cada bodega
+    tabla_final = pd.DataFrame(index=df_pivot.index)
+    
+    for bodega in bodegas_ordenadas:
+        col_real = f"Real {bodega}"
+        col_optimo = f"Óptimo {bodega}"
+        
+        # Columna Real
+        if bodega in df_pivot.columns:
+            tabla_final[col_real] = df_pivot[bodega]
+        else:
+            tabla_final[col_real] = 0
+        
+        # Columna Óptimo
+        tabla_final[col_optimo] = 0
+    
+    # MISMA LÓGICA DE CÁLCULO QUE GUATEMALA
+    for codigo_tuple in tabla_final.index:
+        codigo = codigo_tuple[0]
+        talla = codigo_tuple[5]
+        
+        for bodega in bodegas_ordenadas:
+            col_optimo = f"Óptimo {bodega}"
+            
+            # Determinar si usar stock por código o por tallas
+            if codigo in codigos_con_tallas and talla in tallas_especificas:
+                # Lógica de tallas (igual que Guatemala)
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    tallas_base = optimos_por_tallas[bodega]
+                    
+                    suma_tallas_base = sum(tallas_base.values())
+                    if suma_tallas_base > 0:
+                        factor = stock_codigo / suma_tallas_base
+                        
+                        tallas_calculadas = {}
+                        suma_redondeada = 0
+                        
+                        for talla_key, valor_base in tallas_base.items():
+                            valor_calculado = int(valor_base * factor)
+                            tallas_calculadas[talla_key] = valor_calculado
+                            suma_redondeada += valor_calculado
+                        
+                        diferencia = stock_codigo - suma_redondeada
+                        if diferencia > 0:
+                            talla_maxima = max(tallas_calculadas.keys(), key=lambda k: tallas_calculadas[k])
+                            tallas_calculadas[talla_maxima] += diferencia
+                        
+                        if talla in tallas_calculadas:
+                            tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+                        else:
+                            tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    else:
+                        tabla_final.loc[codigo_tuple, col_optimo] = 0
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+            else:
+                # Usar stock óptimo por código (lógica simple)
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
+    
+    # Agregar fila de totales
+    fila_totales = tabla_final.sum(axis=0)
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
+    
+    return tabla_final
+
+def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa los datos de stock para códigos MVP específicos en Honduras con misma lógica que Guatemala/El Salvador
+    - Códigos con tallas específicas usan stock óptimo por tallas
+    - Otros códigos usan stock óptimo por código general
+    - Agrega filas faltantes para tallas requeridas con stock 0
+    """
+    if df_stock is None or df_stock.empty:
+        return pd.DataFrame()
+    
+    # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA Y EL SALVADOR
+    codigos_mvp = [
+        '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
+        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
+        '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
+        '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
+        '12650344', '70192970', '70331909', '70331911', '70331962', '70353249', 
+        '70353266', '70360899', '70360903', '70428987', '70430338', '70457634', 
+        '70556851', '70556867', '70556869', '70558225'
+    ]
+    
+    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA Y EL SALVADOR
+    codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
+    
+    # Tallas específicas
+    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Filtrar por marca NEW ERA
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    # Información de debug
+    print(f"DEBUG MVP HONDURAS: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP HONDURAS: Códigos MVP filtrados: {len(df_mvp)}")
+    
+    # Verificar qué códigos MVP están presentes
+    codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
+    print(f"DEBUG MVP HONDURAS: Códigos encontrados: {sorted(codigos_encontrados)}")
+    
+    if df_mvp.empty:
+        print("DEBUG MVP HONDURAS: No se encontraron códigos MVP en el archivo")
+        return pd.DataFrame()
+    
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+    else:
+        print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
+        return pd.DataFrame()
+    
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"ERROR: Columna faltante: {col}")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de Honduras
+    bodegas_honduras = [
+        "NE – Cascadas Mall Tegucigalpa", "NE – CITY MALL SP", "NE – City Mall Tegucigalpa",
+        "NE – Mega Mall SPS", "NE – Multiplaza Tegucigalpa", "NE –Multiplaza SPS"
+    ]
+    
+    # Filtrar solo bodegas de Honduras
+    df_mvp_honduras = df_mvp[df_mvp['Bodega'].isin(bodegas_honduras)].copy()
+    
+    if df_mvp_honduras.empty:
+        return pd.DataFrame()
+    
+    # Obtener datos de óptimos para Honduras
+    optimos_por_codigo = obtener_optimos_mvp_honduras()
+    optimos_por_tallas = obtener_optimos_por_tallas_honduras()
+    
+    # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
+    filas_adicionales = []
+    
+    for codigo in codigos_con_tallas:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_honduras[df_mvp_honduras['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Honduras
+            for bodega in bodegas_honduras:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Obtener tallas que debería tener según el stock óptimo por tallas
+                if bodega in optimos_por_tallas:
+                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
+                    
+                    # Agregar filas para tallas faltantes
+                    for talla_req in tallas_requeridas:
+                        if talla_req not in tallas_existentes:
+                            # Crear nueva fila con stock 0
+                            nueva_fila = datos_base.copy()
+                            nueva_fila['Bodega'] = bodega
+                            nueva_fila[columna_talla] = talla_req
+                            nueva_fila['Stock_Actual'] = 0
+                            filas_adicionales.append(nueva_fila)
+    
+    # Agregar filas faltantes al DataFrame
+    if filas_adicionales:
+        df_adicional = pd.DataFrame(filas_adicionales)
+        df_mvp_honduras = pd.concat([df_mvp_honduras, df_adicional], ignore_index=True)
+    
+    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    df_agrupado = df_mvp_honduras.groupby([
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
+    ])['Stock_Actual'].sum().reset_index()
+    
+    # Pivotar para tener bodegas como columnas
+    tabla_pivoteada = df_agrupado.pivot_table(
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        columns='Bodega',
+        values='Stock_Actual',
+        fill_value=0,
+        aggfunc='sum'
+    )
+    
+    # Asegurar que todas las bodegas estén presentes como columnas
+    for bodega in bodegas_honduras:
+        if bodega not in tabla_pivoteada.columns:
+            tabla_pivoteada[bodega] = 0
+    
+    # Reordenar columnas según el orden de bodegas_honduras
+    tabla_pivoteada = tabla_pivoteada.reindex(columns=bodegas_honduras, fill_value=0)
+    
+    # Crear nueva tabla con columnas intercaladas (stock actual + stock óptimo nuevo)
+    tabla_final = pd.DataFrame(index=tabla_pivoteada.index)
+    
+    # Agregar columnas intercaladas para cada bodega
+    for bodega in bodegas_honduras:
+        # Columna de stock actual
+        tabla_final[f"Real {bodega}"] = tabla_pivoteada[bodega]
+        
+        # Columna de stock óptimo nuevo
+        col_optimo = f"Óptimo {bodega}"
+        tabla_final[col_optimo] = 0
+    
+        # Llenar valores óptimos para cada código/talla
+        for codigo_tuple in tabla_pivoteada.index:
+            codigo = str(codigo_tuple[0])
+            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            
+            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            if codigo in codigos_con_tallas and talla in tallas_especificas:
+                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
+                    # Paso 1: Obtener stock óptimo por código
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    
+                    # Paso 2: Obtener distribución base de tallas para esta bodega
+                    tallas_base = optimos_por_tallas[bodega]
+                    
+                    # Paso 3: Calcular factor multiplicador
+                    suma_tallas_base = sum(tallas_base.values())
+                    if suma_tallas_base > 0:
+                        factor = stock_codigo / suma_tallas_base
+                        
+                        # Paso 4: Calcular nueva distribución
+                        tallas_calculadas = {}
+                        suma_redondeada = 0
+                        
+                        # Multiplicar y redondear hacia abajo
+                        for talla_key, valor_base in tallas_base.items():
+                            valor_calculado = int(valor_base * factor)  # Redondeo hacia abajo
+                            tallas_calculadas[talla_key] = valor_calculado
+                            suma_redondeada += valor_calculado
+                        
+                        # Paso 5: Ajustar para que cuadre exactamente
+                        diferencia = stock_codigo - suma_redondeada
+                        
+                        if diferencia > 0:
+                            # Distribuir diferencia positiva entre las tallas con mayor base
+                            tallas_ordenadas = sorted(tallas_base.items(), key=lambda x: x[1], reverse=True)
+                            for i, (talla_key, _) in enumerate(tallas_ordenadas[:diferencia]):
+                                tallas_calculadas[talla_key] += 1
+                        
+                        # Paso 6: Asignar valor calculado si la talla coincide
+                        if talla in tallas_calculadas:
+                            tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+            else:
+                # Usar stock óptimo por código (sin cambios)
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
+    
+    # Agregar fila de totales
+    fila_totales = tabla_final.sum(axis=0)
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
+    
+    return tabla_final
+
+def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa los datos de stock para códigos MVP específicos en Costa Rica con misma lógica que Guatemala/El Salvador/Honduras
+    - Códigos con tallas específicas usan stock óptimo por tallas
+    - Otros códigos usan stock óptimo por código general
+    - Agrega filas faltantes para tallas requeridas con stock 0
+    """
+    if df_stock is None or df_stock.empty:
+        return pd.DataFrame()
+    
+    # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA, EL SALVADOR Y HONDURAS
+    codigos_mvp = [
+        '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
+        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
+        '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
+        '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
+        '12650344', '70192970', '70331909', '70331911', '70331962', '70353249', 
+        '70353266', '70360899', '70360903', '70428987', '70430338', '70457634', 
+        '70556851', '70556867', '70556869', '70558225'
+    ]
+    
+    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA, EL SALVADOR Y HONDURAS
+    codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
+    
+    # Tallas específicas
+    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Filtrar por marca NEW ERA
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    # Información de debug
+    print(f"DEBUG MVP COSTA RICA: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP COSTA RICA: Códigos MVP filtrados: {len(df_mvp)}")
+    
+    # Verificar qué códigos MVP están presentes
+    codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
+    print(f"DEBUG MVP COSTA RICA: Códigos encontrados: {sorted(codigos_encontrados)}")
+    
+    if df_mvp.empty:
+        print("DEBUG MVP COSTA RICA: No se encontraron códigos MVP en el archivo")
+        return pd.DataFrame()
+    
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+    else:
+        print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
+        return pd.DataFrame()
+    
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"ERROR: Columna faltante: {col}")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de Costa Rica
+    bodegas_costarica = [
+        "NE City Mall"
+    ]
+    
+    # Filtrar solo bodegas de Costa Rica
+    df_mvp_costarica = df_mvp[df_mvp['Bodega'].isin(bodegas_costarica)].copy()
+    
+    if df_mvp_costarica.empty:
+        return pd.DataFrame()
+    
+    # Obtener datos de óptimos para Costa Rica
+    optimos_por_codigo = obtener_optimos_mvp_costarica()
+    optimos_por_tallas = obtener_optimos_por_tallas_costarica()
+    
+    # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
+    filas_adicionales = []
+    
+    for codigo in codigos_con_tallas:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_costarica[df_mvp_costarica['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Costa Rica
+            for bodega in bodegas_costarica:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Obtener tallas que debería tener según el stock óptimo por tallas
+                if bodega in optimos_por_tallas:
+                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
+                    
+                    # Agregar filas para tallas faltantes
+                    for talla_req in tallas_requeridas:
+                        if talla_req not in tallas_existentes:
+                            # Crear nueva fila con stock 0
+                            nueva_fila = datos_base.copy()
+                            nueva_fila['Bodega'] = bodega
+                            nueva_fila[columna_talla] = talla_req
+                            nueva_fila['Stock_Actual'] = 0
+                            filas_adicionales.append(nueva_fila)
+    
+    
+    # Agregar filas faltantes al DataFrame
+    if filas_adicionales:
+        df_adicional = pd.DataFrame(filas_adicionales)
+        df_mvp_costarica = pd.concat([df_mvp_costarica, df_adicional], ignore_index=True)
+    
+    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    df_agrupado = df_mvp_costarica.groupby([
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
+    ])['Stock_Actual'].sum().reset_index()
+    
+    # Pivotar para tener bodegas como columnas
+    tabla_pivoteada = df_agrupado.pivot_table(
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        columns='Bodega',
+        values='Stock_Actual',
+        fill_value=0,
+        aggfunc='sum'
+    )
+    
+    # Asegurar que todas las bodegas estén presentes como columnas
+    for bodega in bodegas_costarica:
+        if bodega not in tabla_pivoteada.columns:
+            tabla_pivoteada[bodega] = 0
+    
+    # Reordenar columnas según el orden de bodegas_costarica
+    tabla_pivoteada = tabla_pivoteada.reindex(columns=bodegas_costarica, fill_value=0)
+    
+    # Crear nueva tabla con columnas intercaladas (stock actual + stock óptimo nuevo)
+    tabla_final = pd.DataFrame(index=tabla_pivoteada.index)
+    
+    # Agregar columnas intercaladas para cada bodega
+    for bodega in bodegas_costarica:
+        # Columna de stock actual
+        tabla_final[f"Real {bodega}"] = tabla_pivoteada[bodega]
+        
+        # Columna de stock óptimo nuevo
+        col_optimo = f"Óptimo {bodega}"
+        tabla_final[col_optimo] = 0
+    
+        # Llenar valores óptimos para cada código/talla
+        for codigo_tuple in tabla_pivoteada.index:
+            codigo = str(codigo_tuple[0])
+            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            
+            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            if codigo in codigos_con_tallas and talla in tallas_especificas:
+                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
+                    # Paso 1: Obtener stock óptimo por código
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    
+                    # Paso 2: Obtener distribución base de tallas para esta bodega
+                    tallas_base = optimos_por_tallas[bodega]
+                    
+                    # Paso 3: Calcular factor multiplicador
+                    suma_tallas_base = sum(tallas_base.values())
+                    if suma_tallas_base > 0:
+                        factor = stock_codigo / suma_tallas_base
+                        
+                        # Paso 4: Calcular nueva distribución
+                        tallas_calculadas = {}
+                        suma_redondeada = 0
+                        
+                        # Multiplicar y redondear hacia abajo
+                        for talla_key, valor_base in tallas_base.items():
+                            valor_calculado = int(valor_base * factor)  # Redondeo hacia abajo
+                            tallas_calculadas[talla_key] = valor_calculado
+                            suma_redondeada += valor_calculado
+                        
+                        # Paso 5: Ajustar para que cuadre exactamente
+                        diferencia = stock_codigo - suma_redondeada
+                        
+                        if diferencia > 0:
+                            # Distribuir diferencia positiva entre las tallas con mayor base
+                            tallas_ordenadas = sorted(tallas_base.items(), key=lambda x: x[1], reverse=True)
+                            for i, (talla_key, _) in enumerate(tallas_ordenadas[:diferencia]):
+                                tallas_calculadas[talla_key] += 1
+                        
+                        # Paso 6: Asignar valor calculado si la talla coincide
+                        if talla in tallas_calculadas:
+                            tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+            else:
+                # Usar stock óptimo por código (sin cambios)
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
+    
+    # Agregar fila de totales
+    fila_totales = tabla_final.sum(axis=0)
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
+    
+    return tabla_final
+
+def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
+    """
+    Procesa los datos de stock para códigos MVP específicos en Panamá con nueva lógica
+    - Códigos con tallas específicas usan stock óptimo por tallas
+    - Otros códigos usan stock óptimo por código general
+    - Agrega filas faltantes para tallas requeridas con stock 0
+    """
+    if df_stock is None or df_stock.empty:
+        return pd.DataFrame()
+    
+    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 46 SE EXTRAEN DEL ARCHIVO DE STOCK
+    codigos_mvp = [
+        '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
+        '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
+        '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
+        '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
+        '12650344', '70192970', '70331909', '70331911', '70331962', '70353249', 
+        '70353266', '70360899', '70360903', '70428987', '70430338', '70457634', 
+        '70556851', '70556867', '70556869', '70558225'
+    ]
+    
+    # Códigos que deben tener tallas específicas
+    codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
+    
+    # Tallas específicas
+    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Filtrar por marca NEW ERA
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos (SOLO ESTOS 45 CÓDIGOS - SIN 11169822)
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    # Información de debug para verificar filtrado correcto
+    print(f"DEBUG MVP PANAMÁ: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP PANAMÁ: Códigos MVP filtrados: {len(df_mvp)}")
+    print(f"DEBUG MVP PANAMÁ: Columnas disponibles: {list(df_mvp.columns)}")
+    
+    # Verificar qué códigos MVP están presentes en el archivo
+    codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
+    print(f"DEBUG MVP PANAMÁ: Códigos encontrados: {sorted(codigos_encontrados)}")
+    
+    if df_mvp.empty:
+        print("DEBUG MVP PANAMÁ: No se encontraron códigos MVP en el archivo")
+        return pd.DataFrame()
+    
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+        print("PANAMÁ: USANDO COLUMNA U_Talla")
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+        print("PANAMÁ: USANDO COLUMNA Talla")
+    else:
+        print("ERROR PANAMÁ: No se encontró columna de talla")
+        return pd.DataFrame()
+    
+    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"ERROR PANAMÁ: Columna faltante: {col}")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de Panamá
+    bodegas_panama = [
+        "MID", "MULTIPLAZA PANAMA", "WESTLAND", "METROMALL", "ALBROOK", "KIOSCO T1"
+    ]
+    
+    # Filtrar solo bodegas de Panamá
+    df_mvp_panama = df_mvp[df_mvp['Bodega'].isin(bodegas_panama)].copy()
+    
+    if df_mvp_panama.empty:
+        return pd.DataFrame()
+    
+    # Obtener datos de óptimos
+    optimos_por_codigo = obtener_optimos_mvp_panama()
+    optimos_por_tallas = obtener_optimos_por_tallas_panama()
+    
+    # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
+    filas_adicionales = []
+    
+    for codigo in codigos_con_tallas:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_panama[df_mvp_panama['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Panamá
+            for bodega in bodegas_panama:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Obtener tallas que debería tener según el stock óptimo por tallas
+                if bodega in optimos_por_tallas:
+                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
+                    
+                    # Agregar filas para tallas faltantes
+                    for talla_req in tallas_requeridas:
+                        if talla_req not in tallas_existentes:
+                            # Crear nueva fila con stock 0
+                            nueva_fila = datos_base.copy()
+                            nueva_fila['Bodega'] = bodega
+                            nueva_fila[columna_talla] = talla_req
+                            nueva_fila['Stock_Actual'] = 0
+                            filas_adicionales.append(nueva_fila)
+    
+    # Agregar filas adicionales al DataFrame
+    if filas_adicionales:
+        df_adicional = pd.DataFrame(filas_adicionales)
+        df_mvp_panama = pd.concat([df_mvp_panama, df_adicional], ignore_index=True)
+    
+    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    df_agrupado = df_mvp_panama.groupby([
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
+    ])['Stock_Actual'].sum().reset_index()
+    
+    # Pivotar para tener bodegas como columnas
+    tabla_pivoteada = df_agrupado.pivot_table(
+        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        columns='Bodega',
+        values='Stock_Actual',
+        fill_value=0,
+        aggfunc='sum'
+    )
+    
+    # Asegurar que todas las bodegas estén presentes como columnas
+    for bodega in bodegas_panama:
+        if bodega not in tabla_pivoteada.columns:
+            tabla_pivoteada[bodega] = 0
+    
+    # Reordenar columnas según el orden de bodegas_panama
+    tabla_pivoteada = tabla_pivoteada.reindex(columns=bodegas_panama, fill_value=0)
+    
+    # Crear nueva tabla con columnas intercaladas (stock actual + stock óptimo nuevo)
+    tabla_final = pd.DataFrame(index=tabla_pivoteada.index)
+    
+    # Agregar columnas intercaladas para cada bodega
+    for bodega in bodegas_panama:
+        # Columna de stock actual
+        tabla_final[f"Real {bodega}"] = tabla_pivoteada[bodega]
+        
+        # Columna de stock óptimo nuevo
+        col_optimo = f"Óptimo {bodega}"
+        tabla_final[col_optimo] = 0
+        
+        # Llenar valores óptimos para cada código/talla
+        for codigo_tuple in tabla_pivoteada.index:
+            codigo = str(codigo_tuple[0])
+            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            
+            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            if codigo in codigos_con_tallas and talla in tallas_especificas:
+                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
+                    # Paso 1: Obtener stock óptimo por código
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    
+                    # Paso 2: Obtener distribución base de tallas para esta bodega
+                    tallas_base = optimos_por_tallas[bodega]
+                    
+                    # Paso 3: Calcular factor multiplicador
+                    suma_tallas_base = sum(tallas_base.values())
+                    if suma_tallas_base > 0:
+                        factor = stock_codigo / suma_tallas_base
+                        
+                        # Paso 4: Calcular nueva distribución
+                        tallas_calculadas = {}
+                        suma_redondeada = 0
+                        
+                        # Multiplicar y redondear hacia abajo
+                        for talla_key, valor_base in tallas_base.items():
+                            valor_calculado = int(valor_base * factor)  # Redondeo hacia abajo
+                            tallas_calculadas[talla_key] = valor_calculado
+                            suma_redondeada += valor_calculado
+                        
+                        # Paso 5: Ajustar para que cuadre exactamente
+                        diferencia = stock_codigo - suma_redondeada
+                        
+                        if diferencia > 0:
+                            # Encontrar talla con mayor valor (primera en caso de empate)
+                            talla_maxima = max(tallas_calculadas.keys(), key=lambda k: tallas_calculadas[k])
+                            tallas_calculadas[talla_maxima] += diferencia
                         
                         # Paso 6: Asignar valor para esta talla específica
                         if talla in tallas_calculadas:
@@ -10180,7 +11437,12 @@ def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
     Verde: ±5%, Amarillo: ±5% a ±20%, Rojo: >±20%
     """
     if optimo == 0:
-        return "#f8f9fa" if real == 0 else "#f8d7da"  # Gris si ambos son 0, rojo si hay stock pero no debería
+        # Aplicar misma lógica cuando stock óptimo = 0
+        if real == 0:
+            return "#d4edda"  # Verde - cumple perfectamente (ambos son 0)
+        else:
+            # Cualquier stock real > 0 cuando óptimo = 0 es desviación significativa
+            return "#f8d7da"  # Rojo - no debería tener stock
     
     desviacion = abs(real - optimo) / optimo * 100
     
@@ -10323,7 +11585,7 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
                     valor_optimo_num = 0
                 
                 # Color del semáforo solo para la columna Real
-                if not es_total and valor_optimo_num > 0:
+                if not es_total:
                     color_fondo = calcular_color_semaforo_mvp(valor_real_num, valor_optimo_num)
                 else:
                     color_fondo = "white"
@@ -10380,6 +11642,394 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
                 label="📥 Descargar Excel MVP",
                 data=excel_data,
                 file_name=f"MVP_Guatemala_Semaforo_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_mvp_excel_{key_suffix}"
+            )
+            st.success("✅ Archivo Excel generado con colores de semáforo")
+
+def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
+    """Muestra la tabla de stock de códigos MVP para Honduras con mismo formato que Guatemala y El Salvador"""
+    if df_stock is None or df_stock.empty:
+        st.warning("No se pudo cargar el archivo de stock para mostrar MVP")
+        return
+    
+    # Crear sección
+    professional_design.create_section_header(
+        "Stock de MVPS - Honduras", 
+        "Stock actual vs Stock óptimo nuevo de códigos MVP específicos",
+        "🏆"
+    )
+    
+    # Procesar datos
+    tabla_mvp = procesar_stock_mvps_honduras(df_stock)
+    
+    if tabla_mvp.empty:
+        st.warning("No se encontraron datos de códigos MVP en el stock de Honduras")
+        return
+    
+    # Obtener columnas Real y Óptimo
+    columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
+    columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
+    
+    # Información de códigos procesados
+    st.info(f"""
+    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
+    
+    🔧 **Nueva lógica implementada:**
+    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
+      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
+    • **39 códigos restantes**: Stock óptimo por código general
+    """)
+    
+    # Mostrar métricas resumen
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        st.metric("Total Productos MVP", f"{total_productos:,}")
+    
+    with col2:
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Real", f"{int(total_stock_real):,}")
+    
+    with col3:
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
+    
+    with col4:
+        if total_stock_optimo > 0:
+            cumplimiento = (total_stock_real / total_stock_optimo) * 100
+            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+    
+    # Crear tabla HTML con formato profesional
+    def crear_tabla_html_mvp_honduras(df):
+        """Crea tabla HTML con formato profesional para MVP Honduras"""
+        # Resetear índice para mostrar las columnas de información
+        df_display = df.reset_index()
+        
+        # Crear HTML de la tabla
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 9px; width: 100%; margin-top: 20px;">'
+        
+        # Obtener bodegas únicas
+        bodegas = []
+        for col in columnas_real:
+            bodega = col.replace('Real ', '')
+            bodegas.append(bodega)
+        
+        # Fila 1: Encabezado principal con bodegas
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
+        
+        # Columnas de información
+        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 70, 70, 90, 150, 60]
+        
+        for header, width in zip(info_headers, widths):
+            html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
+        
+        # Columnas de bodegas (2 columnas por bodega: Real y Óptimo)
+        for bodega in bodegas:
+            html += f'<td colspan="2" style="border: 1px solid #fff; padding: 8px; vertical-align: middle; min-width: 120px;">{bodega}</td>'
+        
+        html += '</tr>'
+        
+        # Fila 2: Sub-encabezados (Real / Óptimo)
+        html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
+        
+        # Espacios vacíos para columnas de información
+        for i in range(6):
+            html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
+        
+        # Sub-encabezados para cada bodega
+        for _ in bodegas:
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #28a745; font-size: 8px;">Real</td>'
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #007bff; font-size: 8px;">Óptimo</td>'
+        
+        html += '</tr>'
+        
+        # Filas de datos
+        for idx, row in df_display.iterrows():
+            # Verificar si es la fila TOTAL
+            es_total = (str(row.iloc[0]) == 'TOTAL')
+            
+            if es_total:
+                html += '<tr style="background-color: #f8f9fa; font-weight: bold; border-top: 3px solid #000;">'
+            else:
+                html += '<tr style="background-color: white;">'
+            
+            # Columnas de información
+            for i in range(6):
+                valor = str(row.iloc[i]) if i < len(row) else ""
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                html += f'<td style="{style}">{valor}</td>'
+            
+            # Columnas de bodegas (Real y Óptimo)
+            for bodega in bodegas:
+                col_real = f'Real {bodega}'
+                col_optimo = f'Óptimo {bodega}'
+                
+                # Valores reales y óptimos
+                valor_real = row[col_real] if col_real in row else 0
+                valor_optimo = row[col_optimo] if col_optimo in row else 0
+                
+                try:
+                    valor_real_num = float(str(valor_real).replace(',', '')) if valor_real != 'TOTAL' else 0
+                    valor_optimo_num = float(str(valor_optimo).replace(',', '')) if valor_optimo != 'TOTAL' else 0
+                except:
+                    valor_real_num = 0
+                    valor_optimo_num = 0
+                
+                # Color del semáforo solo para la columna Real
+                if not es_total:
+                    color_fondo = calcular_color_semaforo_mvp(valor_real_num, valor_optimo_num)
+                else:
+                    color_fondo = "white"
+                
+                # Formatear valores
+                valor_real_display = f"{int(valor_real_num):,}" if valor_real_num > 0 else "0"
+                valor_optimo_display = f"{int(valor_optimo_num):,}" if valor_optimo_num > 0 else "0"
+                
+                # Celda Real (con semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: {color_fondo}; font-weight: bold;">{valor_real_display}</td>'
+                
+                # Celda Óptimo (sin semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: #f8f9fa; color: #007bff;">{valor_optimo_display}</td>'
+            
+            html += '</tr>'
+        
+        html += '</table>'
+        
+        return html
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_honduras(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
+    
+    # Leyenda del semáforo
+    st.markdown("""
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Botón de exportación a Excel con colores
+    st.markdown("---")
+    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        
+        if excel_data:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            st.download_button(
+                label="📥 Descargar Excel MVP",
+                data=excel_data,
+                file_name=f"MVP_Honduras_Semaforo_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_mvp_excel_{key_suffix}"
+            )
+            st.success("✅ Archivo Excel generado con colores de semáforo")
+
+def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
+    """Muestra la tabla de stock de códigos MVP para Costa Rica con mismo formato que Guatemala, El Salvador y Honduras"""
+    if df_stock is None or df_stock.empty:
+        st.warning("No se pudo cargar el archivo de stock para mostrar MVP")
+        return
+    
+    # Crear sección
+    professional_design.create_section_header(
+        "Stock de MVPS - Costa Rica", 
+        "Stock actual vs Stock óptimo nuevo de códigos MVP específicos",
+        "🏆"
+    )
+    
+    # Procesar datos
+    tabla_mvp = procesar_stock_mvps_costarica(df_stock)
+    
+    if tabla_mvp.empty:
+        st.warning("No se encontraron datos de códigos MVP en el stock de Costa Rica")
+        return
+    
+    # Obtener columnas Real y Óptimo
+    columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
+    columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
+    
+    # Información de códigos procesados
+    st.info(f"""
+    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
+    
+    🔧 **Nueva lógica implementada:**
+    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
+      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
+    • **39 códigos restantes**: Stock óptimo por código general
+    """)
+    
+    # Mostrar métricas resumen
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        st.metric("Total Productos MVP", f"{total_productos:,}")
+    
+    with col2:
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Real", f"{int(total_stock_real):,}")
+    
+    with col3:
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
+    
+    with col4:
+        if total_stock_optimo > 0:
+            cumplimiento = (total_stock_real / total_stock_optimo) * 100
+            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+    
+    # Crear tabla HTML con formato profesional
+    def crear_tabla_html_mvp_costarica(df):
+        """Crea tabla HTML con formato profesional para MVP Costa Rica"""
+        # Resetear índice para mostrar las columnas de información
+        df_display = df.reset_index()
+        
+        # Crear HTML de la tabla
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 9px; width: 100%; margin-top: 20px;">'
+        
+        # Obtener bodegas únicas
+        bodegas = []
+        for col in columnas_real:
+            bodega = col.replace('Real ', '')
+            bodegas.append(bodega)
+        
+        # Fila 1: Encabezado principal con bodegas
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
+        
+        # Columnas de información
+        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 70, 70, 90, 150, 60]
+        
+        for header, width in zip(info_headers, widths):
+            html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
+        
+        # Columnas de bodegas (2 columnas por bodega: Real y Óptimo)
+        for bodega in bodegas:
+            html += f'<td colspan="2" style="border: 1px solid #fff; padding: 8px; vertical-align: middle; min-width: 120px;">{bodega}</td>'
+        
+        html += '</tr>'
+        
+        # Fila 2: Sub-encabezados (Real / Óptimo)
+        html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
+        
+        # Espacios vacíos para columnas de información
+        for i in range(6):
+            html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
+        
+        # Sub-encabezados para cada bodega
+        for _ in bodegas:
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #28a745; font-size: 8px;">Real</td>'
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #007bff; font-size: 8px;">Óptimo</td>'
+        
+        html += '</tr>'
+        
+        # Filas de datos
+        for idx, row in df_display.iterrows():
+            # Verificar si es la fila TOTAL
+            es_total = (str(row.iloc[0]) == 'TOTAL')
+            
+            if es_total:
+                html += '<tr style="background-color: #f8f9fa; font-weight: bold; border-top: 3px solid #000;">'
+            else:
+                html += '<tr style="background-color: white;">'
+            
+            # Columnas de información
+            for i in range(6):
+                valor = str(row.iloc[i]) if i < len(row) else ""
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                html += f'<td style="{style}">{valor}</td>'
+            
+            # Columnas de bodegas (Real y Óptimo)
+            for bodega in bodegas:
+                col_real = f'Real {bodega}'
+                col_optimo = f'Óptimo {bodega}'
+                
+                # Valores reales y óptimos
+                valor_real = row[col_real] if col_real in row else 0
+                valor_optimo = row[col_optimo] if col_optimo in row else 0
+                
+                try:
+                    valor_real_num = float(str(valor_real).replace(',', '')) if valor_real != 'TOTAL' else 0
+                    valor_optimo_num = float(str(valor_optimo).replace(',', '')) if valor_optimo != 'TOTAL' else 0
+                except:
+                    valor_real_num = 0
+                    valor_optimo_num = 0
+                
+                # Color del semáforo solo para la columna Real
+                if not es_total:
+                    color_fondo = calcular_color_semaforo_mvp(valor_real_num, valor_optimo_num)
+                else:
+                    color_fondo = "white"
+                
+                # Formatear valores
+                valor_real_display = f"{int(valor_real_num):,}" if valor_real_num > 0 else "0"
+                valor_optimo_display = f"{int(valor_optimo_num):,}" if valor_optimo_num > 0 else "0"
+                
+                # Celda Real (con semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: {color_fondo}; font-weight: bold;">{valor_real_display}</td>'
+                
+                # Celda Óptimo (sin semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: #f8f9fa; color: #007bff;">{valor_optimo_display}</td>'
+            
+            html += '</tr>'
+        
+        html += '</table>'
+        
+        return html
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_costarica(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
+    
+    # Leyenda del semáforo
+    st.markdown("""
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Botón de exportación a Excel con colores
+    st.markdown("---")
+    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        
+        if excel_data:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            st.download_button(
+                label="📥 Descargar Excel MVP",
+                data=excel_data,
+                file_name=f"MVP_CostaRica_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 key=f"download_mvp_excel_{key_suffix}"
             )
@@ -10561,14 +12211,13 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                             valor_optimo = float(str(cell_optimo.value).replace(',', '')) if cell_optimo.value else 0
                             
                             # Aplicar semáforo a columna Real
-                            if valor_optimo > 0:
-                                color_semaforo = calcular_color_semaforo_mvp(valor_real, valor_optimo)
-                                if color_semaforo == "#d4edda":  # Verde
-                                    cell_real.fill = fill_semaforo_verde
-                                elif color_semaforo == "#fff3cd":  # Amarillo
-                                    cell_real.fill = fill_semaforo_amarillo
-                                elif color_semaforo == "#f8d7da":  # Rojo
-                                    cell_real.fill = fill_semaforo_rojo
+                            color_semaforo = calcular_color_semaforo_mvp(valor_real, valor_optimo)
+                            if color_semaforo == "#d4edda":  # Verde
+                                cell_real.fill = fill_semaforo_verde
+                            elif color_semaforo == "#fff3cd":  # Amarillo
+                                cell_real.fill = fill_semaforo_amarillo
+                            elif color_semaforo == "#f8d7da":  # Rojo
+                                cell_real.fill = fill_semaforo_rojo
                             
                             # Columna Óptimo: fondo gris claro
                             cell_optimo.fill = fill_optimo
@@ -10633,6 +12282,323 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
         st.error(f"Error al generar Excel: {str(e)}")
         return None
 
+def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
+    """Muestra la tabla de stock de códigos MVP para El Salvador con mismo formato que Guatemala"""
+    if df_stock is None or df_stock.empty:
+        st.warning("No se pudo cargar el archivo de stock para mostrar MVP")
+        return
+    
+    # Crear sección
+    professional_design.create_section_header(
+        "Stock de MVPS - El Salvador", 
+        "Stock actual vs Stock óptimo nuevo de códigos MVP específicos",
+        "🏆"
+    )
+    
+    # Procesar datos
+    tabla_mvp = procesar_stock_mvps_elsalvador(df_stock)
+    
+    if tabla_mvp.empty:
+        st.warning("No se encontraron datos de códigos MVP en el stock de El Salvador")
+        return
+    
+    # Obtener columnas Real y Óptimo
+    columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
+    columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
+    
+    # Información de códigos procesados
+    st.info(f"""
+    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
+    
+    🔧 **Nueva lógica implementada:**
+    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
+      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
+    • **39 códigos restantes**: Stock óptimo por código general
+    """)
+    
+    # Mostrar métricas resumen
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        st.metric("Total Productos MVP", f"{total_productos:,}")
+    
+    with col2:
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Real", f"{int(total_stock_real):,}")
+    
+    with col3:
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
+    
+    with col4:
+        if total_stock_optimo > 0:
+            cumplimiento = (total_stock_real / total_stock_optimo) * 100
+            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+    
+    # Crear tabla HTML con formato profesional
+    def crear_tabla_html_mvp_elsalvador(df):
+        """Crea tabla HTML con formato profesional para MVP El Salvador"""
+        # Resetear índice para mostrar las columnas de información
+        df_display = df.reset_index()
+        
+        # Crear HTML de la tabla
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 9px; width: 100%; margin-top: 20px;">'
+        
+        # Obtener bodegas únicas
+        bodegas = []
+        for col in columnas_real:
+            bodega = col.replace('Real ', '')
+            bodegas.append(bodega)
+        
+        # Fila 1: Encabezado principal con bodegas
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
+        
+        # Columnas de información
+        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 70, 70, 90, 150, 60]
+        
+        for header, width in zip(info_headers, widths):
+            html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
+        
+        # Columnas de bodegas (2 columnas por bodega: Real y Óptimo)
+        for bodega in bodegas:
+            html += f'<td colspan="2" style="border: 1px solid #fff; padding: 8px; vertical-align: middle; min-width: 120px;">{bodega}</td>'
+        
+        html += '</tr>'
+        
+        # Fila 2: Sub-encabezados (Real / Óptimo)
+        html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
+        
+        # Espacios vacíos para columnas de información
+        for i in range(6):
+            html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
+        
+        # Sub-encabezados para cada bodega
+        for _ in bodegas:
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #28a745; font-size: 8px;">Real</td>'
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #007bff; font-size: 8px;">Óptimo</td>'
+        
+        html += '</tr>'
+        
+        # Filas de datos
+        for idx, row in df_display.iterrows():
+            # Verificar si es la fila TOTAL
+            es_total = (str(row.iloc[0]) == 'TOTAL')
+            
+            if es_total:
+                html += '<tr style="background-color: #f8f9fa; font-weight: bold; border-top: 3px solid #000;">'
+            else:
+                html += '<tr style="background-color: white;">'
+            
+            # Columnas de información
+            for i in range(6):
+                valor = str(row.iloc[i]) if i < len(row) else ""
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                html += f'<td style="{style}">{valor}</td>'
+            
+            # Columnas de bodegas (Real y Óptimo)
+            for bodega in bodegas:
+                col_real = f'Real {bodega}'
+                col_optimo = f'Óptimo {bodega}'
+                
+                # Valores reales y óptimos
+                valor_real = row[col_real] if col_real in row else 0
+                valor_optimo = row[col_optimo] if col_optimo in row else 0
+                
+                try:
+                    valor_real_num = float(str(valor_real).replace(',', '')) if valor_real != 'TOTAL' else 0
+                    valor_optimo_num = float(str(valor_optimo).replace(',', '')) if valor_optimo != 'TOTAL' else 0
+                except:
+                    valor_real_num = 0
+                    valor_optimo_num = 0
+                
+                # Color del semáforo solo para la columna Real
+                if not es_total:
+                    color_fondo = calcular_color_semaforo_mvp(valor_real_num, valor_optimo_num)
+                else:
+                    color_fondo = "white"
+                
+                # Formatear valores
+                valor_real_display = f"{int(valor_real_num):,}" if valor_real_num > 0 else "0"
+                valor_optimo_display = f"{int(valor_optimo_num):,}" if valor_optimo_num > 0 else "0"
+                
+                # Celda Real (con semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: {color_fondo}; font-weight: bold;">{valor_real_display}</td>'
+                
+                # Celda Óptimo (sin semáforo)
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: #f8f9fa; color: #007bff;">{valor_optimo_display}</td>'
+            
+            html += '</tr>'
+        
+        html += '</table>'
+        
+        return html
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_elsalvador(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
+    
+    # Leyenda del semáforo
+    st.markdown("""
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Botón de exportación a Excel con colores
+    st.markdown("---")
+    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        
+        if excel_data:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            st.download_button(
+                label="📥 Descargar Excel MVP",
+                data=excel_data,
+                file_name=f"MVP_ElSalvador_Semaforo_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_mvp_excel_{key_suffix}"
+            )
+            st.success("✅ Archivo Excel generado con colores de semáforo")
+
+def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
+    """Muestra la tabla de stock de códigos MVP para Panamá"""
+    if df_stock is None or df_stock.empty:
+        st.warning("No se pudo cargar el archivo de stock para mostrar MVP")
+        return
+    
+    # Crear sección
+    professional_design.create_section_header(
+        "Stock de MVPS - Panamá", 
+        "Stock actual vs Stock óptimo nuevo de códigos MVP específicos",
+        "🏆"
+    )
+    
+    # Procesar datos
+    tabla_mvp = procesar_stock_mvps_panama(df_stock)
+    
+    if tabla_mvp.empty:
+        st.warning("No se encontraron datos de códigos MVP en el stock de Panamá")
+        return
+    
+    # Obtener columnas Real y Óptimo
+    columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
+    columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
+    
+    # Información de códigos procesados
+    st.info(f"""
+    📊 **Procesando exclusivamente 45 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
+    
+    🔧 **Nueva lógica implementada:**
+    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
+      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
+    • **38 códigos restantes**: Stock óptimo por código general
+    """)
+    
+    # Mostrar métricas resumen
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        st.metric("Total Productos MVP", f"{total_productos:,}")
+    
+    with col2:
+        total_stock_real = tabla_mvp[columnas_real].loc[tabla_mvp.index[-1]].sum()
+        st.metric("Total Stock Real", f"{int(total_stock_real):,}")
+    
+    with col3:
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[tabla_mvp.index[-1]].sum()
+        st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
+    
+    with col4:
+        if total_stock_optimo > 0:
+            cumplimiento = (total_stock_real / total_stock_optimo) * 100
+            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+    
+    # Crear tabla HTML simplificada
+    def crear_tabla_html_mvp_panama(df):
+        """Crea tabla HTML con formato profesional para MVP Panamá"""
+        df_display = df.reset_index()
+        
+        html = '<table style="border-collapse: collapse; text-align: center; font-size: 9px; width: 100%; margin-top: 20px;">'
+        
+        # HEADER
+        html += '<thead><tr style="background-color: #f8f9fa; font-weight: bold; border: 1px solid #ddd;">'
+        for col in df_display.columns:
+            html += f'<th style="border: 1px solid #ddd; padding: 8px;">{col}</th>'
+        html += '</tr></thead>'
+        
+        # BODY
+        html += '<tbody>'
+        for idx, row in df_display.iterrows():
+            bg_color = '#e3f2fd' if 'TOTAL' in str(row.iloc[0]) else ('#ffffff' if idx % 2 == 0 else '#f8f9fa')
+            html += f'<tr style="background-color: {bg_color};">'
+            
+            for col_idx, value in enumerate(row):
+                col_name = df_display.columns[col_idx]
+                cell_color = '#ffffff'
+                
+                if col_name.startswith('Real '):
+                    optimo_col = col_name.replace('Real ', 'Óptimo ')
+                    if optimo_col in df_display.columns:
+                        optimo_val = row[optimo_col]
+                        if value >= optimo_val:
+                            cell_color = '#d4edda'  # Verde
+                        else:
+                            cell_color = '#f8d7da'  # Rojo
+                elif col_name.startswith('Óptimo '):
+                    cell_color = '#e7f3ff'  # Azul claro
+                
+                html += f'<td style="border: 1px solid #ddd; padding: 6px; background-color: {cell_color};">{value}</td>'
+            html += '</tr>'
+        
+        html += '</tbody></table>'
+        return html
+    
+    # Mostrar tabla
+    st.subheader("📊 Tabla de Stock MVP - Panamá")
+    tabla_html = crear_tabla_html_mvp_panama(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
+    
+    # Leyenda de colores
+    st.markdown("""
+    **Leyenda de colores:**
+    - 🟢 **Verde**: Stock Real ≥ Stock Óptimo
+    - 🔴 **Rojo**: Stock Real < Stock Óptimo  
+    - 🔵 **Azul**: Stock Óptimo (referencia)
+    """)
+    
+    # Botón de descarga Excel simplificado
+    if st.button("📊 Generar Archivo Excel", key=f"excel_mvp_panama{key_suffix}"):
+        # Crear archivo Excel básico
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            tabla_mvp.to_excel(writer, sheet_name='MVP Stock Panama', index=True)
+        
+        st.download_button(
+            label="⬇️ Descargar Archivo Excel",
+            data=buffer.getvalue(),
+            file_name=f"MVP_Stock_Panama_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"download_excel_mvp_panama{key_suffix}"
+        )
+
+
 def main():
     """Función principal"""
     logger.info("Iniciando aplicación New Era Analytics Dashboard")
@@ -10652,8 +12618,8 @@ def main():
         "El Salvador", 
         "Honduras", 
         "Costa Rica",
-        "Panamá",
-        "🏆 MVPs (Temporal)"
+        "Panama",
+        "MVPs (Temporal)"
     ])
     
     # PESTAÑA GUATEMALA
@@ -10760,6 +12726,10 @@ def main():
                 else:
                     st.success("✅ Archivo VENTAS_GUATEMALA.csv cargado correctamente")
 
+    # CONTINUACIÓN DE MAIN() - Las pestañas restantes
+    
+    # Las pestañas restantes continúan aquí:
+    
     # PESTAÑA PANAMA
     with tab_panama:
         professional_design.create_section_header(
@@ -11173,13 +13143,12 @@ def main():
         # Crear sub-pestañas para cada país en el espacio temporal
         st.markdown("### 📁 Selecciona el País para Análisis:")
         
-        sub_tab_gt, sub_tab_sv, sub_tab_hn, sub_tab_cr, sub_tab_pa, sub_tab_mvp = st.tabs([
+        sub_tab_gt, sub_tab_sv, sub_tab_hn, sub_tab_cr, sub_tab_pa = st.tabs([
             "🇬🇹 Guatemala",
             "🇸🇻 El Salvador", 
             "🇭🇳 Honduras",
             "🇨🇷 Costa Rica",
-            "🇵🇦 Panamá",
-            "🏆 Solo MVPs"
+            "🇵🇦 Panamá"
         ])
         
         # SUB-PESTAÑA GUATEMALA TEMPORAL
@@ -11199,37 +13168,31 @@ def main():
                     st.session_state.archivo_guatemala_temp_name = archivo_guatemala_temp.name
                 
                 # Solo mostrar tabla de MVPs (sin tabla consolidada)
-                mostrar_stock_mvps_guatemala(archivo_guatemala_temp, "_temp")
+                mostrar_stock_mvps_guatemala(archivo_guatemala_temp, "_temp_guatemala")
         
         # SUB-PESTAÑA EL SALVADOR TEMPORAL
         with sub_tab_sv:
             professional_design.create_section_header(
-                "Análisis Temporal - El Salvador", 
-                "Espacio adicional para análisis completo de El Salvador",
-                "SV"
+                "Stock MVPs - El Salvador", 
+                "Análisis exclusivo de códigos MVP (Most Valuable Products)",
+                "🏆"
             )
             
             # Solo carga de archivo de stock (sin ventas)
-            archivo_salvador_temp = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "EL_SALVADOR_TEMP")
+            archivo_el_salvador_temp = data_loader.cargar_archivo("📁 Subir archivo EL_SALVADOR.csv", "EL_SALVADOR_TEMP")
             
-            if archivo_salvador_temp is not None:
-                if hasattr(archivo_salvador_temp, 'name'):
-                    st.session_state.archivo_salvador_temp_name = archivo_salvador_temp.name
+            if archivo_el_salvador_temp is not None:
+                if hasattr(archivo_el_salvador_temp, 'name'):
+                    st.session_state.archivo_el_salvador_temp_name = archivo_el_salvador_temp.name
                 
-                # Procesar y mostrar tabla consolidada solo stock
-                df_hash_temp = archivo_salvador_temp.to_dict('records')
-                selected_league = st.session_state.get('selected_league', None)
-                if selected_league == "Todas":
-                    selected_league = None
-                
-                tabla_salvador_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "El Salvador", selected_league, None)
-                mostrar_tabla_consolidada(tabla_salvador_temp, "El Salvador")
+                # Solo mostrar tabla de MVPs (igual que Guatemala)
+                mostrar_stock_mvps_elsalvador(archivo_el_salvador_temp, "_temp_elsalvador")
         
         # SUB-PESTAÑA HONDURAS TEMPORAL
         with sub_tab_hn:
             professional_design.create_section_header(
                 "Análisis Temporal - Honduras", 
-                "Espacio adicional para análisis completo de Honduras",
+                "Análisis de códigos MVP específicos para Honduras",
                 "HN"
             )
             
@@ -11240,19 +13203,14 @@ def main():
                 if hasattr(archivo_honduras_temp, 'name'):
                     st.session_state.archivo_honduras_temp_name = archivo_honduras_temp.name
                 
-                df_hash_temp = archivo_honduras_temp.to_dict('records')
-                selected_league = st.session_state.get('selected_league', None)
-                if selected_league == "Todas":
-                    selected_league = None
-                
-                tabla_honduras_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "Honduras", selected_league, None)
-                mostrar_tabla_consolidada(tabla_honduras_temp, "Honduras")
+                # Solo mostrar tabla de MVPs (igual que Guatemala y El Salvador)
+                mostrar_stock_mvps_honduras(archivo_honduras_temp, "_temp_honduras")
         
         # SUB-PESTAÑA COSTA RICA TEMPORAL
         with sub_tab_cr:
             professional_design.create_section_header(
                 "Análisis Temporal - Costa Rica", 
-                "Espacio adicional para análisis completo de Costa Rica",
+                "Análisis de códigos MVP específicos para Costa Rica",
                 "CR"
             )
             
@@ -11263,13 +13221,8 @@ def main():
                 if hasattr(archivo_costa_rica_temp, 'name'):
                     st.session_state.archivo_costa_rica_temp_name = archivo_costa_rica_temp.name
                 
-                df_hash_temp = archivo_costa_rica_temp.to_dict('records')
-                selected_league = st.session_state.get('selected_league', None)
-                if selected_league == "Todas":
-                    selected_league = None
-                
-                tabla_costa_rica_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "Costa Rica", selected_league, None)
-                mostrar_tabla_consolidada(tabla_costa_rica_temp, "Costa Rica")
+                # Solo mostrar tabla de MVPs (igual que Guatemala, El Salvador y Honduras)
+                mostrar_stock_mvps_costarica(archivo_costa_rica_temp, "_temp_costarica")
         
         # SUB-PESTAÑA PANAMÁ TEMPORAL
         with sub_tab_pa:
@@ -11286,56 +13239,9 @@ def main():
                 if hasattr(archivo_panama_temp, 'name'):
                     st.session_state.archivo_panama_temp_name = archivo_panama_temp.name
                 
-                df_hash_temp = archivo_panama_temp.to_dict('records')
-                selected_league = st.session_state.get('selected_league', None)
-                if selected_league == "Todas":
-                    selected_league = None
-                
-                tabla_panama_temp = data_processor.procesar_datos_consolidados(df_hash_temp, "PANAMA", selected_league, None)
-                mostrar_tabla_consolidada(tabla_panama_temp, "PANAMA")
+                # Solo mostrar tabla de MVPs (igual que Guatemala, El Salvador, Honduras y Costa Rica)
+                mostrar_stock_mvps_panama(archivo_panama_temp, "_temp_panama")
         
-        # SUB-PESTAÑA SOLO MVPs
-        with sub_tab_mvp:
-            st.markdown("""
-            <div style="background: linear-gradient(90deg, #ff6b35, #f7931e); 
-                        padding: 20px; border-radius: 15px; margin: 10px 0;">
-                <h3 style="color: white; text-align: center; margin: 0;">
-                    🏆 ANÁLISIS MVP EXCLUSIVO 🏆
-                </h3>
-                <p style="color: white; text-align: center; margin: 5px 0;">
-                    Vista dedicada solo para códigos MVP de Guatemala
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Información MVP
-            col_info_mvp, col_control_mvp = st.columns([2, 1])
-            
-            with col_info_mvp:
-                st.info("""
-                📋 **¿Qué son los MVPs?**
-                - **M**ost **V**aluable **P**roducts (Productos Más Valiosos)
-                - 46 códigos específicos de mayor rotación comercial
-                - Análisis detallado de stock por bodega en Guatemala
-                """)
-            
-            with col_control_mvp:
-                archivo_mvp_temp = data_loader.cargar_archivo("📁 Subir archivo GUATEMALA.csv para MVPs", "GUATEMALA_MVP_TEMP")
-                
-                if archivo_mvp_temp is not None:
-                    st.success("✅ Archivo cargado para análisis MVP")
-                    
-                    if st.button("🚀 Mostrar Análisis MVP", type="primary", key="btn_show_mvp_only"):
-                        st.session_state.show_mvp_only = True
-            
-            # Mostrar solo MVPs si se solicita
-            if st.session_state.get('show_mvp_only', False) and archivo_mvp_temp is not None:
-                st.markdown("---")
-                mostrar_stock_mvps_guatemala(archivo_mvp_temp, "_mvp_only")
-                
-                if st.button("🔽 Ocultar MVPs", key="btn_hide_mvp_only"):
-                    st.session_state.show_mvp_only = False
-                    st.rerun()
         
         # Nota explicativa final
         st.markdown("---")
