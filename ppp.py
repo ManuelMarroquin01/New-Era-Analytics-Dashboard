@@ -9946,27 +9946,30 @@ def obtener_optimos_por_tallas() -> Dict[str, Dict[str, int]]:
         "NE Puerto Barrios": "NE PTO. BARRIOS"
     }
     
-    # Stock óptimo por tallas (nuevos datos cargados) - Incluye todas las tallas específicas
+    # Stock óptimo por tallas (datos actualizados según tabla del usuario - tallas vacías = 0)
     optimos_tallas_data = {
-        "NE MIRAFLORES": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE OAKLAND": {"678": 1, "700": 2, "718": 4, "714": 4, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PORTALES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE INTER XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE CONCEPCIÓN": {"678": 1, "700": 1, "718": 4, "714": 4, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE NARANJO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PRADERA XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PERI ROOSEVELT": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE CAYALA": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE HUEHUETENANGO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE I ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE CHIMALTENANGO": {"678": 2, "700": 5, "718": 3, "714": 2, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE JUTIAPA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE VISTARES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PRADERA ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PRADERA CHIQUIMULA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PASEO ANTIGUA": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PLAZA MAGDALENA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
-        "NE PTO. BARRIOS": {"678": 1, "700": 3, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1}
+        "NE MIRAFLORES": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE OAKLAND": {"678": 0, "700": 2, "718": 4, "714": 4, "738": 2, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PORTALES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE INTER XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE CONCEPCIÓN": {"678": 0, "700": 1, "718": 4, "714": 4, "738": 2, "712": 1, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE NARANJO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PRADERA XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PERI ROOSEVELT": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE CAYALA": {"678": 0, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE OUTLET METRONORTE": {"678": 0, "700": 0, "718": 0, "714": 0, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE HUEHUETENANGO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE I ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE CHIMALTENANGO": {"678": 2, "700": 5, "718": 3, "714": 2, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE JUTIAPA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE VISTARES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PRADERA ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PRADERA CHIQUIMULA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PASEO ANTIGUA": {"678": 0, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE SANTA CLARA": {"678": 0, "700": 0, "718": 0, "714": 0, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PLAZA MAGDALENA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE METROCENTRO VILLANUEVA": {"678": 0, "700": 0, "718": 0, "714": 0, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE PTO. BARRIOS": {"678": 0, "700": 3, "718": 4, "714": 3, "738": 2, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0}
     }
     
     # Convertir nombres de tiendas de tallas a nombres del stock real
@@ -10292,10 +10295,41 @@ def obtener_optimos_por_tallas_panama() -> Dict[str, Dict[str, int]]:
     
     return optimos_dict
 
+def validar_cuadre_sm_ml(codigo: str, bodega: str, stock_sm: int, stock_ml: int, stock_optimo_codigo: int) -> bool:
+    """
+    Valida que las tallas SM y ML cuadren exactamente con el stock óptimo por código
+    SM + ML debe ser igual al stock óptimo por código
+    """
+    total_tallas = stock_sm + stock_ml
+    cuadra = total_tallas == stock_optimo_codigo
+    
+    if not cuadra:
+        print(f"⚠️  DESCUADRE - Código: {codigo}, Bodega: {bodega}")
+        print(f"   SM: {stock_sm} + ML: {stock_ml} = {total_tallas} ≠ Óptimo: {stock_optimo_codigo}")
+    
+    return cuadra
+
+def calcular_tallas_sm_ml(stock_optimo_codigo: int) -> tuple:
+    """
+    Calcula la distribución 50%-50% para tallas SM y ML
+    Retorna (stock_sm, stock_ml)
+    """
+    if stock_optimo_codigo % 2 == 0:
+        # Número par: división exacta
+        stock_sm = stock_optimo_codigo // 2
+        stock_ml = stock_optimo_codigo // 2
+    else:
+        # Número impar: SM recibe la unidad extra
+        stock_sm = (stock_optimo_codigo // 2) + 1
+        stock_ml = stock_optimo_codigo // 2
+    
+    return stock_sm, stock_ml
+
 def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     """
     Procesa los datos de stock para códigos MVP específicos en Guatemala con nueva lógica
     - Códigos con tallas específicas usan stock óptimo por tallas
+    - Códigos con tallas SM/ML usan división 50%-50% del stock óptimo por código
     - Otros códigos usan stock óptimo por código general
     - Agrega filas faltantes para tallas requeridas con stock 0
     """
@@ -10314,11 +10348,18 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Códigos que deben tener tallas específicas
+    # Códigos que deben tener tallas específicas (678-800)
     codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Tallas específicas
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
+    
+    # Tallas específicas numéricas
     tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
     
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
@@ -10380,6 +10421,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
+    # 1. Códigos con tallas numéricas (678-800)
     for codigo in codigos_con_tallas:
         # Obtener datos base del código (si existe)
         df_codigo = df_mvp_guatemala[df_mvp_guatemala['U_Estilo'].astype(str) == codigo]
@@ -10396,6 +10438,30 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
                 for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_guatemala[df_mvp_guatemala['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Guatemala
+            for bodega in bodegas_guatemala:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
                     if talla_req not in tallas_existentes:
                         # Crear nueva fila con stock 0
                         nueva_fila = datos_base.copy()
@@ -10448,9 +10514,9 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
             codigo = str(codigo_tuple[0])
             talla = str(codigo_tuple[5])  # Talla está en el índice 5
             
-            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
-                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                # CASO 1: Códigos con tallas numéricas (678-800) - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     # Paso 1: Obtener stock óptimo por código
                     stock_codigo = optimos_por_codigo[codigo][bodega]
@@ -10481,15 +10547,6 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                             talla_maxima = max(tallas_calculadas.keys(), key=lambda k: tallas_calculadas[k])
                             tallas_calculadas[talla_maxima] += diferencia
                         
-                        # Debug: verificar cálculos para primeros casos
-                        if codigo == '11591122' and bodega == 'NE Miraflores':
-                            print(f"DEBUG TALLAS - Código: {codigo}, Bodega: {bodega}")
-                            print(f"  Stock código: {stock_codigo}")
-                            print(f"  Tallas base: {tallas_base}")
-                            print(f"  Factor: {factor}")
-                            print(f"  Tallas calculadas finales: {tallas_calculadas}")
-                            print(f"  Suma final: {sum(tallas_calculadas.values())}")
-                        
                         # Paso 6: Asignar valor para esta talla específica
                         if talla in tallas_calculadas:
                             tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
@@ -10499,8 +10556,26 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                         tabla_final.loc[codigo_tuple, col_optimo] = 0
                 else:
                     tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
+            elif codigo in codigos_con_tallas_sm_ml and talla in tallas_sm_ml:
+                # CASO 2: Códigos con tallas SM y ML - División 50%-50%
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    stock_sm, stock_ml = calcular_tallas_sm_ml(stock_codigo)
+                    
+                    # Asignar según la talla
+                    if talla == 'SM':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_sm
+                    elif talla == 'ML':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_ml
+                    
+                    # Validar cuadre
+                    validar_cuadre_sm_ml(codigo, bodega, stock_sm, stock_ml, stock_codigo)
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
             else:
-                # Usar stock óptimo por código (sin cambios)
+                # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
                     tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
     
@@ -10533,11 +10608,18 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA
+    # Códigos que deben tener tallas específicas (678-800)
     codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Tallas específicas
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
+    
+    # Tallas específicas numéricas
     tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
     
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
@@ -10593,6 +10675,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
+    # 1. Códigos con tallas numéricas (678-800)
     for codigo in codigos_con_tallas:
         # Obtener datos base del código (si existe)
         df_codigo = df_mvp_elsalvador[df_mvp_elsalvador['U_Estilo'].astype(str) == codigo]
@@ -10609,6 +10692,30 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
                 for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_elsalvador[df_mvp_elsalvador['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de El Salvador
+            for bodega in bodegas_elsalvador:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
                     if talla_req not in tallas_existentes:
                         # Crear nueva fila con stock 0
                         nueva_fila = datos_base.copy()
@@ -10666,9 +10773,9 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         for bodega in bodegas_ordenadas:
             col_optimo = f"Óptimo {bodega}"
             
-            # Determinar si usar stock por código o por tallas
+            # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
-                # Lógica de tallas (igual que Guatemala)
+                # CASO 1: Códigos con tallas numéricas (678-800) - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     stock_codigo = optimos_por_codigo[codigo][bodega]
                     tallas_base = optimos_por_tallas[bodega]
@@ -10698,8 +10805,26 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                         tabla_final.loc[codigo_tuple, col_optimo] = 0
                 else:
                     tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
+            elif codigo in codigos_con_tallas_sm_ml and talla in tallas_sm_ml:
+                # CASO 2: Códigos con tallas SM y ML - División 50%-50%
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    stock_sm, stock_ml = calcular_tallas_sm_ml(stock_codigo)
+                    
+                    # Asignar según la talla
+                    if talla == 'SM':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_sm
+                    elif talla == 'ML':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_ml
+                    
+                    # Validar cuadre
+                    validar_cuadre_sm_ml(codigo, bodega, stock_sm, stock_ml, stock_codigo)
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
             else:
-                # Usar stock óptimo por código (lógica simple)
+                # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
                     tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
     
@@ -10732,11 +10857,18 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA Y EL SALVADOR
+    # Códigos que deben tener tallas específicas (678-800)
     codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Tallas específicas
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
+    
+    # Tallas específicas numéricas
     tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
     
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
@@ -10792,6 +10924,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
+    # 1. Códigos con tallas numéricas (678-800)
     for codigo in codigos_con_tallas:
         # Obtener datos base del código (si existe)
         df_codigo = df_mvp_honduras[df_mvp_honduras['U_Estilo'].astype(str) == codigo]
@@ -10808,6 +10941,30 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
                 for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_honduras[df_mvp_honduras['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Honduras
+            for bodega in bodegas_honduras:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
                     if talla_req not in tallas_existentes:
                         # Crear nueva fila con stock 0
                         nueva_fila = datos_base.copy()
@@ -10860,9 +11017,9 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
             codigo = str(codigo_tuple[0])
             talla = str(codigo_tuple[5])  # Talla está en el índice 5
             
-            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
-                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                # CASO 1: Códigos con tallas numéricas (678-800) - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     # Paso 1: Obtener stock óptimo por código
                     stock_codigo = optimos_por_codigo[codigo][bodega]
@@ -10897,8 +11054,28 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
                         # Paso 6: Asignar valor calculado si la talla coincide
                         if talla in tallas_calculadas:
                             tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
+            elif codigo in codigos_con_tallas_sm_ml and talla in tallas_sm_ml:
+                # CASO 2: Códigos con tallas SM y ML - División 50%-50%
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    stock_sm, stock_ml = calcular_tallas_sm_ml(stock_codigo)
+                    
+                    # Asignar según la talla
+                    if talla == 'SM':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_sm
+                    elif talla == 'ML':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_ml
+                    
+                    # Validar cuadre
+                    validar_cuadre_sm_ml(codigo, bodega, stock_sm, stock_ml, stock_codigo)
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
             else:
-                # Usar stock óptimo por código (sin cambios)
+                # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
                     tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
     
@@ -10931,11 +11108,18 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Códigos que deben tener tallas específicas - MISMOS QUE GUATEMALA, EL SALVADOR Y HONDURAS
+    # Códigos que deben tener tallas específicas (678-800)
     codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Tallas específicas
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
+    
+    # Tallas específicas numéricas
     tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
     
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
@@ -10989,6 +11173,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
+    # 1. Códigos con tallas numéricas (678-800)
     for codigo in codigos_con_tallas:
         # Obtener datos base del código (si existe)
         df_codigo = df_mvp_costarica[df_mvp_costarica['U_Estilo'].astype(str) == codigo]
@@ -11005,6 +11190,30 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
                 for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_costarica[df_mvp_costarica['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Costa Rica
+            for bodega in bodegas_costarica:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
                     if talla_req not in tallas_existentes:
                         # Crear nueva fila con stock 0
                         nueva_fila = datos_base.copy()
@@ -11058,9 +11267,9 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
             codigo = str(codigo_tuple[0])
             talla = str(codigo_tuple[5])  # Talla está en el índice 5
             
-            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
-                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                # CASO 1: Códigos con tallas numéricas (678-800) - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     # Paso 1: Obtener stock óptimo por código
                     stock_codigo = optimos_por_codigo[codigo][bodega]
@@ -11095,8 +11304,28 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
                         # Paso 6: Asignar valor calculado si la talla coincide
                         if talla in tallas_calculadas:
                             tabla_final.loc[codigo_tuple, col_optimo] = tallas_calculadas[talla]
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
+            elif codigo in codigos_con_tallas_sm_ml and talla in tallas_sm_ml:
+                # CASO 2: Códigos con tallas SM y ML - División 50%-50%
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    stock_sm, stock_ml = calcular_tallas_sm_ml(stock_codigo)
+                    
+                    # Asignar según la talla
+                    if talla == 'SM':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_sm
+                    elif talla == 'ML':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_ml
+                    
+                    # Validar cuadre
+                    validar_cuadre_sm_ml(codigo, bodega, stock_sm, stock_ml, stock_codigo)
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
             else:
-                # Usar stock óptimo por código (sin cambios)
+                # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
                     tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
     
@@ -11129,11 +11358,18 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Códigos que deben tener tallas específicas
+    # Códigos que deben tener tallas específicas (678-800)
     codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Tallas específicas
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
+    
+    # Tallas específicas numéricas
     tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
     
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
@@ -11190,6 +11426,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
+    # 1. Códigos con tallas numéricas (678-800)
     for codigo in codigos_con_tallas:
         # Obtener datos base del código (si existe)
         df_codigo = df_mvp_panama[df_mvp_panama['U_Estilo'].astype(str) == codigo]
@@ -11206,6 +11443,30 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
                 for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_panama[df_mvp_panama['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Panamá
+            for bodega in bodegas_panama:
+                # Verificar qué tallas tiene este código en esta bodega
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
                     if talla_req not in tallas_existentes:
                         # Crear nueva fila con stock 0
                         nueva_fila = datos_base.copy()
@@ -11258,9 +11519,9 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
             codigo = str(codigo_tuple[0])
             talla = str(codigo_tuple[5])  # Talla está en el índice 5
             
-            # Determinar si usar stock por código o por tallas (NUEVA LÓGICA)
+            # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
-                # NUEVA LÓGICA: Calcular tallas basado en código ÷ 12
+                # CASO 1: Códigos con tallas numéricas (678-800) - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     # Paso 1: Obtener stock óptimo por código
                     stock_codigo = optimos_por_codigo[codigo][bodega]
