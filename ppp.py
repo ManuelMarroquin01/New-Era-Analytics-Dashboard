@@ -9895,16 +9895,16 @@ def obtener_optimos_por_tallas_elsalvador() -> Dict[str, Dict[str, int]]:
         "NEW ERA MULTIPLAZA": "NE MULTIPLAZA"
     }
     
-    # Stock óptimo por tallas El Salvador
+    # Stock óptimo por tallas El Salvador - Datos correctos según tabla del usuario (todas suman 12)
     optimos_tallas_data_elsalvador = {
-        "NE MULTIPLAZA": {"678": 1, "700": 1, "718": 2, "714": 4, "738": 2, "712": 2},
-        "NE EL PASEO": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2},
-        "NE METROCENTRO": {"678": 1, "700": 2, "718": 2, "714": 3, "738": 2, "712": 2},
-        "NE USULUTAN": {"700": 1, "718": 1, "714": 3, "738": 3, "712": 2, "758": 1, "734": 1},
-        "NE LOURDES OUTLET": {},  # Sin distribución de tallas
-        "NE SANTA ANA": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2},
-        "NE SAN MIGUEL": {"700": 1, "718": 1, "714": 3, "738": 3, "712": 2, "758": 1, "734": 1},
-        "NE SOYAPANGO": {"678": 1, "700": 1, "718": 2, "714": 3, "738": 3, "712": 2}
+        "NE MULTIPLAZA": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 4, "712": 2, "758": 2, "734": 0, "778": 0, "800": 0},      # suma: 12
+        "NE EL PASEO": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 3, "712": 3, "758": 2, "734": 0, "778": 0, "800": 0},        # suma: 12
+        "NE METROCENTRO": {"678": 0, "700": 1, "718": 2, "714": 2, "738": 3, "712": 2, "758": 2, "734": 0, "778": 0, "800": 0},     # suma: 12
+        "NE USULUTAN": {"678": 0, "700": 0, "718": 1, "714": 1, "738": 3, "712": 3, "758": 2, "734": 1, "778": 1, "800": 0},        # suma: 12
+        "NE LOURDES OUTLET": {"678": 0, "700": 0, "718": 0, "714": 0, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},  # suma: 0 (sin distribución)
+        "NE SANTA ANA": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 3, "712": 3, "758": 2, "734": 0, "778": 0, "800": 0},       # suma: 12
+        "NE SAN MIGUEL": {"678": 0, "700": 0, "718": 1, "714": 1, "738": 3, "712": 3, "758": 2, "734": 1, "778": 1, "800": 0},      # suma: 12
+        "NE SOYAPANGO": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 3, "712": 3, "758": 2, "734": 0, "778": 0, "800": 0}        # suma: 12
     }
     
     # Convertir nombres de tiendas de tallas a nombres del stock real
@@ -9946,27 +9946,27 @@ def obtener_optimos_por_tallas() -> Dict[str, Dict[str, int]]:
         "NE Puerto Barrios": "NE PTO. BARRIOS"
     }
     
-    # Stock óptimo por tallas (nuevos datos cargados)
+    # Stock óptimo por tallas (nuevos datos cargados) - Incluye todas las tallas específicas
     optimos_tallas_data = {
-        "NE MIRAFLORES": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2},
-        "NE OAKLAND": {"700": 2, "718": 4, "714": 4, "738": 2},
-        "NE PORTALES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE INTER XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE CONCEPCIÓN": {"700": 1, "718": 4, "714": 4, "738": 2, "712": 1},
-        "NE NARANJO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PRADERA XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PERI ROOSEVELT": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE CAYALA": {"700": 2, "718": 4, "714": 3, "738": 2, "712": 1},
-        "NE HUEHUETENANGO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE I ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE CHIMALTENANGO": {"678": 2, "700": 5, "718": 3, "714": 2},
-        "NE JUTIAPA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE VISTARES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PRADERA ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PRADERA CHIQUIMULA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PASEO ANTIGUA": {"700": 2, "718": 4, "714": 3, "738": 2, "712": 1},
-        "NE PLAZA MAGDALENA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1},
-        "NE PTO. BARRIOS": {"700": 3, "718": 4, "714": 3, "738": 2}
+        "NE MIRAFLORES": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE OAKLAND": {"678": 1, "700": 2, "718": 4, "714": 4, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PORTALES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE INTER XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE CONCEPCIÓN": {"678": 1, "700": 1, "718": 4, "714": 4, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE NARANJO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PRADERA XELA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PERI ROOSEVELT": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE CAYALA": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE HUEHUETENANGO": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE I ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE CHIMALTENANGO": {"678": 2, "700": 5, "718": 3, "714": 2, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE JUTIAPA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE VISTARES": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PRADERA ESCUINTLA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PRADERA CHIQUIMULA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PASEO ANTIGUA": {"678": 1, "700": 2, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PLAZA MAGDALENA": {"678": 2, "700": 2, "718": 4, "714": 3, "738": 1, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1},
+        "NE PTO. BARRIOS": {"678": 1, "700": 3, "718": 4, "714": 3, "738": 2, "712": 1, "758": 1, "734": 1, "778": 1, "800": 1}
     }
     
     # Convertir nombres de tiendas de tallas a nombres del stock real
@@ -9989,56 +9989,57 @@ def obtener_optimos_mvp_honduras() -> Dict[str, Dict[str, int]]:
         "NE – City Mall Tegucigalpa": "CITY MALL",
         "NE – Mega Mall SPS": "MEGA MALL",
         "NE – Multiplaza Tegucigalpa": "MULTIPLAZA",
-        "NE –Multiplaza SPS": "NE MULTIPLAZA TEGU"
+        "NE –Multiplaza SPS": "NE MULTIPLAZA TEGU",
+        "NEO – Megaplaza La Ceiba": "NEO CEIBA"
     }
     
-    # Datos de stock óptimo por código para Honduras
+    # Datos de stock óptimo por código para Honduras - Corregidos según tabla del usuario
     optimos_codigo_data = {
-        '10030709': {'MID': 12, 'MULTIPLAZA': 12, 'MEGA MALL': 20, 'CITY MALL': 12, 'CASCADAS': 20, 'NE MULTIPLAZA TEGU': 20, 'NE CITY MSLL SPS': 20},
-        '10030708': {'MID': 6, 'MULTIPLAZA': 6, 'MEGA MALL': 10, 'CITY MALL': 6, 'CASCADAS': 10, 'NE MULTIPLAZA TEGU': 10, 'NE CITY MSLL SPS': 10},
-        '10112874': {'MID': 3, 'MULTIPLAZA': 3, 'MEGA MALL': 6, 'CITY MALL': 3, 'CASCADAS': 6, 'NE MULTIPLAZA TEGU': 6, 'NE CITY MSLL SPS': 6},
-        '11591122': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591128': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591150': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591175': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70331909': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70331911': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70331962': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10975804': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10975815': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10975835': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70192970': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70353249': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70353266': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70360899': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70360903': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70428987': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70430338': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70457634': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591024': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591025': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591026': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591043': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591046': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591047': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591077': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11591078': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11941921': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70556851': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70556867': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70556869': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '70558225': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10047511': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10047531': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '10047538': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11405605': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '11405614': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '12650335': {'MID': 24, 'MULTIPLAZA': 48, 'MEGA MALL': 60, 'CITY MALL': 60, 'CASCADAS': 60, 'NE MULTIPLAZA TEGU': 48, 'NE CITY MSLL SPS': 48},
-        '12650337': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '12650340': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '12650342': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '12650343': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
-        '12650344': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36},
+        '10030709': {'MID': 12, 'MULTIPLAZA': 20, 'MEGA MALL': 12, 'CITY MALL': 20, 'CASCADAS': 12, 'NE MULTIPLAZA TEGU': 12, 'NE CITY MSLL SPS': 20, 'NEO CEIBA': 0},
+        '10030708': {'MID': 6, 'MULTIPLAZA': 10, 'MEGA MALL': 6, 'CITY MALL': 10, 'CASCADAS': 6, 'NE MULTIPLAZA TEGU': 6, 'NE CITY MSLL SPS': 10, 'NEO CEIBA': 0},
+        '10112874': {'MID': 3, 'MULTIPLAZA': 6, 'MEGA MALL': 3, 'CITY MALL': 6, 'CASCADAS': 3, 'NE MULTIPLAZA TEGU': 3, 'NE CITY MSLL SPS': 6, 'NEO CEIBA': 0},
+        '11591122': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591128': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591150': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591175': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70331909': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70331911': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70331962': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10975804': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10975815': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10975835': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70192970': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70353249': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70353266': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70360899': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70360903': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70428987': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70430338': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70457634': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591024': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591025': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591026': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591043': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591046': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591047': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591077': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11591078': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11941921': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70556851': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70556867': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70556869': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '70558225': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10047511': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10047531': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '10047538': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11405605': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '11405614': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '12650335': {'MID': 24, 'MULTIPLAZA': 60, 'MEGA MALL': 48, 'CITY MALL': 60, 'CASCADAS': 60, 'NE MULTIPLAZA TEGU': 24, 'NE CITY MSLL SPS': 48, 'NEO CEIBA': 0},
+        '12650337': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '12650340': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '12650342': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '12650343': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
+        '12650344': {'MID': 18, 'MULTIPLAZA': 48, 'MEGA MALL': 36, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 18, 'NE CITY MSLL SPS': 36, 'NEO CEIBA': 0},
         '11169822': {'MID': 18, 'MULTIPLAZA': 36, 'MEGA MALL': 48, 'CITY MALL': 48, 'CASCADAS': 48, 'NE MULTIPLAZA TEGU': 36, 'NE CITY MSLL SPS': 36}
     }
     
@@ -10067,17 +10068,19 @@ def obtener_optimos_por_tallas_honduras() -> Dict[str, Dict[str, int]]:
         "NE – City Mall Tegucigalpa": "NE CITY MALL TEGUCIGALPA",
         "NE – Mega Mall SPS": "NE MEGA MALL SAN PEDRO SULA",
         "NE – Multiplaza Tegucigalpa": "NE MULTIPLAZA TEGUCIGALPA",
-        "NE –Multiplaza SPS": "NE MULTIPLAZA SAN PEDRO SULA"
+        "NE –Multiplaza SPS": "NE MULTIPLAZA SAN PEDRO SULA",
+        "NEO – Megaplaza La Ceiba": "NEO MEGAPLAZA LA CEIBA"
     }
     
-    # Datos de stock óptimo por tallas para Honduras (6 tiendas)
+    # Datos de stock óptimo por tallas para Honduras - Datos correctos según tabla del usuario (todas suman 12)
     optimos_tallas_data = {
-        "NE CITY MALL TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
-        "NE MULTIPLAZA TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
-        "NE CASCADAS MALL TEGUCIGALPA": {'678': 1, '700': 2, '718': 2, '714': 3, '738': 3, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0},
-        "NE MEGA MALL SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0},
-        "NE MULTIPLAZA SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0},
-        "NE CITY MALL SAN PEDRO SULA": {'678': 1, '700': 1, '718': 2, '714': 3, '738': 3, '712': 1, '758': 1, '734': 0, '778': 0, '800': 0}
+        "NE CITY MALL TEGUCIGALPA": {'678': 0, '700': 1, '718': 2, '714': 2, '738': 3, '712': 3, '758': 1, '734': 0, '778': 0, '800': 0},       # suma: 12
+        "NE MULTIPLAZA TEGUCIGALPA": {'678': 0, '700': 1, '718': 2, '714': 2, '738': 3, '712': 3, '758': 1, '734': 0, '778': 0, '800': 0},      # suma: 12
+        "NE CASCADAS MALL TEGUCIGALPA": {'678': 0, '700': 1, '718': 2, '714': 2, '738': 3, '712': 3, '758': 1, '734': 0, '778': 0, '800': 0},  # suma: 12
+        "NE MEGA MALL SAN PEDRO SULA": {'678': 0, '700': 1, '718': 1, '714': 2, '738': 3, '712': 3, '758': 1, '734': 1, '778': 0, '800': 0},    # suma: 12
+        "NE MULTIPLAZA SAN PEDRO SULA": {'678': 0, '700': 1, '718': 1, '714': 2, '738': 3, '712': 3, '758': 1, '734': 1, '778': 0, '800': 0},   # suma: 12
+        "NE CITY MALL SAN PEDRO SULA": {'678': 0, '700': 1, '718': 1, '714': 2, '738': 3, '712': 3, '758': 1, '734': 1, '778': 0, '800': 0},    # suma: 12
+        "NEO MEGAPLAZA LA CEIBA": {'678': 0, '700': 0, '718': 0, '714': 0, '738': 0, '712': 0, '758': 0, '734': 0, '778': 0, '800': 0}           # suma: 0 (sin distribución)
     }
     
     # Convertir usando mapeo de tiendas
@@ -10172,9 +10175,9 @@ def obtener_optimos_por_tallas_costarica() -> Dict[str, Dict[str, int]]:
         "NE City Mall": "NE CITY MALL ALAJUELA"
     }
     
-    # Datos de stock óptimo por tallas para Costa Rica (1 tienda)
+    # Datos de stock óptimo por tallas para Costa Rica (1 tienda) - Incluye todas las tallas específicas
     optimos_tallas_data = {
-        "NE CITY MALL ALAJUELA": {'678': 1, '700': 2, '718': 3, '714': 3, '738': 2, '712': 1, '758': 0, '734': 0, '778': 0, '800': 0}
+        "NE CITY MALL ALAJUELA": {'678': 0, '700': 1, '718': 2, '714': 3, '738': 3, '712': 2, '758': 1, '734': 0, '778': 0, '800': 0}
     }
     
     # Convertir usando mapeo de tiendas
@@ -10191,63 +10194,62 @@ def obtener_optimos_mvp_panama() -> Dict[str, Dict[str, int]]:
     Retorna diccionario con cantidades óptimas por código y bodega para Panamá
     {codigo: {bodega: cantidad_optima}}
     """
-    # Mapeo de nombres de tiendas: Stock Real (base) -> Stock Códigos -> Stock Tallas
+    # Mapeo de nombres de tiendas: Stock Real (archivo CSV) -> Stock Códigos
     mapeo_tiendas = {
-        "MID": "MID",
-        "MULTIPLAZA PANAMA": "MULTIPLAZA PANAMA", 
-        "WESTLAND": "WESTLAND",
-        "METROMALL": "METROMALL",
-        "ALBROOK": "ALBROOK",
-        "KIOSCO T1": "KIOSCO T1"
+        "NE Albrookmall": "ALBROOK",
+        "NE Metromall": "METROMALL", 
+        "NE Multiplaza Panamá": "MULTIPLAZA PANAMA",
+        "NE Westland": "WESTLAND"
     }
     
     # Stock óptimo por códigos (datos de Panamá)
     optimos_data = {
-        "10030709": {"MID": 20, "MULTIPLAZA PANAMA": 12, "WESTLAND": 20, "METROMALL": 18, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10030708": {"MID": 10, "MULTIPLAZA PANAMA": 6, "WESTLAND": 10, "METROMALL": 8, "ALBROOK": 8, "KIOSCO T1": 0},
-        "10112874": {"MID": 6, "MULTIPLAZA PANAMA": 3, "WESTLAND": 6, "METROMALL": 3, "ALBROOK": 3, "KIOSCO T1": 0},
-        "11591122": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591128": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591150": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591175": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70331909": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70331911": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70331962": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10975804": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10975815": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10975835": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70192970": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70353249": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70353266": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70360899": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70360903": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70428987": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70430338": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70457634": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591024": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591025": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591026": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591043": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591046": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591047": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591077": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11591078": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11941921": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70556851": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70556867": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70556869": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "70558225": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10047511": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10047531": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "10047538": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11405605": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "11405614": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "12650335": {"MID": 60, "MULTIPLAZA PANAMA": 24, "WESTLAND": 48, "METROMALL": 48, "ALBROOK": 24, "KIOSCO T1": 0},
-        "12650337": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "12650340": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "12650342": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "12650343": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0},
-        "12650344": {"MID": 48, "MULTIPLAZA PANAMA": 18, "WESTLAND": 36, "METROMALL": 36, "ALBROOK": 18, "KIOSCO T1": 0}
+        "10030709": {"MULTIPLAZA PANAMA": 20, "WESTLAND": 12, "METROMALL": 20, "ALBROOK": 18},
+        "10030708": {"MULTIPLAZA PANAMA": 10, "WESTLAND": 6, "METROMALL": 10, "ALBROOK": 8},
+        "10112874": {"MULTIPLAZA PANAMA": 6, "WESTLAND": 3, "METROMALL": 6, "ALBROOK": 3},
+        "11591122": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591128": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591150": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591175": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70331909": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70331911": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70331962": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10975804": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10975815": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10975835": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70192970": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70353249": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70353266": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70360899": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70360903": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70428987": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70430338": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70457634": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591024": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591025": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591026": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591043": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591046": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591047": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591077": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11591078": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11941921": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70556851": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70556867": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70556869": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "70558225": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10047511": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10047531": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "10047538": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11405605": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11405614": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "12650335": {"MULTIPLAZA PANAMA": 60, "WESTLAND": 24, "METROMALL": 48, "ALBROOK": 48},
+        "12650337": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "12650340": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "12650342": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "12650343": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "12650344": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36},
+        "11169822": {"MULTIPLAZA PANAMA": 48, "WESTLAND": 18, "METROMALL": 36, "ALBROOK": 36}
     }
     
     # Convertir nombres de tiendas de códigos a nombres del stock real
@@ -10266,22 +10268,20 @@ def obtener_optimos_por_tallas_panama() -> Dict[str, Dict[str, int]]:
     Retorna diccionario con cantidades óptimas por talla y tienda para Panamá
     {tienda: {talla: cantidad_optima}}
     """
-    # Mapeo de nombres de tiendas: Stock Real (base) -> Stock Tallas 
+    # Mapeo de nombres de tiendas: Stock Real (archivo CSV) -> Stock Tallas 
     mapeo_tiendas_tallas = {
-        "MID": "MID",
-        "MULTIPLAZA PANAMA": "NE MULTIPLAZA PTY",
-        "WESTLAND": "NE WESTLAND OUTLET",
-        "METROMALL": "NE METROMALL", 
-        "ALBROOK": "NE ALBROOK MALL",
-        "KIOSCO T1": "KIOSCO T1"
+        "NE Multiplaza Panamá": "NE MULTIPLAZA PTY",
+        "NE Westland": "NE WESTLAND OUTLET",
+        "NE Metromall": "NE METROMALL", 
+        "NE Albrookmall": "NE ALBROOK MALL"
     }
     
-    # Stock óptimo por tallas (datos de Panamá)
+    # Stock óptimo por tallas (datos de Panamá) - Incluye todas las tallas específicas
     optimos_tallas_data = {
-        "NE MULTIPLAZA PTY": {"678": 1, "700": 1, "718": 3, "714": 3, "738": 1, "712": 2, "758": 1},
-        "NE METROMALL": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1},
-        "NE ALBROOK MALL": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1},
-        "KIOSCO T1": {"700": 1, "718": 2, "714": 4, "738": 3, "712": 1}
+        "NE MULTIPLAZA PTY": {"678": 0, "700": 1, "718": 1, "714": 3, "738": 3, "712": 1, "758": 2, "734": 1, "778": 0, "800": 0},
+        "NE WESTLAND OUTLET": {"678": 0, "700": 0, "718": 0, "714": 0, "738": 0, "712": 0, "758": 0, "734": 0, "778": 0, "800": 0},
+        "NE METROMALL": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 4, "712": 3, "758": 1, "734": 0, "778": 0, "800": 0},
+        "NE ALBROOK MALL": {"678": 0, "700": 1, "718": 1, "714": 2, "738": 4, "712": 3, "758": 1, "734": 0, "778": 0, "800": 0}
     }
     
     # Convertir nombres de tiendas de tallas a nombres del stock real
@@ -10393,19 +10393,16 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Verificar qué tallas tiene este código en esta bodega
                 tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
-                # Obtener tallas que debería tener según el stock óptimo por tallas
-                if bodega in optimos_por_tallas:
-                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
-                    
-                    # Agregar filas para tallas faltantes
-                    for talla_req in tallas_requeridas:
-                        if talla_req not in tallas_existentes:
-                            # Crear nueva fila con stock 0
-                            nueva_fila = datos_base.copy()
-                            nueva_fila['Bodega'] = bodega
-                            nueva_fila[columna_talla] = talla_req
-                            nueva_fila['Stock_Actual'] = 0
-                            filas_adicionales.append(nueva_fila)
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
     
     # Agregar filas adicionales al DataFrame
     if filas_adicionales:
@@ -10609,19 +10606,16 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Verificar qué tallas tiene este código en esta bodega
                 tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
-                # Obtener tallas que debería tener según el stock óptimo por tallas
-                if bodega in optimos_por_tallas:
-                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
-                    
-                    # Agregar filas para tallas faltantes
-                    for talla_req in tallas_requeridas:
-                        if talla_req not in tallas_existentes:
-                            # Crear nueva fila con stock 0
-                            nueva_fila = datos_base.copy()
-                            nueva_fila['Bodega'] = bodega
-                            nueva_fila[columna_talla] = talla_req
-                            nueva_fila['Stock_Actual'] = 0
-                            filas_adicionales.append(nueva_fila)
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
     
     # Agregar filas faltantes al DataFrame
     if filas_adicionales:
@@ -10781,7 +10775,8 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     # Obtener bodegas de Honduras
     bodegas_honduras = [
         "NE – Cascadas Mall Tegucigalpa", "NE – CITY MALL SP", "NE – City Mall Tegucigalpa",
-        "NE – Mega Mall SPS", "NE – Multiplaza Tegucigalpa", "NE –Multiplaza SPS"
+        "NE – Mega Mall SPS", "NE – Multiplaza Tegucigalpa", "NE –Multiplaza SPS",
+        "NEO – Megaplaza La Ceiba"
     ]
     
     # Filtrar solo bodegas de Honduras
@@ -10810,19 +10805,16 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Verificar qué tallas tiene este código en esta bodega
                 tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
-                # Obtener tallas que debería tener según el stock óptimo por tallas
-                if bodega in optimos_por_tallas:
-                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
-                    
-                    # Agregar filas para tallas faltantes
-                    for talla_req in tallas_requeridas:
-                        if talla_req not in tallas_existentes:
-                            # Crear nueva fila con stock 0
-                            nueva_fila = datos_base.copy()
-                            nueva_fila['Bodega'] = bodega
-                            nueva_fila[columna_talla] = talla_req
-                            nueva_fila['Stock_Actual'] = 0
-                            filas_adicionales.append(nueva_fila)
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
     
     # Agregar filas faltantes al DataFrame
     if filas_adicionales:
@@ -11010,19 +11002,16 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Verificar qué tallas tiene este código en esta bodega
                 tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
-                # Obtener tallas que debería tener según el stock óptimo por tallas
-                if bodega in optimos_por_tallas:
-                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
-                    
-                    # Agregar filas para tallas faltantes
-                    for talla_req in tallas_requeridas:
-                        if talla_req not in tallas_existentes:
-                            # Crear nueva fila con stock 0
-                            nueva_fila = datos_base.copy()
-                            nueva_fila['Bodega'] = bodega
-                            nueva_fila[columna_talla] = talla_req
-                            nueva_fila['Stock_Actual'] = 0
-                            filas_adicionales.append(nueva_fila)
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
     
     
     # Agregar filas faltantes al DataFrame
@@ -11185,7 +11174,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Obtener bodegas de Panamá
     bodegas_panama = [
-        "MID", "MULTIPLAZA PANAMA", "WESTLAND", "METROMALL", "ALBROOK", "KIOSCO T1"
+        "NE Albrookmall", "NE Metromall", "NE Multiplaza Panamá", "NE Westland"
     ]
     
     # Filtrar solo bodegas de Panamá
@@ -11214,19 +11203,16 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
                 # Verificar qué tallas tiene este código en esta bodega
                 tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
                 
-                # Obtener tallas que debería tener según el stock óptimo por tallas
-                if bodega in optimos_por_tallas:
-                    tallas_requeridas = list(optimos_por_tallas[bodega].keys())
-                    
-                    # Agregar filas para tallas faltantes
-                    for talla_req in tallas_requeridas:
-                        if talla_req not in tallas_existentes:
-                            # Crear nueva fila con stock 0
-                            nueva_fila = datos_base.copy()
-                            nueva_fila['Bodega'] = bodega
-                            nueva_fila[columna_talla] = talla_req
-                            nueva_fila['Stock_Actual'] = 0
-                            filas_adicionales.append(nueva_fila)
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        filas_adicionales.append(nueva_fila)
     
     # Agregar filas adicionales al DataFrame
     if filas_adicionales:
@@ -11634,7 +11620,7 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Botón de exportación a Excel con colores
     st.markdown("---")
     if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
-        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Guatemala")
         
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -11828,7 +11814,7 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Botón de exportación a Excel con colores
     st.markdown("---")
     if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
-        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Honduras")
         
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -12022,7 +12008,7 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Botón de exportación a Excel con colores
     st.markdown("---")
     if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
-        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "CostaRica")
         
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -12035,7 +12021,7 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
             )
             st.success("✅ Archivo Excel generado con colores de semáforo")
 
-def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[str], columnas_optimo: List[str]) -> bytes:
+def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[str], columnas_optimo: List[str], pais: str = "Guatemala") -> bytes:
     """
     Exporta la tabla MVP a Excel con formato profesional y colores de semáforo
     """
@@ -12055,11 +12041,12 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
         df_export.columns = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla'] + list(df_export.columns[6:])
         
         # Crear workbook y worksheet
+        sheet_name = f'MVP_{pais}'
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df_export.to_excel(writer, sheet_name='MVP_Guatemala', index=False)
+            df_export.to_excel(writer, sheet_name=sheet_name, index=False)
             
             # Obtener worksheet para formatear
-            worksheet = writer.sheets['MVP_Guatemala']
+            worksheet = writer.sheets[sheet_name]
             
             # Configurar estilos
             # Fuentes
@@ -12463,7 +12450,7 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Botón de exportación a Excel con colores
     st.markdown("---")
     if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
-        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo)
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "ElSalvador")
         
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -12532,42 +12519,97 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Crear tabla HTML simplificada
     def crear_tabla_html_mvp_panama(df):
-        """Crea tabla HTML con formato profesional para MVP Panamá"""
+        """Crea tabla HTML con formato profesional para MVP Panamá - MISMO FORMATO QUE GUATEMALA"""
+        # Resetear índice para mostrar las columnas de información
         df_display = df.reset_index()
         
+        # Crear HTML de la tabla
         html = '<table style="border-collapse: collapse; text-align: center; font-size: 9px; width: 100%; margin-top: 20px;">'
         
-        # HEADER
-        html += '<thead><tr style="background-color: #f8f9fa; font-weight: bold; border: 1px solid #ddd;">'
-        for col in df_display.columns:
-            html += f'<th style="border: 1px solid #ddd; padding: 8px;">{col}</th>'
-        html += '</tr></thead>'
+        # Obtener bodegas únicas
+        bodegas = []
+        for col in df.columns:
+            if col.startswith('Real '):
+                bodega = col.replace('Real ', '')
+                bodegas.append(bodega)
         
-        # BODY
-        html += '<tbody>'
+        # Fila 1: Encabezado principal con bodegas
+        html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
+        
+        # Columnas de información
+        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 70, 70, 90, 150, 60]
+        
+        for header, width in zip(info_headers, widths):
+            html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
+        
+        # Columnas de bodegas (2 columnas por bodega: Real y Óptimo)
+        for bodega in bodegas:
+            html += f'<td colspan="2" style="border: 1px solid #fff; padding: 8px; vertical-align: middle; min-width: 120px;">{bodega}</td>'
+        
+        html += '</tr>'
+        
+        # Fila 2: Sub-encabezados (Real / Óptimo)
+        html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
+        
+        # Espacios vacíos para columnas de información
+        for i in range(6):
+            html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
+        
+        # Sub-encabezados para cada bodega
+        for _ in bodegas:
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #28a745; font-size: 8px;">Real</td>'
+            html += '<td style="border: 1px solid #fff; padding: 4px; background-color: #007bff; font-size: 8px;">Óptimo</td>'
+        
+        html += '</tr>'
+        
+        # Filas de datos
         for idx, row in df_display.iterrows():
-            bg_color = '#e3f2fd' if 'TOTAL' in str(row.iloc[0]) else ('#ffffff' if idx % 2 == 0 else '#f8f9fa')
-            html += f'<tr style="background-color: {bg_color};">'
+            # Verificar si es la fila TOTAL
+            es_total = (str(row.iloc[0]) == 'TOTAL')
             
-            for col_idx, value in enumerate(row):
-                col_name = df_display.columns[col_idx]
-                cell_color = '#ffffff'
+            if es_total:
+                html += '<tr style="background-color: #f8f9fa; font-weight: bold; border-top: 3px solid #000;">'
+            else:
+                html += '<tr style="background-color: white;">'
+            
+            # Columnas de información
+            for i in range(6):
+                valor = str(row.iloc[i]) if i < len(row) else ""
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                html += f'<td style="{style}">{valor}</td>'
+            
+            # Columnas de bodegas (Real y Óptimo)
+            for bodega in bodegas:
+                col_real = f'Real {bodega}'
+                col_optimo = f'Óptimo {bodega}'
                 
-                if col_name.startswith('Real '):
-                    optimo_col = col_name.replace('Real ', 'Óptimo ')
-                    if optimo_col in df_display.columns:
-                        optimo_val = row[optimo_col]
-                        if value >= optimo_val:
-                            cell_color = '#d4edda'  # Verde
-                        else:
-                            cell_color = '#f8d7da'  # Rojo
-                elif col_name.startswith('Óptimo '):
-                    cell_color = '#e7f3ff'  # Azul claro
+                # Valores reales y óptimos
+                valor_real = row[col_real] if col_real in row else 0
+                valor_optimo = row[col_optimo] if col_optimo in row else 0
                 
-                html += f'<td style="border: 1px solid #ddd; padding: 6px; background-color: {cell_color};">{value}</td>'
+                try:
+                    valor_real_num = float(str(valor_real).replace(',', '')) if valor_real != 'TOTAL' else 0
+                    valor_optimo_num = float(str(valor_optimo).replace(',', '')) if valor_optimo != 'TOTAL' else 0
+                except:
+                    valor_real_num = 0
+                    valor_optimo_num = 0
+                
+                # Color del semáforo solo para la columna Real
+                if not es_total:
+                    color_fondo = calcular_color_semaforo_mvp(valor_real_num, valor_optimo_num)
+                else:
+                    color_fondo = "#f8f9fa"
+                
+                # Celda Real con color de semáforo
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: {color_fondo}; font-weight: bold;">{valor_real}</td>'
+                
+                # Celda Óptimo con color azul claro y texto azul
+                html += f'<td style="border: 1px solid #ddd; padding: 4px; background-color: #f8f9fa; color: #007bff; font-weight: bold;">{valor_optimo}</td>'
+            
             html += '</tr>'
         
-        html += '</tbody></table>'
+        html += '</table>'
         return html
     
     # Mostrar tabla
@@ -12575,28 +12617,42 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     tabla_html = crear_tabla_html_mvp_panama(tabla_mvp)
     st.markdown(tabla_html, unsafe_allow_html=True)
     
-    # Leyenda de colores
+    # Leyenda del semáforo
     st.markdown("""
-    **Leyenda de colores:**
-    - 🟢 **Verde**: Stock Real ≥ Stock Óptimo
-    - 🔴 **Rojo**: Stock Real < Stock Óptimo  
-    - 🔵 **Azul**: Stock Óptimo (referencia)
-    """)
+    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
+                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Botón de descarga Excel simplificado
-    if st.button("📊 Generar Archivo Excel", key=f"excel_mvp_panama{key_suffix}"):
-        # Crear archivo Excel básico
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            tabla_mvp.to_excel(writer, sheet_name='MVP Stock Panama', index=True)
+    # Botón de exportación a Excel con colores (mismo formato que Guatemala)
+    st.markdown("---")
+    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+        excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Panama")
         
-        st.download_button(
-            label="⬇️ Descargar Archivo Excel",
-            data=buffer.getvalue(),
-            file_name=f"MVP_Stock_Panama_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key=f"download_excel_mvp_panama{key_suffix}"
-        )
+        if excel_data:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            st.download_button(
+                label="📥 Descargar Excel MVP",
+                data=excel_data,
+                file_name=f"MVP_Panama_Semaforo_{timestamp}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key=f"download_mvp_excel_{key_suffix}"
+            )
+            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 
 def main():
