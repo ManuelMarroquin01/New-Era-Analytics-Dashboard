@@ -10392,7 +10392,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("ERROR GUATEMALA: No se encontró columna de talla")
         return pd.DataFrame()
     
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
             print(f"ERROR GUATEMALA: Columna faltante: {col}")
@@ -10444,6 +10444,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # 2. Códigos con tallas SM y ML (división 50%-50%)
@@ -10468,21 +10469,35 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_guatemala[df_mvp_guatemala['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Agregar filas adicionales al DataFrame
     if filas_adicionales:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_guatemala = pd.concat([df_mvp_guatemala, df_adicional], ignore_index=True)
     
-    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    # Agrupar como tabla dinámica
     df_agrupado = df_mvp_guatemala.groupby([
         'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
     
+    # Asignar SAP basado en mapa de códigos+tallas REALES
+    df_agrupado['Codigo_SAP'] = df_agrupado.apply(
+        lambda row: sap_dict.get((str(row['U_Estilo']), str(row[columna_talla])), ""), 
+        axis=1
+    )
+    
     # Pivotar para tener bodegas como columnas
     tabla_pivoteada = df_agrupado.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0,
@@ -10512,7 +10527,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
         # Llenar valores óptimos para cada código/talla
         for codigo_tuple in tabla_pivoteada.index:
             codigo = str(codigo_tuple[0])
-            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            talla = str(codigo_tuple[6])  # Talla está en el índice 6 (después de agregar Codigo_SAP)
             
             # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
@@ -10581,7 +10596,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agregar fila de totales por columna
     fila_totales = tabla_final.sum(axis=0)
-    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
     
     return tabla_final
@@ -10649,7 +10664,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
         return pd.DataFrame()
     
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
             print(f"ERROR: Columna faltante: {col}")
@@ -10667,6 +10682,13 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     if df_mvp_elsalvador.empty:
         return pd.DataFrame()
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_elsalvador[df_mvp_elsalvador['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Obtener datos de óptimos para El Salvador
     optimos_por_codigo = obtener_optimos_mvp_elsalvador()
@@ -10698,6 +10720,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # 2. Códigos con tallas SM y ML (división 50%-50%)
@@ -10722,6 +10745,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # Agregar filas faltantes al DataFrame
@@ -10738,12 +10762,18 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     # Simplificar agrupación para evitar error
     df_agrupado = df_mvp_elsalvador.groupby(['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'])['Stock_Actual'].sum().reset_index()
     
+    # Asignar SAP basado en mapa de códigos+tallas REALES
+    df_agrupado['Codigo_SAP'] = df_agrupado.apply(
+        lambda row: sap_dict.get((str(row['U_Estilo']), str(row[columna_talla])), ""), 
+        axis=1
+    )
+    
     # Crear DataFrame expandido directamente
     df_expandido = df_agrupado.copy()
     
     # Crear tabla final MultiIndex
     df_pivot = df_expandido.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0
@@ -10830,7 +10860,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agregar fila de totales
     fila_totales = tabla_final.sum(axis=0)
-    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
     
     return tabla_final
@@ -10898,7 +10928,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
         return pd.DataFrame()
     
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
             print(f"ERROR: Columna faltante: {col}")
@@ -10916,6 +10946,13 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     if df_mvp_honduras.empty:
         return pd.DataFrame()
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_honduras[df_mvp_honduras['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Obtener datos de óptimos para Honduras
     optimos_por_codigo = obtener_optimos_mvp_honduras()
@@ -10947,6 +10984,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # 2. Códigos con tallas SM y ML (división 50%-50%)
@@ -10971,6 +11009,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # Agregar filas faltantes al DataFrame
@@ -10978,14 +11017,20 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_honduras = pd.concat([df_mvp_honduras, df_adicional], ignore_index=True)
     
-    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_honduras.groupby([
         'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
     
+    # Asignar SAP basado en mapa de códigos+tallas REALES
+    df_agrupado['Codigo_SAP'] = df_agrupado.apply(
+        lambda row: sap_dict.get((str(row['U_Estilo']), str(row[columna_talla])), ""), 
+        axis=1
+    )
+    
     # Pivotar para tener bodegas como columnas
     tabla_pivoteada = df_agrupado.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0,
@@ -11015,7 +11060,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
         # Llenar valores óptimos para cada código/talla
         for codigo_tuple in tabla_pivoteada.index:
             codigo = str(codigo_tuple[0])
-            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            talla = str(codigo_tuple[6])  # Talla está en el índice 6 (después de agregar Codigo_SAP)
             
             # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
@@ -11081,7 +11126,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agregar fila de totales
     fila_totales = tabla_final.sum(axis=0)
-    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
     
     return tabla_final
@@ -11149,7 +11194,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("ERROR: No se encontró columna de talla ('U_Talla' o 'Talla')")
         return pd.DataFrame()
     
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
             print(f"ERROR: Columna faltante: {col}")
@@ -11165,6 +11210,13 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     if df_mvp_costarica.empty:
         return pd.DataFrame()
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_costarica[df_mvp_costarica['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Obtener datos de óptimos para Costa Rica
     optimos_por_codigo = obtener_optimos_mvp_costarica()
@@ -11196,6 +11248,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # 2. Códigos con tallas SM y ML (división 50%-50%)
@@ -11220,6 +11273,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     
@@ -11228,14 +11282,20 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_costarica = pd.concat([df_mvp_costarica, df_adicional], ignore_index=True)
     
-    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_costarica.groupby([
         'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
     
+    # Asignar SAP basado en mapa de códigos+tallas REALES
+    df_agrupado['Codigo_SAP'] = df_agrupado.apply(
+        lambda row: sap_dict.get((str(row['U_Estilo']), str(row[columna_talla])), ""), 
+        axis=1
+    )
+    
     # Pivotar para tener bodegas como columnas
     tabla_pivoteada = df_agrupado.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0,
@@ -11265,7 +11325,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
         # Llenar valores óptimos para cada código/talla
         for codigo_tuple in tabla_pivoteada.index:
             codigo = str(codigo_tuple[0])
-            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            talla = str(codigo_tuple[6])  # Talla está en el índice 6 (después de agregar Codigo_SAP)
             
             # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
@@ -11331,7 +11391,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agregar fila de totales
     fila_totales = tabla_final.sum(axis=0)
-    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
     
     return tabla_final
@@ -11402,7 +11462,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("ERROR PANAMÁ: No se encontró columna de talla")
         return pd.DataFrame()
     
-    columnas_necesarias = ['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
     for col in columnas_necesarias:
         if col not in df_mvp.columns:
             print(f"ERROR PANAMÁ: Columna faltante: {col}")
@@ -11418,6 +11478,13 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     if df_mvp_panama.empty:
         return pd.DataFrame()
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_panama[df_mvp_panama['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Obtener datos de óptimos
     optimos_por_codigo = obtener_optimos_mvp_panama()
@@ -11449,6 +11516,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # 2. Códigos con tallas SM y ML (división 50%-50%)
@@ -11473,6 +11541,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Bodega'] = bodega
                         nueva_fila[columna_talla] = talla_req
                         nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
     
     # Agregar filas adicionales al DataFrame
@@ -11480,14 +11549,20 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_panama = pd.concat([df_mvp_panama, df_adicional], ignore_index=True)
     
-    # Agrupar por código, segmento, silueta, colección, descripción y talla
+    # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_panama.groupby([
         'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
     
+    # Asignar SAP basado en mapa de códigos+tallas REALES
+    df_agrupado['Codigo_SAP'] = df_agrupado.apply(
+        lambda row: sap_dict.get((str(row['U_Estilo']), str(row[columna_talla])), ""), 
+        axis=1
+    )
+    
     # Pivotar para tener bodegas como columnas
     tabla_pivoteada = df_agrupado.pivot_table(
-        index=['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
+        index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
         fill_value=0,
@@ -11517,7 +11592,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
         # Llenar valores óptimos para cada código/talla
         for codigo_tuple in tabla_pivoteada.index:
             codigo = str(codigo_tuple[0])
-            talla = str(codigo_tuple[5])  # Talla está en el índice 5
+            talla = str(codigo_tuple[6])  # Talla está en el índice 6 (después de agregar Codigo_SAP)
             
             # Determinar tipo de código y calcular stock óptimo
             if codigo in codigos_con_tallas and talla in tallas_especificas:
@@ -11568,7 +11643,7 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
     
     # Agregar fila de totales por columna
     fila_totales = tabla_final.sum(axis=0)
-    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
+    fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
     
     return tabla_final
@@ -11742,11 +11817,11 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
-        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Real", f"{int(total_stock_real):,}")
     
     with col3:
-        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
     
     with col4:
@@ -11773,8 +11848,8 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
         
         # Columnas de información
-        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
-        widths = [80, 70, 70, 90, 150, 60]
+        info_headers = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 80, 70, 70, 90, 150, 60]
         
         for header, width in zip(info_headers, widths):
             html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
@@ -11810,9 +11885,9 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
                 html += '<tr style="background-color: white;">'
             
             # Columnas de información
-            for i in range(6):
+            for i in range(7):
                 valor = str(row.iloc[i]) if i < len(row) else ""
-                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [4, 5] else "border: 1px solid #ddd; padding: 4px;"
                 html += f'<td style="{style}">{valor}</td>'
             
             # Columnas de bodegas (Real y Óptimo)
@@ -11936,11 +12011,11 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
-        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Real", f"{int(total_stock_real):,}")
     
     with col3:
-        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
     
     with col4:
@@ -11967,8 +12042,8 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
         
         # Columnas de información
-        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
-        widths = [80, 70, 70, 90, 150, 60]
+        info_headers = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 80, 70, 70, 90, 150, 60]
         
         for header, width in zip(info_headers, widths):
             html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
@@ -12004,9 +12079,9 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
                 html += '<tr style="background-color: white;">'
             
             # Columnas de información
-            for i in range(6):
+            for i in range(7):
                 valor = str(row.iloc[i]) if i < len(row) else ""
-                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [4, 5] else "border: 1px solid #ddd; padding: 4px;"
                 html += f'<td style="{style}">{valor}</td>'
             
             # Columnas de bodegas (Real y Óptimo)
@@ -12130,11 +12205,11 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
-        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Real", f"{int(total_stock_real):,}")
     
     with col3:
-        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
     
     with col4:
@@ -12161,8 +12236,8 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
         
         # Columnas de información
-        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
-        widths = [80, 70, 70, 90, 150, 60]
+        info_headers = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 80, 70, 70, 90, 150, 60]
         
         for header, width in zip(info_headers, widths):
             html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
@@ -12198,9 +12273,9 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
                 html += '<tr style="background-color: white;">'
             
             # Columnas de información
-            for i in range(6):
+            for i in range(7):
                 valor = str(row.iloc[i]) if i < len(row) else ""
-                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [4, 5] else "border: 1px solid #ddd; padding: 4px;"
                 html += f'<td style="{style}">{valor}</td>'
             
             # Columnas de bodegas (Real y Óptimo)
@@ -12299,7 +12374,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
         df_export = tabla_mvp.reset_index()
         
         # Renombrar columnas de información
-        df_export.columns = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla'] + list(df_export.columns[6:])
+        df_export.columns = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla'] + list(df_export.columns[7:])
         
         # Crear workbook y worksheet
         sheet_name = f'MVP_{pais}'
@@ -12354,7 +12429,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             
             # 1. FORMATEAR ENCABEZADOS PRINCIPALES
             # Fila 1: Información + Bodegas
-            for col_num in range(1, 7):  # Columnas de información
+            for col_num in range(1, 8):  # Columnas de información (incluye Codigo_SAP)
                 cell = worksheet.cell(row=1, column=col_num)
                 cell.font = font_header
                 cell.fill = fill_header
@@ -12363,7 +12438,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             
             # Agregar encabezados de bodegas (fusionar celdas para Real + Óptimo)
             for i, bodega in enumerate(bodegas):
-                start_col = 7 + (i * 2)
+                start_col = 8 + (i * 2)
                 end_col = start_col + 1
                 
                 # Fusionar celdas para la bodega
@@ -12385,7 +12460,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             worksheet.insert_rows(2)
             
             # Sub-encabezados para información (vacíos)
-            for col_num in range(1, 7):
+            for col_num in range(1, 8):
                 cell = worksheet.cell(row=2, column=col_num)
                 cell.font = font_subheader
                 cell.fill = fill_header
@@ -12394,7 +12469,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             
             # Sub-encabezados Real/Óptimo
             for i, bodega in enumerate(bodegas):
-                start_col = 7 + (i * 2)
+                start_col = 8 + (i * 2)
                 
                 # Columna Real
                 cell_real = worksheet.cell(row=2, column=start_col)
@@ -12486,19 +12561,20 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             # Columnas de información
             column_widths = {
                 'A': 12,  # Código
-                'B': 12,  # Segmento
-                'C': 12,  # Silueta
-                'D': 20,  # Colección
-                'E': 25,  # Descripción
-                'F': 8,   # Talla
+                'B': 12,  # Codigo_SAP
+                'C': 12,  # Segmento
+                'D': 12,  # Silueta
+                'E': 20,  # Colección
+                'F': 25,  # Descripción
+                'G': 8,   # Talla
             }
             
             for col_letter, width in column_widths.items():
                 worksheet.column_dimensions[col_letter].width = width
             
-            # Columnas de bodegas (más estrechas)
+            # Columnas de bodegas (más estrechas) - ahora empiezan desde columna 8
             for i in range(len(bodegas) * 2):
-                col_letter = get_column_letter(7 + i)
+                col_letter = get_column_letter(8 + i)
                 worksheet.column_dimensions[col_letter].width = 10
             
             # 5. AGREGAR INFORMACIÓN DE LEYENDA
@@ -12572,11 +12648,11 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
-        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_real = tabla_mvp[columnas_real].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Real", f"{int(total_stock_real):,}")
     
     with col3:
-        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
+        total_stock_optimo = tabla_mvp[columnas_optimo].loc[('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')].sum()
         st.metric("Total Stock Óptimo", f"{int(total_stock_optimo):,}")
     
     with col4:
@@ -12603,8 +12679,8 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
         
         # Columnas de información
-        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
-        widths = [80, 70, 70, 90, 150, 60]
+        info_headers = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 80, 70, 70, 90, 150, 60]
         
         for header, width in zip(info_headers, widths):
             html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
@@ -12640,9 +12716,9 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
                 html += '<tr style="background-color: white;">'
             
             # Columnas de información
-            for i in range(6):
+            for i in range(7):
                 valor = str(row.iloc[i]) if i < len(row) else ""
-                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [4, 5] else "border: 1px solid #ddd; padding: 4px;"
                 html += f'<td style="{style}">{valor}</td>'
             
             # Columnas de bodegas (Real y Óptimo)
@@ -12798,8 +12874,8 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #000000; color: white; font-weight: bold; height: 40px;">'
         
         # Columnas de información
-        info_headers = ['Código', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
-        widths = [80, 70, 70, 90, 150, 60]
+        info_headers = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        widths = [80, 80, 70, 70, 90, 150, 60]
         
         for header, width in zip(info_headers, widths):
             html += f'<td style="border: 1px solid #fff; padding: 8px; width: {width}px; vertical-align: middle;">{header}</td>'
@@ -12835,9 +12911,9 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
                 html += '<tr style="background-color: white;">'
             
             # Columnas de información
-            for i in range(6):
+            for i in range(7):
                 valor = str(row.iloc[i]) if i < len(row) else ""
-                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [3, 4] else "border: 1px solid #ddd; padding: 4px;"
+                style = "border: 1px solid #ddd; padding: 4px; text-align: left;" if i in [4, 5] else "border: 1px solid #ddd; padding: 4px;"
                 html += f'<td style="{style}">{valor}</td>'
             
             # Columnas de bodegas (Real y Óptimo)
