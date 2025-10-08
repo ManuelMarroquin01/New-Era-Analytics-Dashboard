@@ -10484,6 +10484,37 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_guatemala = pd.concat([df_mvp_guatemala, df_adicional], ignore_index=True)
     
+    # NUEVA FUNCIONALIDAD: Agregar códigos MVP faltantes con información "N/D"
+    # Identificar códigos MVP que NO están en el archivo
+    codigos_presentes = df_mvp_guatemala['U_Estilo'].astype(str).unique().tolist()
+    codigos_faltantes = [codigo for codigo in codigos_mvp if codigo not in codigos_presentes]
+    
+    if codigos_faltantes:
+        print(f"DEBUG MVP GUATEMALA: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
+        
+        # Crear filas para códigos faltantes
+        filas_faltantes = []
+        for codigo_faltante in codigos_faltantes:
+            for bodega in bodegas_guatemala:
+                # Crear fila con información "N/D"
+                fila_faltante = {
+                    'U_Estilo': codigo_faltante,
+                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                    'U_Segmento': 'N/D',
+                    'U_Silueta': 'N/D', 
+                    'U_Coleccion_NE': 'N/D',
+                    'U_Descripcion': 'N/D',
+                    columna_talla: 'N/D',
+                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                    'Bodega': bodega
+                }
+                filas_faltantes.append(fila_faltante)
+        
+        # Agregar filas faltantes al DataFrame
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_guatemala = pd.concat([df_mvp_guatemala, df_faltantes], ignore_index=True)
+    
     # Agrupar como tabla dinámica
     df_agrupado = df_mvp_guatemala.groupby([
         'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
@@ -10753,6 +10784,37 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_elsalvador = pd.concat([df_mvp_elsalvador, df_adicional], ignore_index=True)
     
+    # NUEVA FUNCIONALIDAD: Agregar códigos MVP faltantes con información "N/D"
+    # Identificar códigos MVP que NO están en el archivo
+    codigos_presentes = df_mvp_elsalvador['U_Estilo'].astype(str).unique().tolist()
+    codigos_faltantes = [codigo for codigo in codigos_mvp if codigo not in codigos_presentes]
+    
+    if codigos_faltantes:
+        print(f"DEBUG MVP EL SALVADOR: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
+        
+        # Crear filas para códigos faltantes
+        filas_faltantes = []
+        for codigo_faltante in codigos_faltantes:
+            for bodega in bodegas_elsalvador:
+                # Crear fila con información "N/D"
+                fila_faltante = {
+                    'U_Estilo': codigo_faltante,
+                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                    'U_Segmento': 'N/D',
+                    'U_Silueta': 'N/D', 
+                    'U_Coleccion_NE': 'N/D',
+                    'U_Descripcion': 'N/D',
+                    columna_talla: 'N/D',
+                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                    'Bodega': bodega
+                }
+                filas_faltantes.append(fila_faltante)
+        
+        # Agregar filas faltantes al DataFrame
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_elsalvador = pd.concat([df_mvp_elsalvador, df_faltantes], ignore_index=True)
+    
     # Crear tabla final con estructura MultiIndex
     bodegas_ordenadas = sorted(bodegas_elsalvador)
     columnas = []
@@ -11016,6 +11078,37 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     if filas_adicionales:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_honduras = pd.concat([df_mvp_honduras, df_adicional], ignore_index=True)
+    
+    # NUEVA FUNCIONALIDAD: Agregar códigos MVP faltantes con información "N/D"
+    # Identificar códigos MVP que NO están en el archivo
+    codigos_presentes = df_mvp_honduras['U_Estilo'].astype(str).unique().tolist()
+    codigos_faltantes = [codigo for codigo in codigos_mvp if codigo not in codigos_presentes]
+    
+    if codigos_faltantes:
+        print(f"DEBUG MVP HONDURAS: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
+        
+        # Crear filas para códigos faltantes
+        filas_faltantes = []
+        for codigo_faltante in codigos_faltantes:
+            for bodega in bodegas_honduras:
+                # Crear fila con información "N/D"
+                fila_faltante = {
+                    'U_Estilo': codigo_faltante,
+                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                    'U_Segmento': 'N/D',
+                    'U_Silueta': 'N/D', 
+                    'U_Coleccion_NE': 'N/D',
+                    'U_Descripcion': 'N/D',
+                    columna_talla: 'N/D',
+                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                    'Bodega': bodega
+                }
+                filas_faltantes.append(fila_faltante)
+        
+        # Agregar filas faltantes al DataFrame
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_honduras = pd.concat([df_mvp_honduras, df_faltantes], ignore_index=True)
     
     # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_honduras.groupby([
@@ -11281,6 +11374,37 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
     if filas_adicionales:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_costarica = pd.concat([df_mvp_costarica, df_adicional], ignore_index=True)
+    
+    # NUEVA FUNCIONALIDAD: Agregar códigos MVP faltantes con información "N/D"
+    # Identificar códigos MVP que NO están en el archivo
+    codigos_presentes = df_mvp_costarica['U_Estilo'].astype(str).unique().tolist()
+    codigos_faltantes = [codigo for codigo in codigos_mvp if codigo not in codigos_presentes]
+    
+    if codigos_faltantes:
+        print(f"DEBUG MVP COSTA RICA: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
+        
+        # Crear filas para códigos faltantes
+        filas_faltantes = []
+        for codigo_faltante in codigos_faltantes:
+            for bodega in bodegas_costarica:
+                # Crear fila con información "N/D"
+                fila_faltante = {
+                    'U_Estilo': codigo_faltante,
+                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                    'U_Segmento': 'N/D',
+                    'U_Silueta': 'N/D', 
+                    'U_Coleccion_NE': 'N/D',
+                    'U_Descripcion': 'N/D',
+                    columna_talla: 'N/D',
+                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                    'Bodega': bodega
+                }
+                filas_faltantes.append(fila_faltante)
+        
+        # Agregar filas faltantes al DataFrame
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_costarica = pd.concat([df_mvp_costarica, df_faltantes], ignore_index=True)
     
     # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_costarica.groupby([
@@ -11548,6 +11672,37 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
     if filas_adicionales:
         df_adicional = pd.DataFrame(filas_adicionales)
         df_mvp_panama = pd.concat([df_mvp_panama, df_adicional], ignore_index=True)
+    
+    # NUEVA FUNCIONALIDAD: Agregar códigos MVP faltantes con información "N/D"
+    # Identificar códigos MVP que NO están en el archivo
+    codigos_presentes = df_mvp_panama['U_Estilo'].astype(str).unique().tolist()
+    codigos_faltantes = [codigo for codigo in codigos_mvp if codigo not in codigos_presentes]
+    
+    if codigos_faltantes:
+        print(f"DEBUG MVP PANAMA: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
+        
+        # Crear filas para códigos faltantes
+        filas_faltantes = []
+        for codigo_faltante in codigos_faltantes:
+            for bodega in bodegas_panama:
+                # Crear fila con información "N/D"
+                fila_faltante = {
+                    'U_Estilo': codigo_faltante,
+                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                    'U_Segmento': 'N/D',
+                    'U_Silueta': 'N/D', 
+                    'U_Coleccion_NE': 'N/D',
+                    'U_Descripcion': 'N/D',
+                    columna_talla: 'N/D',
+                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                    'Bodega': bodega
+                }
+                filas_faltantes.append(fila_faltante)
+        
+        # Agregar filas faltantes al DataFrame
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_panama = pd.concat([df_mvp_panama, df_faltantes], ignore_index=True)
     
     # Agrupar como tabla dinámica (SIN Codigo_SAP en el groupby)
     df_agrupado = df_mvp_panama.groupby([
@@ -11864,7 +12019,7 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
         
         # Espacios vacíos para columnas de información
-        for i in range(6):
+        for i in range(7):
             html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
         
         # Sub-encabezados para cada bodega
@@ -12058,7 +12213,7 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
         
         # Espacios vacíos para columnas de información
-        for i in range(6):
+        for i in range(7):
             html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
         
         # Sub-encabezados para cada bodega
@@ -12252,7 +12407,7 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
         
         # Espacios vacíos para columnas de información
-        for i in range(6):
+        for i in range(7):
             html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
         
         # Sub-encabezados para cada bodega
@@ -12384,6 +12539,9 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             # Obtener worksheet para formatear
             worksheet = writer.sheets[sheet_name]
             
+            # Ocultar líneas de cuadrícula en celdas no utilizadas
+            worksheet.sheet_view.showGridLines = False
+            
             # Configurar estilos
             # Fuentes
             font_header = Font(name='Arial', size=11, bold=True, color='FFFFFF')
@@ -12418,7 +12576,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             # Obtener bodegas y crear mapeo de columnas
             bodegas = []
             col_mapping = {}
-            col_idx = 7  # Las primeras 6 son información (Código, Segmento, etc.)
+            col_idx = 8  # Las primeras 7 son información (Código, Codigo_SAP, Segmento, Silueta, Colección, Descripción, Talla)
             
             for col_real in columnas_real:
                 bodega = col_real.replace('Real ', '')
@@ -12496,7 +12654,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 es_fila_total = str(codigo_cell.value) == 'TOTAL'
                 
                 # Formatear columnas de información
-                for col_num in range(1, 7):
+                for col_num in range(1, 8):  # Corregido: incluir las 7 columnas de información
                     cell = worksheet.cell(row=row_num, column=col_num)
                     
                     if es_fila_total:
@@ -12506,7 +12664,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                         cell.font = font_normal
                     
                     # Alineación según tipo de columna
-                    if col_num in [4, 5]:  # Colección y Descripción
+                    if col_num in [5, 6]:  # Colección y Descripción (columnas E y F)
                         cell.alignment = align_left
                     else:
                         cell.alignment = align_center
@@ -12515,7 +12673,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 
                 # Formatear columnas de bodegas con semáforo
                 for i, bodega in enumerate(bodegas):
-                    col_real = 7 + (i * 2)
+                    col_real = 8 + (i * 2)  # Corregido: empezar desde columna 8
                     col_optimo = col_real + 1
                     
                     cell_real = worksheet.cell(row=row_num, column=col_real)
@@ -12695,7 +12853,7 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
         
         # Espacios vacíos para columnas de información
-        for i in range(6):
+        for i in range(7):
             html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
         
         # Sub-encabezados para cada bodega
@@ -12890,7 +13048,7 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '<tr style="background-color: #333333; color: white; font-weight: bold; height: 30px;">'
         
         # Espacios vacíos para columnas de información
-        for i in range(6):
+        for i in range(7):
             html += '<td style="border: 1px solid #fff; padding: 4px;"></td>'
         
         # Sub-encabezados para cada bodega
