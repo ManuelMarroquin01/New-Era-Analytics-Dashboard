@@ -11970,15 +11970,6 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
     columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
     
-    # Información de códigos procesados
-    st.info(f"""
-    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
-    
-    🔧 **Nueva lógica implementada:**
-    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
-      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
-    • **39 códigos restantes**: Stock óptimo por código general
-    """)
     
     # Mostrar métricas resumen
     col1, col2, col3, col4 = st.columns(4)
@@ -12165,15 +12156,6 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
     columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
     
-    # Información de códigos procesados
-    st.info(f"""
-    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
-    
-    🔧 **Nueva lógica implementada:**
-    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
-      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
-    • **39 códigos restantes**: Stock óptimo por código general
-    """)
     
     # Mostrar métricas resumen
     col1, col2, col3, col4 = st.columns(4)
@@ -12360,15 +12342,6 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
     columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
     
-    # Información de códigos procesados
-    st.info(f"""
-    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
-    
-    🔧 **Nueva lógica implementada:**
-    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
-      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
-    • **39 códigos restantes**: Stock óptimo por código general
-    """)
     
     # Mostrar métricas resumen
     col1, col2, col3, col4 = st.columns(4)
@@ -12807,15 +12780,6 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
     columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
     
-    # Información de códigos procesados
-    st.info(f"""
-    📊 **Procesando exclusivamente 46 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
-    
-    🔧 **Nueva lógica implementada:**
-    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
-      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
-    • **39 códigos restantes**: Stock óptimo por código general
-    """)
     
     # Mostrar métricas resumen
     col1, col2, col3, col4 = st.columns(4)
@@ -13002,15 +12966,6 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     columnas_real = [col for col in tabla_mvp.columns if col.startswith('Real ')]
     columnas_optimo = [col for col in tabla_mvp.columns if col.startswith('Óptimo ')]
     
-    # Información de códigos procesados
-    st.info(f"""
-    📊 **Procesando exclusivamente 45 códigos MVP específicos** - Se encontraron productos de estos códigos en el archivo cargado
-    
-    🔧 **Nueva lógica implementada:**
-    • **7 códigos especiales** (11591122, 11591128, 11591150, 11591175, 70331909, 70331911, 70331962): 
-      Stock óptimo por tallas = (Stock óptimo código ÷ 12) × Distribución base por tienda
-    • **38 códigos restantes**: Stock óptimo por código general
-    """)
     
     # Mostrar métricas resumen
     col1, col2, col3, col4 = st.columns(4)
