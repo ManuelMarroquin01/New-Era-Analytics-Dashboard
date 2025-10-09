@@ -10432,8 +10432,8 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Guatemala
             for bodega in bodegas_guatemala:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
@@ -10458,8 +10458,8 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Guatemala
             for bodega in bodegas_guatemala:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para SM y ML si no existen
                 for talla_req in tallas_sm_ml:
@@ -10714,14 +10714,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     if df_mvp_elsalvador.empty:
         return pd.DataFrame()
     
-    # Crear mapa de SAP solo para registros REALES (con stock > 0)
-    df_sap_map = df_mvp_elsalvador[df_mvp_elsalvador['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
-    sap_dict = {}
-    for _, row in df_sap_map.iterrows():
-        key = (str(row['U_Estilo']), str(row[columna_talla]))
-        sap_dict[key] = row['Codigo_SAP']
-    
-    # Obtener datos de óptimos para El Salvador
+    # Obtener datos de óptimos para El Salvador (IGUAL QUE GUATEMALA)
     optimos_por_codigo = obtener_optimos_mvp_elsalvador()
     optimos_por_tallas = obtener_optimos_por_tallas_elsalvador()
     
@@ -10739,8 +10732,8 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de El Salvador
             for bodega in bodegas_elsalvador:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
@@ -10765,8 +10758,8 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de El Salvador
             for bodega in bodegas_elsalvador:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para SM y ML si no existen
                 for talla_req in tallas_sm_ml:
@@ -10778,6 +10771,13 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                         nueva_fila['Stock_Actual'] = 0
                         nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
                         filas_adicionales.append(nueva_fila)
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0) - IGUAL QUE GUATEMALA
+    df_sap_map = df_mvp_elsalvador[df_mvp_elsalvador['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
     
     # Agregar filas faltantes al DataFrame
     if filas_adicionales:
@@ -10815,14 +10815,10 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
             df_faltantes = pd.DataFrame(filas_faltantes)
             df_mvp_elsalvador = pd.concat([df_mvp_elsalvador, df_faltantes], ignore_index=True)
     
-    # Crear tabla final con estructura MultiIndex
-    bodegas_ordenadas = sorted(bodegas_elsalvador)
-    columnas = []
-    for bodega in bodegas_ordenadas:
-        columnas.extend([f"Real {bodega}", f"Óptimo {bodega}"])
-    
-    # Simplificar agrupación para evitar error
-    df_agrupado = df_mvp_elsalvador.groupby(['U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'])['Stock_Actual'].sum().reset_index()
+    # Agrupar como tabla dinámica (IGUAL QUE GUATEMALA)
+    df_agrupado = df_mvp_elsalvador.groupby([
+        'U_Estilo', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
+    ])['Stock_Actual'].sum().reset_index()
     
     # Asignar SAP basado en mapa de códigos+tallas REALES
     df_agrupado['Codigo_SAP'] = df_agrupado.apply(
@@ -10830,39 +10826,41 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         axis=1
     )
     
-    # Crear DataFrame expandido directamente
-    df_expandido = df_agrupado.copy()
-    
-    # Crear tabla final MultiIndex
-    df_pivot = df_expandido.pivot_table(
+    # Pivotar para tener bodegas como columnas (IGUAL QUE GUATEMALA)
+    tabla_pivoteada = df_agrupado.pivot_table(
         index=['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla],
         columns='Bodega',
         values='Stock_Actual',
-        fill_value=0
+        fill_value=0,
+        aggfunc='sum'  # ✅ AGREGADO - ESTO CORRIGE LAS DUPLICACIONES
     )
     
-    # Crear columnas Real y Óptimo para cada bodega
-    tabla_final = pd.DataFrame(index=df_pivot.index)
+    # Asegurar que todas las bodegas estén presentes como columnas
+    for bodega in bodegas_elsalvador:
+        if bodega not in tabla_pivoteada.columns:
+            tabla_pivoteada[bodega] = 0
     
-    for bodega in bodegas_ordenadas:
-        col_real = f"Real {bodega}"
+    # Reordenar columnas según el orden de bodegas_elsalvador
+    tabla_pivoteada = tabla_pivoteada.reindex(columns=bodegas_elsalvador, fill_value=0)
+    
+    # Crear nueva tabla con columnas intercaladas (stock actual + stock óptimo nuevo)
+    tabla_final = pd.DataFrame(index=tabla_pivoteada.index)
+    
+    # Agregar columnas intercaladas para cada bodega
+    for bodega in bodegas_elsalvador:
+        # Columna de stock actual
+        tabla_final[f"Real {bodega}"] = tabla_pivoteada[bodega]
+        
+        # Columna de stock óptimo nuevo
         col_optimo = f"Óptimo {bodega}"
-        
-        # Columna Real
-        if bodega in df_pivot.columns:
-            tabla_final[col_real] = df_pivot[bodega]
-        else:
-            tabla_final[col_real] = 0
-        
-        # Columna Óptimo
         tabla_final[col_optimo] = 0
     
     # MISMA LÓGICA DE CÁLCULO QUE GUATEMALA
     for codigo_tuple in tabla_final.index:
         codigo = codigo_tuple[0]
-        talla = codigo_tuple[5]
+        talla = str(codigo_tuple[6])  # Talla está en el índice 6 (corregido para coincidir con Guatemala)
         
-        for bodega in bodegas_ordenadas:
+        for bodega in bodegas_elsalvador:
             col_optimo = f"Óptimo {bodega}"
             
             # Determinar tipo de código y calcular stock óptimo
@@ -11034,8 +11032,8 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Honduras
             for bodega in bodegas_honduras:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
@@ -11060,8 +11058,8 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Honduras
             for bodega in bodegas_honduras:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para SM y ML si no existen
                 for talla_req in tallas_sm_ml:
@@ -11329,8 +11327,8 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Costa Rica
             for bodega in bodegas_costarica:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
@@ -11355,8 +11353,8 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Costa Rica
             for bodega in bodegas_costarica:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para SM y ML si no existen
                 for talla_req in tallas_sm_ml:
@@ -11628,8 +11626,8 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Panamá
             for bodega in bodegas_panama:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para TODAS las tallas específicas (678-800)
                 # para que aparezcan en la tabla aunque tengan stock óptimo 0
@@ -11654,8 +11652,8 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
             
             # Para cada bodega de Panamá
             for bodega in bodegas_panama:
-                # Verificar qué tallas tiene este código en esta bodega
-                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).tolist()
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
                 
                 # Agregar filas para SM y ML si no existen
                 for talla_req in tallas_sm_ml:
@@ -11791,8 +11789,26 @@ def procesar_stock_mvps_panama(df_stock: pd.DataFrame) -> pd.DataFrame:
                         tabla_final.loc[codigo_tuple, col_optimo] = 0
                 else:
                     tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
+            elif codigo in codigos_con_tallas_sm_ml and talla in tallas_sm_ml:
+                # CASO 2: Códigos con tallas SM y ML - División 50%-50%
+                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
+                    stock_codigo = optimos_por_codigo[codigo][bodega]
+                    stock_sm, stock_ml = calcular_tallas_sm_ml(stock_codigo)
+                    
+                    # Asignar según la talla
+                    if talla == 'SM':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_sm
+                    elif talla == 'ML':
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_ml
+                    
+                    # Validar cuadre
+                    validar_cuadre_sm_ml(codigo, bodega, stock_sm, stock_ml, stock_codigo)
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
+                    
             else:
-                # Usar stock óptimo por código (sin cambios)
+                # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
                     tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
     
