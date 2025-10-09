@@ -12132,13 +12132,14 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             st.download_button(
-                label="📥 Descargar Excel MVP",
+                label="📥 Descargar",
                 data=excel_data,
                 file_name=f"MVP_Guatemala_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_mvp_excel_{key_suffix}"
+                key=f"download_mvp_excel_{key_suffix}",
+                type="primary",
+                use_container_width=True
             )
-            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Honduras con mismo formato que Guatemala y El Salvador"""
@@ -12326,13 +12327,14 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             st.download_button(
-                label="📥 Descargar Excel MVP",
+                label="📥 Descargar",
                 data=excel_data,
                 file_name=f"MVP_Honduras_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_mvp_excel_{key_suffix}"
+                key=f"download_mvp_excel_{key_suffix}",
+                type="primary",
+                use_container_width=True
             )
-            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Costa Rica con mismo formato que Guatemala, El Salvador y Honduras"""
@@ -12520,13 +12522,14 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             st.download_button(
-                label="📥 Descargar Excel MVP",
+                label="📥 Descargar",
                 data=excel_data,
                 file_name=f"MVP_CostaRica_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_mvp_excel_{key_suffix}"
+                key=f"download_mvp_excel_{key_suffix}",
+                type="primary",
+                use_container_width=True
             )
-            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[str], columnas_optimo: List[str], pais: str = "Guatemala") -> bytes:
     """
@@ -12966,13 +12969,14 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             st.download_button(
-                label="📥 Descargar Excel MVP",
+                label="📥 Descargar",
                 data=excel_data,
                 file_name=f"MVP_ElSalvador_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_mvp_excel_{key_suffix}"
+                key=f"download_mvp_excel_{key_suffix}",
+                type="primary",
+                use_container_width=True
             )
-            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Panamá"""
@@ -13157,13 +13161,14 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
         if excel_data:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             st.download_button(
-                label="📥 Descargar Excel MVP",
+                label="📥 Descargar",
                 data=excel_data,
                 file_name=f"MVP_Panama_Semaforo_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key=f"download_mvp_excel_{key_suffix}"
+                key=f"download_mvp_excel_{key_suffix}",
+                type="primary",
+                use_container_width=True
             )
-            st.success("✅ Archivo Excel generado con colores de semáforo")
 
 
 def main():
