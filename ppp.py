@@ -12090,13 +12090,9 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         
         return html
     
-    # Mostrar tabla
-    tabla_html = crear_tabla_html_mvp(tabla_mvp)
-    st.markdown(tabla_html, unsafe_allow_html=True)
-    
-    # Leyenda del semáforo
+    # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
         <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -12114,6 +12110,10 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
@@ -12276,13 +12276,9 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         
         return html
     
-    # Mostrar tabla
-    tabla_html = crear_tabla_html_mvp_honduras(tabla_mvp)
-    st.markdown(tabla_html, unsafe_allow_html=True)
-    
-    # Leyenda del semáforo
+    # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
         <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -12300,6 +12296,10 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_honduras(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
@@ -12462,13 +12462,9 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         
         return html
     
-    # Mostrar tabla
-    tabla_html = crear_tabla_html_mvp_costarica(tabla_mvp)
-    st.markdown(tabla_html, unsafe_allow_html=True)
-    
-    # Leyenda del semáforo
+    # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
         <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -12486,6 +12482,10 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_costarica(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
@@ -12900,13 +12900,9 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         
         return html
     
-    # Mostrar tabla
-    tabla_html = crear_tabla_html_mvp_elsalvador(tabla_mvp)
-    st.markdown(tabla_html, unsafe_allow_html=True)
-    
-    # Leyenda del semáforo
+    # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
         <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -12924,6 +12920,10 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Mostrar tabla
+    tabla_html = crear_tabla_html_mvp_elsalvador(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
@@ -13082,14 +13082,9 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
         html += '</table>'
         return html
     
-    # Mostrar tabla
-    st.subheader("📊 Tabla de Stock MVP - Panamá")
-    tabla_html = crear_tabla_html_mvp_panama(tabla_mvp)
-    st.markdown(tabla_html, unsafe_allow_html=True)
-    
-    # Leyenda del semáforo
+    # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
-    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+    <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
         <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -13107,6 +13102,11 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Mostrar tabla
+    st.subheader("📊 Tabla de Stock MVP - Panamá")
+    tabla_html = crear_tabla_html_mvp_panama(tabla_mvp)
+    st.markdown(tabla_html, unsafe_allow_html=True)
     
     # Botón de exportación a Excel con colores (mismo formato que Guatemala)
     st.markdown("---")
