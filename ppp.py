@@ -11926,8 +11926,10 @@ def procesar_archivo_optimos_gt(df_optimos: pd.DataFrame) -> Dict[str, Dict[str,
 
 def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
     """
-    Calcula el color del semáforo basado en desviación del óptimo
-    Verde: ±5%, Amarillo: ±5% a ±20%, Rojo: >±20%
+    Calcula el color del semáforo basado en cumplimiento del óptimo
+    Verde: Stock real >= Stock óptimo
+    Amarillo: Stock real < Stock óptimo pero >= 80% del óptimo
+    Rojo: Stock real < 80% del óptimo
     """
     if optimo == 0:
         # Aplicar misma lógica cuando stock óptimo = 0
@@ -11937,14 +11939,13 @@ def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
             # Cualquier stock real > 0 cuando óptimo = 0 es desviación significativa
             return "#f8d7da"  # Rojo - no debería tener stock
     
-    desviacion = abs(real - optimo) / optimo * 100
-    
-    if desviacion <= 5:
-        return "#d4edda"  # Verde claro - Óptimo
-    elif desviacion <= 20:
-        return "#fff3cd"  # Amarillo claro - Aceptable
+    # Nueva lógica basada en cumplimiento
+    if real >= optimo:
+        return "#d4edda"  # Verde - cumple o supera el óptimo
+    elif real >= optimo * 0.8:  # 80% o más del óptimo
+        return "#fff3cd"  # Amarillo - falta máximo 20%
     else:
-        return "#f8d7da"  # Rojo claro - Crítico
+        return "#f8d7da"  # Rojo - falta más del 20%
 
 def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Guatemala con nueva funcionalidad"""
@@ -12093,19 +12094,19 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
     <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+                <span style="font-size: 14px;">Verde: Stock real >= Stock óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+                <span style="font-size: 14px;">Amarillo: Stock real entre 80%-99% del óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+                <span style="font-size: 14px;">Rojo: Stock real < 80% del óptimo</span>
             </div>
         </div>
     </div>
@@ -12279,19 +12280,19 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
     <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+                <span style="font-size: 14px;">Verde: Stock real >= Stock óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+                <span style="font-size: 14px;">Amarillo: Stock real entre 80%-99% del óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+                <span style="font-size: 14px;">Rojo: Stock real < 80% del óptimo</span>
             </div>
         </div>
     </div>
@@ -12465,19 +12466,19 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
     <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+                <span style="font-size: 14px;">Verde: Stock real >= Stock óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+                <span style="font-size: 14px;">Amarillo: Stock real entre 80%-99% del óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+                <span style="font-size: 14px;">Rojo: Stock real < 80% del óptimo</span>
             </div>
         </div>
     </div>
@@ -12736,9 +12737,9 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             
             # Elementos de leyenda
             leyenda_items = [
-                ("Verde: ±5% del óptimo", fill_semaforo_verde),
-                ("Amarillo: ±5% a ±20%", fill_semaforo_amarillo), 
-                ("Rojo: >±20% del óptimo", fill_semaforo_rojo)
+                ("Verde: Stock real >= Stock óptimo", fill_semaforo_verde),
+                ("Amarillo: Stock real entre 80%-99% del óptimo", fill_semaforo_amarillo), 
+                ("Rojo: Stock real < 80% del óptimo", fill_semaforo_rojo)
             ]
             
             for i, (texto, fill) in enumerate(leyenda_items):
@@ -12903,19 +12904,19 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
     <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+                <span style="font-size: 14px;">Verde: Stock real >= Stock óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+                <span style="font-size: 14px;">Amarillo: Stock real entre 80%-99% del óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+                <span style="font-size: 14px;">Rojo: Stock real < 80% del óptimo</span>
             </div>
         </div>
     </div>
@@ -13085,19 +13086,19 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     # Leyenda del semáforo (antes de la tabla)
     st.markdown("""
     <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo (Solo columna Real)</h4>
+        <h4 style="margin-bottom: 10px; color: #333;">🚦 Leyenda del Semáforo</h4>
         <div style="display: flex; gap: 20px; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Verde: ±5% del óptimo</span>
+                <span style="font-size: 14px;">Verde: Stock real >= Stock óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Amarillo: ±5% a ±20%</span>
+                <span style="font-size: 14px;">Amarillo: Stock real entre 80%-99% del óptimo</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 20px; background-color: #f8d7da; border: 1px solid #f1b0b7; border-radius: 4px;"></div>
-                <span style="font-size: 14px;">Rojo: >±20% del óptimo</span>
+                <span style="font-size: 14px;">Rojo: Stock real < 80% del óptimo</span>
             </div>
         </div>
     </div>
