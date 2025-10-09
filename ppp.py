@@ -12126,7 +12126,7 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
-    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+    if st.button("📊 Exportar Tabla MVP a Excel", type="primary", key=f"export_mvp_excel_{key_suffix}"):
         excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Guatemala")
         
         if excel_data:
@@ -12320,7 +12320,7 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
-    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+    if st.button("📊 Exportar Tabla MVP a Excel", type="primary", key=f"export_mvp_excel_{key_suffix}"):
         excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Honduras")
         
         if excel_data:
@@ -12514,7 +12514,7 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
-    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+    if st.button("📊 Exportar Tabla MVP a Excel", type="primary", key=f"export_mvp_excel_{key_suffix}"):
         excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "CostaRica")
         
         if excel_data:
@@ -12960,7 +12960,7 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Botón de exportación a Excel con colores
     st.markdown("---")
-    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+    if st.button("📊 Exportar Tabla MVP a Excel", type="primary", key=f"export_mvp_excel_{key_suffix}"):
         excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "ElSalvador")
         
         if excel_data:
@@ -13151,7 +13151,7 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     
     # Botón de exportación a Excel con colores (mismo formato que Guatemala)
     st.markdown("---")
-    if st.button("📊 Exportar Tabla MVP a Excel (con colores)", type="primary", key=f"export_mvp_excel_{key_suffix}"):
+    if st.button("📊 Exportar Tabla MVP a Excel", type="primary", key=f"export_mvp_excel_{key_suffix}"):
         excel_data = exportar_mvp_excel_con_colores(tabla_mvp, columnas_real, columnas_optimo, "Panama")
         
         if excel_data:
@@ -13810,18 +13810,6 @@ def main():
                 mostrar_stock_mvps_panama(archivo_panama_temp, "_temp_panama")
         
         
-        # Nota explicativa final
-        st.markdown("---")
-        st.markdown("""
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
-            <strong>🔄 Espacio Temporal - Solo Stock:</strong><br>
-            • Este espacio está optimizado solo para análisis de Stock (sin archivos de ventas)<br>
-            • Carga únicamente archivos: GUATEMALA.csv, EL_SALVADOR.csv, HONDURAS.csv, COSTA_RICA.csv, PANAMA.csv<br>
-            • Las pestañas principales permanecen intactas con funcionalidad completa (Stock + Ventas)<br>
-            • Perfecto para análisis rápido de inventario y MVPs de Guatemala<br>
-            • Fácil de remover cuando ya no sea necesario
-        </div>
-        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
