@@ -11916,10 +11916,10 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("❌ Error: Archivo de stock vacío o no válido")
         return pd.DataFrame()
     
-    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 45 SE EXTRAEN DEL ARCHIVO DE STOCK
-    codigos_mvp_str = [
+    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 46 SE EXTRAEN DEL ARCHIVO DE STOCK (IGUAL QUE GUATEMALA)
+    codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -11928,78 +11928,186 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
         '70556851', '70556867', '70556869', '70558225'
     ]
     
-    # Convertir a enteros para que coincidan con el formato del archivo
-    codigos_mvp = [int(codigo) for codigo in codigos_mvp_str]
+    # Códigos que deben tener tallas específicas (678-800)
+    codigos_con_tallas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
     
-    # Verificar si existe columna 'U_Talla' o 'Talla'
-    columna_talla = 'U_Talla' if 'U_Talla' in df_stock.columns else 'Talla'
+    # Códigos que deben tener tallas SM y ML (división 50%-50%)
+    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', 
+                                '70360899', '70360903', '70428987', '70430338', '70457634']
     
-    if columna_talla not in df_stock.columns:
-        print(f"❌ Error: No se encontró columna de talla ({columna_talla}) en el archivo de stock")
+    # Tallas específicas numéricas
+    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
+    
+    # Tallas SM y ML
+    tallas_sm_ml = ['SM', 'ML']
+    
+    # Filtrar por marca NEW ERA (IGUAL QUE GUATEMALA)
+    df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
+    
+    # Filtrar por códigos MVP específicos (SOLO ESTOS 46 CÓDIGOS)
+    df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
+    
+    # Información de debug para verificar filtrado correcto
+    print(f"DEBUG MVP PUERTO RICO: Total registros NEW ERA: {len(df_new_era)}")
+    print(f"DEBUG MVP PUERTO RICO: Códigos MVP filtrados: {len(df_mvp)}")
+    print(f"DEBUG MVP PUERTO RICO: Columnas disponibles: {list(df_mvp.columns)}")
+    
+    # Verificar qué códigos MVP están presentes en el archivo
+    codigos_encontrados = df_mvp['U_Estilo'].astype(str).unique().tolist()
+    print(f"DEBUG MVP PUERTO RICO: Códigos encontrados: {sorted(codigos_encontrados)}")
+    
+    if df_mvp.empty:
+        print("DEBUG MVP PUERTO RICO: No se encontraron códigos MVP en el archivo")
         return pd.DataFrame()
     
-    print(f"✅ Usando columna: {columna_talla}")
-    
-    # Filtrar por marca NEW ERA y códigos MVP específicos
-    df_filtrado = df_stock[
-        (df_stock['Marca'] == 'NEW ERA') & 
-        (df_stock['U_Estilo'].isin(codigos_mvp))
-    ].copy()
-    
-    if df_filtrado.empty:
-        print("❌ No se encontraron productos NEW ERA con códigos MVP en el archivo")
+    # Verificar columnas necesarias - SOPORTE PARA AMBAS: 'Talla' y 'U_Talla'
+    columna_talla = None
+    if 'U_Talla' in df_mvp.columns:
+        columna_talla = 'U_Talla'
+        print("PUERTO RICO: USANDO COLUMNA U_Talla")
+    elif 'Talla' in df_mvp.columns:
+        columna_talla = 'Talla'
+        print("PUERTO RICO: USANDO COLUMNA Talla")
+    else:
+        print("ERROR PUERTO RICO: No se encontró columna de talla")
         return pd.DataFrame()
     
-    # Mapeo completo de nombres de tiendas
+    columnas_necesarias = ['U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Stock_Actual', 'Bodega']
+    for col in columnas_necesarias:
+        if col not in df_mvp.columns:
+            print(f"ERROR PUERTO RICO: Columna faltante: {col}")
+            return pd.DataFrame()
+    
+    # Obtener bodegas de Puerto Rico (nombres del archivo CSV)
+    bodegas_puerto_rico_archivo = [
+        "NE Barceloneta Premium Outlet", "NE Plaza Carolina"
+    ]
+    
+    # Mapeo completo de nombres de tiendas  
     mapeo_nombres_completo = {
         'NE Barceloneta Premium Outlet': 'NE BARCELONETA',  # Archivo CSV -> Nombre final
         'NE Plaza Carolina': 'NE CAROLINA'  # Archivo CSV -> Nombre final
     }
     
-    # Filtrar por bodegas específicas de Puerto Rico
-    bodegas_puerto_rico_archivo = list(mapeo_nombres_completo.keys())
-    df_filtrado = df_filtrado[df_filtrado['Bodega'].isin(bodegas_puerto_rico_archivo)]
+    # Filtrar solo bodegas de Puerto Rico
+    df_mvp_puerto_rico = df_mvp[df_mvp['Bodega'].isin(bodegas_puerto_rico_archivo)].copy()
     
-    if df_filtrado.empty:
-        print("❌ No se encontraron productos en las bodegas de Puerto Rico")
+    if df_mvp_puerto_rico.empty:
+        print("DEBUG MVP PUERTO RICO: No se encontraron productos en las bodegas de Puerto Rico")
         return pd.DataFrame()
     
-    print(f"✅ Encontrados {len(df_filtrado)} registros de códigos MVP en Puerto Rico")
-    
     # Aplicar mapeo de nombres de tiendas
-    df_filtrado['Bodega'] = df_filtrado['Bodega'].map(mapeo_nombres_completo)
+    df_mvp_puerto_rico['Bodega'] = df_mvp_puerto_rico['Bodega'].map(mapeo_nombres_completo)
     
-    st.info(f"📝 Bodegas después del mapeo: {df_filtrado['Bodega'].unique()}")
-    st.info(f"📈 Registros después del mapeo: {len(df_filtrado)}")
+    print(f"DEBUG MVP PUERTO RICO: Registros en bodegas de Puerto Rico: {len(df_mvp_puerto_rico)}")
+    print(f"DEBUG MVP PUERTO RICO: Bodegas después del mapeo: {df_mvp_puerto_rico['Bodega'].unique()}")
     
-    # Verificar códigos faltantes y crear filas con stock 0
-    codigos_presentes = set(df_filtrado['U_Estilo'].unique())
+    # Obtener datos de óptimos
+    optimos_por_codigo = obtener_optimos_mvp_puerto_rico()
+    optimos_por_tallas = obtener_optimos_por_tallas_puerto_rico()
+    
+    # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas (IGUAL QUE GUATEMALA)
+    filas_adicionales = []
+    
+    # 1. Códigos con tallas numéricas (678-800)
+    for codigo in codigos_con_tallas:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_puerto_rico[df_mvp_puerto_rico['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Puerto Rico
+            bodegas_puerto_rico_finales = ['NE BARCELONETA', 'NE CAROLINA']
+            for bodega in bodegas_puerto_rico_finales:
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
+                
+                # Agregar filas para TODAS las tallas específicas (678-800)
+                # para que aparezcan en la tabla aunque tengan stock óptimo 0
+                for talla_req in tallas_especificas:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
+                        filas_adicionales.append(nueva_fila)
+    
+    # 2. Códigos con tallas SM y ML (división 50%-50%)
+    for codigo in codigos_con_tallas_sm_ml:
+        # Obtener datos base del código (si existe)
+        df_codigo = df_mvp_puerto_rico[df_mvp_puerto_rico['U_Estilo'].astype(str) == codigo]
+        
+        if not df_codigo.empty:
+            # Obtener datos base del primer registro
+            datos_base = df_codigo.iloc[0].copy()
+            
+            # Para cada bodega de Puerto Rico
+            for bodega in bodegas_puerto_rico_finales:
+                # Verificar qué tallas tiene este código en esta bodega (con limpieza robusta)
+                tallas_existentes = df_codigo[df_codigo['Bodega'] == bodega][columna_talla].astype(str).str.strip().tolist()
+                
+                # Agregar filas para SM y ML si no existen
+                for talla_req in tallas_sm_ml:
+                    if talla_req not in tallas_existentes:
+                        # Crear nueva fila con stock 0
+                        nueva_fila = datos_base.copy()
+                        nueva_fila['Bodega'] = bodega
+                        nueva_fila[columna_talla] = talla_req
+                        nueva_fila['Stock_Actual'] = 0
+                        nueva_fila['Codigo_SAP'] = ""  # SAP vacío para filas artificiales (sin stock real)
+                        filas_adicionales.append(nueva_fila)
+    
+    # Crear mapa de SAP solo para registros REALES (con stock > 0)
+    df_sap_map = df_mvp_puerto_rico[df_mvp_puerto_rico['Stock_Actual'] > 0].groupby(['U_Estilo', columna_talla])['Codigo_SAP'].first().reset_index()
+    sap_dict = {}
+    for _, row in df_sap_map.iterrows():
+        key = (str(row['U_Estilo']), str(row[columna_talla]))
+        sap_dict[key] = row['Codigo_SAP']
+    
+    # Aplicar códigos SAP reales a las filas artificiales que correspondan
+    for fila in filas_adicionales:
+        key = (str(fila['U_Estilo']), str(fila[columna_talla]))
+        if key in sap_dict:
+            fila['Codigo_SAP'] = sap_dict[key]
+    
+    # Concatenar filas adicionales
+    if filas_adicionales:
+        df_adicional = pd.DataFrame(filas_adicionales)
+        df_mvp_puerto_rico = pd.concat([df_mvp_puerto_rico, df_adicional], ignore_index=True)
+        print(f"DEBUG MVP PUERTO RICO: Agregadas {len(filas_adicionales)} filas para tallas faltantes")
+    
+    # Verificar códigos faltantes y crear filas con stock 0 (CÓDIGOS COMPLETAMENTE FALTANTES)
+    codigos_presentes = set(df_mvp_puerto_rico['U_Estilo'].astype(str).unique())
     codigos_faltantes = set(codigos_mvp) - codigos_presentes
     
+    # CÓDIGOS COMPLETAMENTE FALTANTES: Crear filas para códigos que no están en el archivo
     if codigos_faltantes:
-        print(f"⚠️  Códigos MVP faltantes en archivo: {len(codigos_faltantes)}")
+        print(f"DEBUG MVP PUERTO RICO: Códigos MVP faltantes en archivo: {len(codigos_faltantes)}")
         
-        # Crear filas para códigos faltantes con información "N/D"
-        filas_adicionales = []
-        bodegas_puerto_rico_finales = ['NE BARCELONETA', 'NE CAROLINA']
+        # Crear filas para códigos faltantes con información "N/D" (IGUAL QUE GUATEMALA)
+        filas_faltantes = []
         for codigo in codigos_faltantes:
             for bodega in bodegas_puerto_rico_finales:
                 # Determinar tallas según el tipo de código
-                if codigo in ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']:
-                    # Códigos con tallas específicas
-                    tallas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
-                elif codigo in ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', '70360899', '70360903', '70428987', '70430338', '70457634']:
+                if codigo in codigos_con_tallas:
+                    # Códigos con tallas específicas (678-800)
+                    tallas = tallas_especificas
+                elif codigo in codigos_con_tallas_sm_ml:
                     # Códigos con tallas SM/ML
-                    tallas = ['SM', 'ML']
+                    tallas = tallas_sm_ml
                 else:
                     # Otros códigos (usar una talla genérica)
                     tallas = ['N/D']
                 
                 for talla in tallas:
                     fila = {
-                        'U_Estilo': codigo,
+                        'U_Estilo': int(codigo) if codigo.isdigit() else codigo,  # Mantener tipo correcto
                         'Codigo_SAP': "",  # Vacío para códigos artificiales
-                        'Marca': 'NEW ERA',
+                        'U_Marca': 'NEW ERA',
                         'U_Segmento': 'N/D',
                         'U_Silueta': 'N/D', 
                         'U_Coleccion_NE': 'N/D',
@@ -12008,85 +12116,19 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
                         'Bodega': bodega,
                         'Stock_Actual': 0
                     }
-                    filas_adicionales.append(fila)
+                    filas_faltantes.append(fila)
         
         # Agregar filas faltantes al DataFrame
-        if filas_adicionales:
-            df_adicional = pd.DataFrame(filas_adicionales)
-            df_filtrado = pd.concat([df_filtrado, df_adicional], ignore_index=True)
-            print(f"➕ Agregadas {len(filas_adicionales)} filas para códigos/tallas faltantes")
+        if filas_faltantes:
+            df_faltantes = pd.DataFrame(filas_faltantes)
+            df_mvp_puerto_rico = pd.concat([df_mvp_puerto_rico, df_faltantes], ignore_index=True)
+            print(f"DEBUG MVP PUERTO RICO: Agregadas {len(filas_faltantes)} filas para códigos completamente faltantes")
     
-    # Verificar tallas faltantes para códigos presentes
-    codigos_con_tallas_especificas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
-    codigos_con_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', '70360899', '70360903', '70428987', '70430338', '70457634']
-    
-    filas_tallas_faltantes = []
-    
-    # Para códigos con tallas específicas, asegurar que tengan todas las tallas
-    for codigo in codigos_con_tallas_especificas:
-        if codigo in codigos_presentes:
-            for bodega in bodegas_puerto_rico_finales:
-                tallas_presentes = set(df_filtrado[
-                    (df_filtrado['U_Estilo'] == codigo) & 
-                    (df_filtrado['Bodega'] == bodega)
-                ][columna_talla].astype(str).unique())
-                
-                tallas_requeridas = {'678', '700', '718', '714', '738', '712', '758', '734', '778', '800'}
-                tallas_faltantes = tallas_requeridas - tallas_presentes
-                
-                for talla in tallas_faltantes:
-                    fila = {
-                        'U_Estilo': codigo,
-                        'Codigo_SAP': "",  # Vacío para tallas artificiales
-                        'Marca': 'NEW ERA',
-                        'U_Segmento': 'N/D',
-                        'U_Silueta': 'N/D',
-                        'U_Coleccion_NE': 'N/D', 
-                        'U_Descripcion': 'N/D',
-                        columna_talla: str(talla),
-                        'Bodega': bodega,
-                        'Stock_Actual': 0
-                    }
-                    filas_tallas_faltantes.append(fila)
-    
-    # Para códigos con tallas SM/ML
-    for codigo in codigos_con_sm_ml:
-        if codigo in codigos_presentes:
-            for bodega in bodegas_puerto_rico_finales:
-                tallas_presentes = set(df_filtrado[
-                    (df_filtrado['U_Estilo'] == codigo) & 
-                    (df_filtrado['Bodega'] == bodega)
-                ][columna_talla].astype(str).unique())
-                
-                tallas_requeridas = {'SM', 'ML'}
-                tallas_faltantes = tallas_requeridas - tallas_presentes
-                
-                for talla in tallas_faltantes:
-                    fila = {
-                        'U_Estilo': codigo,
-                        'Codigo_SAP': "",  # Vacío para tallas artificiales
-                        'Marca': 'NEW ERA',
-                        'U_Segmento': 'N/D',
-                        'U_Silueta': 'N/D',
-                        'U_Coleccion_NE': 'N/D',
-                        'U_Descripcion': 'N/D',
-                        columna_talla: str(talla),
-                        'Bodega': bodega,
-                        'Stock_Actual': 0
-                    }
-                    filas_tallas_faltantes.append(fila)
-    
-    # Agregar tallas faltantes
-    if filas_tallas_faltantes:
-        df_tallas_adicional = pd.DataFrame(filas_tallas_faltantes)
-        df_filtrado = pd.concat([df_filtrado, df_tallas_adicional], ignore_index=True)
-        print(f"➕ Agregadas {len(filas_tallas_faltantes)} filas para tallas faltantes")
-    
-    # Asegurar que la columna de talla sea string y limpiar espacios
-    df_filtrado[columna_talla] = df_filtrado[columna_talla].astype(str).str.strip()
+    # Asegurar que la columna de talla sea string y limpiar espacios (IGUAL QUE GUATEMALA)
+    df_mvp_puerto_rico[columna_talla] = df_mvp_puerto_rico[columna_talla].astype(str).str.strip()
     
     # Agrupar por las dimensiones principales
-    tabla_agrupada = df_filtrado.groupby([
+    tabla_agrupada = df_mvp_puerto_rico.groupby([
         'U_Estilo', 'Codigo_SAP', 'U_Segmento', 'U_Silueta', 
         'U_Coleccion_NE', 'U_Descripcion', columna_talla, 'Bodega'
     ])['Stock_Actual'].sum().reset_index()
@@ -12118,17 +12160,7 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
     # Eliminar columnas originales de bodega
     tabla_final = tabla_final.drop(columns=bodegas_puerto_rico_finales)
     
-    # Obtener datos de stock óptimo por código y por tallas
-    optimos_por_codigo = obtener_optimos_mvp_puerto_rico()
-    optimos_por_tallas = obtener_optimos_por_tallas_puerto_rico()
-    
-    # CÓDIGOS CON TALLAS ESPECÍFICAS
-    codigos_con_tallas_numericas = ['11591122', '11591128', '11591150', '11591175', '70331909', '70331911', '70331962']
-    tallas_especificas = ['678', '700', '718', '714', '738', '712', '758', '734', '778', '800']
-    
-    # CÓDIGOS CON TALLAS SM Y ML
-    codigos_con_tallas_sm_ml = ['10975804', '10975815', '10975835', '70192970', '70353249', '70353266', '70360899', '70360903', '70428987', '70430338', '70457634']
-    tallas_sm_ml = ['SM', 'ML']
+    # (Los datos de óptimos y las listas ya están definidas arriba)
     
     # Crear columnas de stock óptimo
     for bodega in bodegas_puerto_rico_finales:
@@ -12139,7 +12171,7 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
             codigo = str(codigo_tuple[0])  # Convertir a string para que coincida con las claves del diccionario
             talla = str(codigo_tuple[6])
             
-            if codigo in codigos_con_tallas_numericas and talla in tallas_especificas:
+            if codigo in codigos_con_tallas and talla in tallas_especificas:
                 # CASO 1: Códigos con tallas específicas - Calcular tallas basado en código ÷ 12
                 if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo] and bodega in optimos_por_tallas:
                     # Paso 1: Obtener stock óptimo por código
