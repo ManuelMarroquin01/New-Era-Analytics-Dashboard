@@ -1283,6 +1283,10 @@ class ProfessionalDesign:
             # Celeste (anteriormente de Honduras)
             background_gradient = "linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)"
             box_shadow = "0 10px 30px rgba(14, 165, 233, 0.3)"
+        elif "Puerto Rico" in title or "PUERTO RICO" in title:
+            # Naranja para Puerto Rico
+            background_gradient = "linear-gradient(135deg, #ea580c 0%, #f97316 100%)"
+            box_shadow = "0 10px 30px rgba(234, 88, 12, 0.3)"
         else:
             # Azul medio por defecto
             background_gradient = "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)"
@@ -12489,14 +12493,18 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -12504,10 +12512,6 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
             st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
         else:
             st.metric("% de Cumplimiento", "0.0%")
-    
-    with col8:
-        # Columna vacía para mantener simetría
-        st.metric("", "")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
@@ -12704,14 +12708,18 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -12719,9 +12727,6 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
             st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
         else:
             st.metric("% de Cumplimiento", "0.0%")
-    
-    with col8:
-        st.metric("", "")  # Columna vacía para mantener el balance
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_honduras(df):
@@ -12918,14 +12923,18 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -13381,14 +13390,18 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -13396,10 +13409,6 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
             st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
         else:
             st.metric("% de Cumplimiento", "0.0%")
-    
-    with col8:
-        # Columna vacía para mantener simetría
-        st.metric("", "")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_elsalvador(df):
@@ -13596,14 +13605,18 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -13611,10 +13624,6 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
             st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
         else:
             st.metric("% de Cumplimiento", "0.0%")
-    
-    with col8:
-        # Columna vacía para mantener el layout
-        st.write("")
     
     # Crear tabla HTML simplificada
     def crear_tabla_html_mvp_panama(df):
@@ -13808,14 +13817,18 @@ def mostrar_stock_mvps_puerto_rico(df_stock: pd.DataFrame, key_suffix: str = "")
     col5, col6, col7, col8 = st.columns(4)
     
     with col5:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
+    with col6:
         celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
         st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
     
-    with col6:
+    with col7:
         celdas_rojo = contadores_semaforo['rojo']
         st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
     
-    with col7:
+    with col8:
         # Calcular % de Cumplimiento con nueva fórmula
         total_celdas = celdas_verde_amarillo + celdas_rojo
         if total_celdas > 0:
@@ -13823,10 +13836,6 @@ def mostrar_stock_mvps_puerto_rico(df_stock: pd.DataFrame, key_suffix: str = "")
             st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
         else:
             st.metric("% de Cumplimiento", "0.0%")
-    
-    with col8:
-        # Columna vacía para mantener simetría
-        st.metric("", "")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
