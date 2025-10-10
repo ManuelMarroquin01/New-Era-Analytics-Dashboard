@@ -10319,17 +10319,33 @@ def validar_cuadre_sm_ml(codigo: str, bodega: str, stock_sm: int, stock_ml: int,
 
 def calcular_tallas_sm_ml(stock_optimo_codigo: int) -> tuple:
     """
-    Calcula la distribución 50%-50% para tallas SM y ML
+    Calcula la distribución para tallas SM y ML según nueva lógica:
+    - Base: SM=3, ML=9
+    - Multiplicadores: 48→x4, 36→x3, 18→x1.5
+    - Para 18: redondeo hacia abajo + 1 unidad extra a ML
     Retorna (stock_sm, stock_ml)
     """
-    if stock_optimo_codigo % 2 == 0:
-        # Número par: división exacta
-        stock_sm = stock_optimo_codigo // 2
-        stock_ml = stock_optimo_codigo // 2
+    # Determinar multiplicador según stock óptimo del código
+    if stock_optimo_codigo == 48:
+        # Multiplicador x4
+        stock_sm = 3 * 4  # = 12
+        stock_ml = 9 * 4  # = 36
+    elif stock_optimo_codigo == 36:
+        # Multiplicador x3
+        stock_sm = 3 * 3  # = 9
+        stock_ml = 9 * 3  # = 27
+    elif stock_optimo_codigo == 18:
+        # Multiplicador x1.5 con redondeo especial
+        stock_sm = int(3 * 1.5)  # = 4 (4.5 redondeado hacia abajo)
+        stock_ml = int(9 * 1.5) + 1  # = 14 (13.5 redondeado hacia abajo + 1 extra)
     else:
-        # Número impar: SM recibe la unidad extra
-        stock_sm = (stock_optimo_codigo // 2) + 1
-        stock_ml = stock_optimo_codigo // 2
+        # Fallback a la lógica original para casos no contemplados
+        if stock_optimo_codigo % 2 == 0:
+            stock_sm = stock_optimo_codigo // 2
+            stock_ml = stock_optimo_codigo // 2
+        else:
+            stock_sm = (stock_optimo_codigo // 2) + 1
+            stock_ml = stock_optimo_codigo // 2
     
     return stock_sm, stock_ml
 
