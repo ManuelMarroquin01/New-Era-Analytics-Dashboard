@@ -12402,6 +12402,39 @@ def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
     else:
         return "#f8d7da"  # Rojo - falta más del 20%
 
+def contar_celdas_semaforo_mvp(tabla_mvp: pd.DataFrame, columnas_real: List[str], columnas_optimo: List[str]) -> dict:
+    """
+    Cuenta las celdas por color de semáforo en la tabla MVP
+    Retorna: {'verde': count, 'amarillo': count, 'rojo': count}
+    """
+    print(f"DEBUG: Iniciando conteo de celdas semáforo. Filas: {len(tabla_mvp)}, Columnas Real: {len(columnas_real)}")
+    contadores = {'verde': 0, 'amarillo': 0, 'rojo': 0}
+    
+    # Iterar por todas las filas excluyendo la fila TOTAL
+    for idx, row in tabla_mvp.iterrows():
+        # Saltar la fila TOTAL
+        if isinstance(idx, tuple) and idx[0] == 'TOTAL':
+            continue
+            
+        # Iterar por cada par de columnas Real/Óptimo
+        for col_real, col_optimo in zip(columnas_real, columnas_optimo):
+            if col_real in tabla_mvp.columns and col_optimo in tabla_mvp.columns:
+                valor_real = row[col_real] if pd.notna(row[col_real]) else 0
+                valor_optimo = row[col_optimo] if pd.notna(row[col_optimo]) else 0
+                
+                # Calcular color según la lógica del semáforo
+                color_hex = calcular_color_semaforo_mvp(float(valor_real), float(valor_optimo))
+                
+                # Contar según el color
+                if color_hex == "#d4edda":  # Verde
+                    contadores['verde'] += 1
+                elif color_hex == "#fff3cd":  # Amarillo
+                    contadores['amarillo'] += 1
+                elif color_hex == "#f8d7da":  # Rojo
+                    contadores['rojo'] += 1
+    
+    return contadores
+
 def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     """Muestra la tabla de stock de códigos MVP para Guatemala con nueva funcionalidad"""
     if df_stock is None or df_stock.empty:
@@ -12448,6 +12481,33 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
+    
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
+    
+    with col8:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
@@ -12637,6 +12697,32 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
+    
+    with col8:
+        st.metric("", "")  # Columna vacía para mantener el balance
+    
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_honduras(df):
         """Crea tabla HTML con formato profesional para MVP Honduras"""
@@ -12824,6 +12910,29 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
+    
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_costarica(df):
@@ -13265,6 +13374,33 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
+    
+    with col8:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
+    
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_elsalvador(df):
         """Crea tabla HTML con formato profesional para MVP El Salvador"""
@@ -13453,6 +13589,33 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
+    
+    with col8:
+        # Columna vacía para mantener el layout
+        st.write("")
+    
     # Crear tabla HTML simplificada
     def crear_tabla_html_mvp_panama(df):
         """Crea tabla HTML con formato profesional para MVP Panamá - MISMO FORMATO QUE GUATEMALA"""
@@ -13637,6 +13800,33 @@ def mostrar_stock_mvps_puerto_rico(df_stock: pd.DataFrame, key_suffix: str = "")
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
             st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
+    
+    # Nueva fila de métricas - Contar celdas de semáforo
+    contadores_semaforo = contar_celdas_semaforo_mvp(tabla_mvp, columnas_real, columnas_optimo)
+    print(f"DEBUG: Contadores semáforo - Verde: {contadores_semaforo['verde']}, Amarillo: {contadores_semaforo['amarillo']}, Rojo: {contadores_semaforo['rojo']}")
+    
+    col5, col6, col7, col8 = st.columns(4)
+    
+    with col5:
+        celdas_verde_amarillo = contadores_semaforo['verde'] + contadores_semaforo['amarillo']
+        st.metric("Cantidad de celdas en verde y amarillo", f"{celdas_verde_amarillo:,}")
+    
+    with col6:
+        celdas_rojo = contadores_semaforo['rojo']
+        st.metric("Cantidad de celdas en rojo", f"{celdas_rojo:,}")
+    
+    with col7:
+        # Calcular % de Cumplimiento con nueva fórmula
+        total_celdas = celdas_verde_amarillo + celdas_rojo
+        if total_celdas > 0:
+            cumplimiento_semaforo = (celdas_verde_amarillo / total_celdas) * 100
+            st.metric("% de Cumplimiento", f"{cumplimiento_semaforo:.1f}%")
+        else:
+            st.metric("% de Cumplimiento", "0.0%")
+    
+    with col8:
+        # Columna vacía para mantener simetría
+        st.metric("", "")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
