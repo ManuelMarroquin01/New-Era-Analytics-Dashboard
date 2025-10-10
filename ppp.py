@@ -10421,10 +10421,10 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     if df_stock is None or df_stock.empty:
         return pd.DataFrame()
     
-    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 46 SE EXTRAEN DEL ARCHIVO DE STOCK
+    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 45 SE EXTRAEN DEL ARCHIVO DE STOCK
     codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -10449,7 +10449,7 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
     # Filtrar por marca NEW ERA
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
     
-    # Filtrar por códigos MVP específicos (SOLO ESTOS 46 CÓDIGOS)
+    # Filtrar por códigos MVP específicos (SOLO ESTOS 45 CÓDIGOS)
     df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
     
     # Información de debug para verificar filtrado correcto
@@ -10730,7 +10730,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA
     codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -11023,7 +11023,7 @@ def procesar_stock_mvps_honduras(df_stock: pd.DataFrame) -> pd.DataFrame:
     # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA Y EL SALVADOR
     codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -11320,7 +11320,7 @@ def procesar_stock_mvps_costarica(df_stock: pd.DataFrame) -> pd.DataFrame:
     # CÓDIGOS MVP ESPECÍFICOS - MISMOS QUE GUATEMALA, EL SALVADOR Y HONDURAS
     codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -11916,10 +11916,10 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
         print("❌ Error: Archivo de stock vacío o no válido")
         return pd.DataFrame()
     
-    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 46 SE EXTRAEN DEL ARCHIVO DE STOCK (IGUAL QUE GUATEMALA)
+    # CÓDIGOS MVP ESPECÍFICOS - SOLO ESTOS 45 SE EXTRAEN DEL ARCHIVO DE STOCK (IGUAL QUE TODOS LOS PAÍSES)
     codigos_mvp = [
         '10030708', '10030709', '10047511', '10047531', '10047538', '10112874', 
-        '10975804', '10975815', '10975835', '11169822', '11405605', '11405614', 
+        '10975804', '10975815', '10975835', '11405605', '11405614', 
         '11591024', '11591025', '11591026', '11591043', '11591046', '11591047', 
         '11591077', '11591078', '11591122', '11591128', '11591150', '11591175', 
         '11941921', '12650335', '12650337', '12650340', '12650342', '12650343', 
@@ -11944,7 +11944,7 @@ def procesar_stock_mvps_puerto_rico(df_stock: pd.DataFrame) -> pd.DataFrame:
     # Filtrar por marca NEW ERA (IGUAL QUE GUATEMALA)
     df_new_era = df_stock[df_stock['U_Marca'].str.upper() == 'NEW ERA'].copy()
     
-    # Filtrar por códigos MVP específicos (SOLO ESTOS 46 CÓDIGOS)
+    # Filtrar por códigos MVP específicos (SOLO ESTOS 45 CÓDIGOS)
     df_mvp = df_new_era[df_new_era['U_Estilo'].astype(str).isin(codigos_mvp)].copy()
     
     # Información de debug para verificar filtrado correcto
@@ -12431,7 +12431,9 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -12445,7 +12447,7 @@ def mostrar_stock_mvps_guatemala(df_stock: pd.DataFrame, key_suffix: str = ""):
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
@@ -12617,7 +12619,9 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -12631,7 +12635,7 @@ def mostrar_stock_mvps_honduras(df_stock: pd.DataFrame, key_suffix: str = ""):
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_honduras(df):
@@ -12803,7 +12807,9 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -12817,7 +12823,7 @@ def mostrar_stock_mvps_costarica(df_stock: pd.DataFrame, key_suffix: str = ""):
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_costarica(df):
@@ -13241,7 +13247,9 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -13255,7 +13263,7 @@ def mostrar_stock_mvps_elsalvador(df_stock: pd.DataFrame, key_suffix: str = ""):
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp_elsalvador(df):
@@ -13427,7 +13435,9 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -13441,7 +13451,7 @@ def mostrar_stock_mvps_panama(df_stock: pd.DataFrame, key_suffix: str = ""):
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML simplificada
     def crear_tabla_html_mvp_panama(df):
@@ -13610,7 +13620,9 @@ def mostrar_stock_mvps_puerto_rico(df_stock: pd.DataFrame, key_suffix: str = "")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_productos = len(tabla_mvp) - 1  # -1 para excluir fila TOTAL
+        # Contar códigos únicos excluyendo la fila TOTAL
+        codigos_unicos = tabla_mvp.index.get_level_values(0).unique()
+        total_productos = len([codigo for codigo in codigos_unicos if codigo != 'TOTAL'])
         st.metric("Total Productos MVP", f"{total_productos:,}")
     
     with col2:
@@ -13624,7 +13636,7 @@ def mostrar_stock_mvps_puerto_rico(df_stock: pd.DataFrame, key_suffix: str = "")
     with col4:
         if total_stock_optimo > 0:
             cumplimiento = (total_stock_real / total_stock_optimo) * 100
-            st.metric("% Cumplimiento", f"{cumplimiento:.1f}%")
+            st.metric("Cumplimiento de unidades totales", f"{cumplimiento:.1f}%")
     
     # Crear tabla HTML con formato profesional
     def crear_tabla_html_mvp(df):
