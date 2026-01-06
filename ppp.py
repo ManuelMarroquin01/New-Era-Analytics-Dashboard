@@ -9874,12 +9874,11 @@ def obtener_optimos_mvp_elsalvador() -> Dict[str, Dict[str, int]]:
         "12650344": {"NE MULTIPLAZA": 48, "NE EL PASEO": 18, "NE METROCENTRO": 48, "NE SANTA ANA": 48, "NE USULUTAN": 36, "NE LOURDES": 18, "NE SAN MIGUEL": 36, "NE SOYAPANGO": 36}
     }
     
-    # Convertir nombres de tiendas del mapeo
+    # Convertir nombres de tiendas del mapeo - CORREGIDO: Procesar todos los códigos
     optimos_dict = {}
-    for tienda_real, tienda_codigos in mapeo_tiendas_elsalvador.items():
-        for codigo, tiendas_optimos in optimos_data_elsalvador.items():
-            if codigo not in optimos_dict:
-                optimos_dict[codigo] = {}
+    for codigo, tiendas_optimos in optimos_data_elsalvador.items():
+        optimos_dict[codigo] = {}
+        for tienda_real, tienda_codigos in mapeo_tiendas_elsalvador.items():
             if tienda_codigos in tiendas_optimos:
                 optimos_dict[codigo][tienda_real] = tiendas_optimos[tienda_codigos]
     
@@ -10823,6 +10822,7 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     optimos_por_codigo = obtener_optimos_mvp_elsalvador()
     optimos_por_tallas = obtener_optimos_por_tallas_elsalvador()
     
+    
     # NUEVA LÓGICA: Agregar filas faltantes para códigos con tallas específicas
     filas_adicionales = []
     
@@ -10897,23 +10897,22 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
     if codigos_faltantes:
         print(f"DEBUG MVP EL SALVADOR: Agregando {len(codigos_faltantes)} códigos MVP faltantes: {sorted(codigos_faltantes)}")
         
-        # Crear filas para códigos faltantes
+        # Crear UNA SOLA fila por código faltante (no una por bodega)
         filas_faltantes = []
         for codigo_faltante in codigos_faltantes:
-            for bodega in bodegas_elsalvador:
-                # Crear fila con información "N/D"
-                fila_faltante = {
-                    'U_Estilo': codigo_faltante,
-                    'Codigo_SAP': '',  # Vacío porque no existe en archivo
-                    'U_Segmento': 'N/D',
-                    'U_Silueta': 'N/D', 
-                    'U_Coleccion_NE': 'N/D',
-                    'U_Descripcion': 'N/D',
-                    columna_talla: 'N/D',
-                    'Stock_Actual': 0,  # Sin stock porque no está en archivo
-                    'Bodega': bodega
-                }
-                filas_faltantes.append(fila_faltante)
+            # Crear fila única con información "N/D" - SIN especificar bodega
+            fila_faltante = {
+                'U_Estilo': codigo_faltante,
+                'Codigo_SAP': '',  # Vacío porque no existe en archivo
+                'U_Segmento': 'N/D',
+                'U_Silueta': 'N/D', 
+                'U_Coleccion_NE': 'N/D',
+                'U_Descripcion': 'N/D',
+                columna_talla: 'N/D',
+                'Stock_Actual': 0,  # Sin stock porque no está en archivo
+                'Bodega': bodegas_elsalvador[0]  # Asignar a primera bodega por defecto
+            }
+            filas_faltantes.append(fila_faltante)
         
         # Agregar filas faltantes al DataFrame
         if filas_faltantes:
@@ -10960,10 +10959,12 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
         col_optimo = f"Óptimo {bodega}"
         tabla_final[col_optimo] = 0
     
+    
     # MISMA LÓGICA DE CÁLCULO QUE GUATEMALA
     for codigo_tuple in tabla_final.index:
-        codigo = codigo_tuple[0]
+        codigo = str(codigo_tuple[0])  # Convertir a string para consistencia
         talla = str(codigo_tuple[6])  # Talla está en el índice 6 (corregido para coincidir con Guatemala)
+        
         
         for bodega in bodegas_elsalvador:
             col_optimo = f"Óptimo {bodega}"
@@ -11020,13 +11021,22 @@ def procesar_stock_mvps_elsalvador(df_stock: pd.DataFrame) -> pd.DataFrame:
                     
             else:
                 # CASO 3: Códigos sin tallas específicas - Usar stock óptimo por código directo
-                if codigo in optimos_por_codigo and bodega in optimos_por_codigo[codigo]:
-                    tabla_final.loc[codigo_tuple, col_optimo] = optimos_por_codigo[codigo][bodega]
+                codigo_existe = codigo in optimos_por_codigo
+                if codigo_existe:
+                    bodega_existe = bodega in optimos_por_codigo[codigo]
+                    if bodega_existe:
+                        stock_asignado = optimos_por_codigo[codigo][bodega]
+                        tabla_final.loc[codigo_tuple, col_optimo] = stock_asignado
+                    else:
+                        tabla_final.loc[codigo_tuple, col_optimo] = 0
+                else:
+                    tabla_final.loc[codigo_tuple, col_optimo] = 0
     
     # Agregar fila de totales
     fila_totales = tabla_final.sum(axis=0)
     fila_totales.name = ('TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL', 'TOTAL')
     tabla_final = pd.concat([tabla_final, fila_totales.to_frame().T])
+    
     
     return tabla_final
 
