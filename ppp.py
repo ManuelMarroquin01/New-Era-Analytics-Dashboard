@@ -13175,13 +13175,14 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             bodegas = []
             col_mapping = {}
             col_idx = 8  # Las primeras 7 son información (Código, Codigo_SAP, Segmento, Silueta, Colección, Descripción, Talla)
-            
+
             for col_real in columnas_real:
                 bodega = col_real.replace('Real ', '')
                 bodegas.append(bodega)
                 col_mapping[col_real] = col_idx
                 col_mapping[f'Óptimo {bodega}'] = col_idx + 1
-                col_idx += 2
+                col_mapping[f'Necesidad {bodega}'] = col_idx + 2
+                col_idx += 3  # Ahora son 3 columnas por bodega: Real, Óptimo, Necesidad
             
             # 1. FORMATEAR ENCABEZADOS PRINCIPALES
             # Fila 1: Información + Bodegas
@@ -13192,14 +13193,14 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.alignment = align_center
                 cell.border = border
             
-            # Agregar encabezados de bodegas (fusionar celdas para Real + Óptimo)
+            # Agregar encabezados de bodegas (fusionar celdas para Real + Óptimo + Necesidad)
             for i, bodega in enumerate(bodegas):
-                start_col = 8 + (i * 2)
-                end_col = start_col + 1
-                
+                start_col = 8 + (i * 3)  # Ahora son 3 columnas por bodega
+                end_col = start_col + 2  # Abarcar 3 columnas
+
                 # Fusionar celdas para la bodega
                 worksheet.merge_cells(start_row=1, start_column=start_col, end_row=1, end_column=end_col)
-                
+
                 # Formatear celda fusionada
                 cell = worksheet.cell(row=1, column=start_col)
                 cell.value = bodega
@@ -13207,7 +13208,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.fill = fill_header
                 cell.alignment = align_center
                 cell.border = border
-                
+
                 # Aplicar bordes a la celda fusionada
                 for col in range(start_col, end_col + 1):
                     worksheet.cell(row=1, column=col).border = border
@@ -13223,10 +13224,13 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.alignment = align_center
                 cell.border = border
             
-            # Sub-encabezados Real/Óptimo
+            # Color de fondo para columna Necesidad
+            fill_subheader_necesidad = PatternFill(start_color='6C757D', end_color='6C757D', fill_type='solid')  # Gris
+
+            # Sub-encabezados Real/Óptimo/Necesidad
             for i, bodega in enumerate(bodegas):
-                start_col = 8 + (i * 2)
-                
+                start_col = 8 + (i * 3)  # Ahora son 3 columnas por bodega
+
                 # Columna Real
                 cell_real = worksheet.cell(row=2, column=start_col)
                 cell_real.value = "Real"
@@ -13234,7 +13238,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell_real.fill = fill_subheader_real
                 cell_real.alignment = align_center
                 cell_real.border = border
-                
+
                 # Columna Óptimo
                 cell_optimo = worksheet.cell(row=2, column=start_col + 1)
                 cell_optimo.value = "Óptimo"
@@ -13242,6 +13246,14 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell_optimo.fill = fill_subheader_optimo
                 cell_optimo.alignment = align_center
                 cell_optimo.border = border
+
+                # Columna Necesidad
+                cell_necesidad = worksheet.cell(row=2, column=start_col + 2)
+                cell_necesidad.value = "Necesidad"
+                cell_necesidad.font = font_subheader
+                cell_necesidad.fill = fill_subheader_necesidad
+                cell_necesidad.alignment = align_center
+                cell_necesidad.border = border
             
             # 3. FORMATEAR DATOS Y APLICAR SEMÁFORO
             total_rows = worksheet.max_row
@@ -13271,24 +13283,38 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 
                 # Formatear columnas de bodegas con semáforo
                 for i, bodega in enumerate(bodegas):
-                    col_real = 8 + (i * 2)  # Corregido: empezar desde columna 8
+                    col_real = 8 + (i * 3)  # Ahora son 3 columnas por bodega
                     col_optimo = col_real + 1
-                    
+                    col_necesidad = col_real + 2
+
                     cell_real = worksheet.cell(row=row_num, column=col_real)
                     cell_optimo = worksheet.cell(row=row_num, column=col_optimo)
-                    
+                    cell_necesidad = worksheet.cell(row=row_num, column=col_necesidad)
+
                     if es_fila_total:
                         # Fila TOTAL: fondo negro
                         cell_real.font = font_total
                         cell_real.fill = fill_total
                         cell_optimo.font = font_total
                         cell_optimo.fill = fill_total
+                        cell_necesidad.font = font_total
+                        cell_necesidad.fill = fill_total
+
+                        # Fórmulas SUBTOTALES (109 = SUMA ignorando filtros)
+                        # La fórmula abarca desde fila 3 hasta la fila anterior al TOTAL
+                        col_letter_real = get_column_letter(col_real)
+                        col_letter_optimo = get_column_letter(col_optimo)
+                        col_letter_necesidad = get_column_letter(col_necesidad)
+
+                        cell_real.value = f'=SUBTOTAL(109,{col_letter_real}3:{col_letter_real}{row_num - 1})'
+                        cell_optimo.value = f'=SUBTOTAL(109,{col_letter_optimo}3:{col_letter_optimo}{row_num - 1})'
+                        cell_necesidad.value = f'=SUBTOTAL(109,{col_letter_necesidad}3:{col_letter_necesidad}{row_num - 1})'
                     else:
                         # Datos normales: aplicar semáforo solo a columna Real
                         try:
                             valor_real = float(str(cell_real.value).replace(',', '')) if cell_real.value else 0
                             valor_optimo = float(str(cell_optimo.value).replace(',', '')) if cell_optimo.value else 0
-                            
+
                             # Aplicar semáforo a columna Real
                             color_semaforo = calcular_color_semaforo_mvp(valor_real, valor_optimo)
                             if color_semaforo == "#d4edda":  # Verde
@@ -13297,21 +13323,30 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                                 cell_real.fill = fill_semaforo_amarillo
                             elif color_semaforo == "#f8d7da":  # Rojo
                                 cell_real.fill = fill_semaforo_rojo
-                            
+
                             # Columna Óptimo: fondo gris claro
                             cell_optimo.fill = fill_optimo
-                            
+
+                            # Columna Necesidad: calcular REAL - ÓPTIMO
+                            necesidad = int(valor_real - valor_optimo)
+                            cell_necesidad.value = necesidad
+                            cell_necesidad.fill = fill_optimo  # Fondo gris claro
+
                         except:
                             # En caso de error, usar colores por defecto
-                            pass
-                        
+                            cell_necesidad.value = 0
+                            cell_necesidad.fill = fill_optimo
+
                         cell_real.font = font_normal
                         cell_optimo.font = font_normal
-                    
+                        cell_necesidad.font = font_normal
+
                     cell_real.alignment = align_center
                     cell_optimo.alignment = align_center
+                    cell_necesidad.alignment = align_center
                     cell_real.border = border
                     cell_optimo.border = border
+                    cell_necesidad.border = border
             
             # 4. AJUSTAR ANCHOS DE COLUMNAS
             # Columnas de información
@@ -13329,7 +13364,8 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 worksheet.column_dimensions[col_letter].width = width
             
             # Columnas de bodegas (más estrechas) - ahora empiezan desde columna 8
-            for i in range(len(bodegas) * 2):
+            # Ahora son 3 columnas por bodega: Real, Óptimo, Necesidad
+            for i in range(len(bodegas) * 3):
                 col_letter = get_column_letter(8 + i)
                 worksheet.column_dimensions[col_letter].width = 10
             
