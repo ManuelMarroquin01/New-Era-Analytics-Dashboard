@@ -13125,10 +13125,31 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
         
         # Resetear índice para tener las columnas de información como columnas normales
         df_export = tabla_mvp.reset_index()
-        
+
         # Renombrar columnas de información
-        df_export.columns = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla'] + list(df_export.columns[7:])
-        
+        columnas_info = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
+        df_export.columns = columnas_info + list(df_export.columns[7:])
+
+        # Agregar columnas de Necesidad (Real - Óptimo) para cada bodega
+        # Primero, obtener lista de bodegas desde columnas_real
+        bodegas_list = [col.replace('Real ', '') for col in columnas_real]
+
+        # Crear nuevo DataFrame con columnas reorganizadas (Real, Óptimo, Necesidad por cada bodega)
+        columnas_nuevas = columnas_info.copy()
+        for bodega in bodegas_list:
+            col_real = f'Real {bodega}'
+            col_optimo = f'Óptimo {bodega}'
+            col_necesidad = f'Necesidad {bodega}'
+
+            # Calcular Necesidad = Real - Óptimo
+            if col_real in df_export.columns and col_optimo in df_export.columns:
+                df_export[col_necesidad] = df_export[col_real] - df_export[col_optimo]
+
+            columnas_nuevas.extend([col_real, col_optimo, col_necesidad])
+
+        # Reordenar columnas
+        df_export = df_export[columnas_nuevas]
+
         # Crear workbook y worksheet
         sheet_name = f'MVP_{pais}'
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -13348,10 +13369,60 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                     cell_optimo.border = border
                     cell_necesidad.border = border
             
-            # 4. AJUSTAR ANCHOS DE COLUMNAS
+            # 4. AGREGAR FILAS DE MÉTRICAS (FALTANTE y % CUMPLIMIENTO)
+            # Fila vacía después de TOTAL
+            fila_vacia = total_rows + 1
+
+            # Fila FALTANTE (suma de valores negativos de Necesidad)
+            fila_faltante = total_rows + 2
+            cell_label_faltante = worksheet.cell(row=fila_faltante, column=1, value="FALTANTE")
+            cell_label_faltante.font = Font(name='Arial', size=10, bold=True)
+            cell_label_faltante.alignment = align_left
+
+            # Fila % CUMPLIMIENTO
+            fila_cumplimiento = total_rows + 3
+            cell_label_cumplimiento = worksheet.cell(row=fila_cumplimiento, column=1, value="% CUMPLIMIENTO")
+            cell_label_cumplimiento.font = Font(name='Arial', size=10, bold=True)
+            cell_label_cumplimiento.alignment = align_left
+
+            # Agregar fórmulas para cada bodega
+            for i, bodega in enumerate(bodegas):
+                col_real = 8 + (i * 3)
+                col_optimo = col_real + 1
+                col_necesidad = col_real + 2
+
+                col_letter_real = get_column_letter(col_real)
+                col_letter_optimo = get_column_letter(col_optimo)
+                col_letter_necesidad = get_column_letter(col_necesidad)
+
+                # Celda FALTANTE: suma de valores negativos de columna Necesidad (en columna Necesidad)
+                cell_faltante = worksheet.cell(row=fila_faltante, column=col_necesidad)
+                cell_faltante.value = f'=SUMIF({col_letter_necesidad}3:{col_letter_necesidad}{total_rows - 1},"<0")'
+                cell_faltante.font = Font(name='Arial', size=10, bold=True, color='FF0000')
+                cell_faltante.alignment = align_center
+                cell_faltante.border = border
+
+                # Celda % CUMPLIMIENTO: (Celdas verdes / Total celdas) (en columna Necesidad)
+                # Lógica del semáforo:
+                # - Verde: (Real >= Óptimo Y Óptimo > 0) O (Real = 0 Y Óptimo = 0)
+                # - Total: todas las celdas
+                cell_cumplimiento = worksheet.cell(row=fila_cumplimiento, column=col_necesidad)
+                rango_real = f'{col_letter_real}3:{col_letter_real}{total_rows - 1}'
+                rango_optimo = f'{col_letter_optimo}3:{col_letter_optimo}{total_rows - 1}'
+                # Fórmula: Celdas verdes / Total celdas
+                # Verde = (Real >= Óptimo Y Óptimo > 0) + (Real = 0 Y Óptimo = 0)
+                formula_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+(({rango_real}=0)*({rango_optimo}=0)))*1)'
+                formula_total = f'COUNTA({rango_real})'
+                cell_cumplimiento.value = f'=IF({formula_total}>0,{formula_verde}/{formula_total},0)'
+                cell_cumplimiento.font = Font(name='Arial', size=10, bold=True, color='0066CC')
+                cell_cumplimiento.alignment = align_center
+                cell_cumplimiento.border = border
+                cell_cumplimiento.number_format = '0.0%'
+
+            # 5. AJUSTAR ANCHOS DE COLUMNAS
             # Columnas de información
             column_widths = {
-                'A': 12,  # Código
+                'A': 15,  # Código (aumentado para "% CUMPLIMIENTO")
                 'B': 12,  # Codigo_SAP
                 'C': 12,  # Segmento
                 'D': 12,  # Silueta
@@ -13359,18 +13430,18 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 'F': 25,  # Descripción
                 'G': 8,   # Talla
             }
-            
+
             for col_letter, width in column_widths.items():
                 worksheet.column_dimensions[col_letter].width = width
-            
+
             # Columnas de bodegas (más estrechas) - ahora empiezan desde columna 8
             # Ahora son 3 columnas por bodega: Real, Óptimo, Necesidad
             for i in range(len(bodegas) * 3):
                 col_letter = get_column_letter(8 + i)
                 worksheet.column_dimensions[col_letter].width = 10
-            
-            # 5. AGREGAR INFORMACIÓN DE LEYENDA
-            leyenda_row = total_rows + 3
+
+            # 6. AGREGAR INFORMACIÓN DE LEYENDA
+            leyenda_row = total_rows + 6
             
             # Título de leyenda
             worksheet.cell(row=leyenda_row, column=1, value="LEYENDA DEL SEMÁFORO (Solo columna Real):")
