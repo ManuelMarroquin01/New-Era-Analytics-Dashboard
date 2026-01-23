@@ -13129,22 +13129,26 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
         columnas_info = ['Código', 'Codigo_SAP', 'Segmento', 'Silueta', 'Colección', 'Descripción', 'Talla']
         df_export.columns = columnas_info + list(df_export.columns[7:])
 
-        # Agregar columnas de Necesidad (Real - Óptimo) para cada bodega
+        # Agregar columnas de Necesidad (Real - Óptimo) y Despacho para cada bodega
         # Primero, obtener lista de bodegas desde columnas_real
         bodegas_list = [col.replace('Real ', '') for col in columnas_real]
 
-        # Crear nuevo DataFrame con columnas reorganizadas (Real, Óptimo, Necesidad por cada bodega)
+        # Crear nuevo DataFrame con columnas reorganizadas (Real, Óptimo, Necesidad, Despacho por cada bodega)
         columnas_nuevas = columnas_info.copy()
         for bodega in bodegas_list:
             col_real = f'Real {bodega}'
             col_optimo = f'Óptimo {bodega}'
             col_necesidad = f'Necesidad {bodega}'
+            col_despacho = f'Despacho {bodega}'
 
             # Calcular Necesidad = Real - Óptimo
             if col_real in df_export.columns and col_optimo in df_export.columns:
                 df_export[col_necesidad] = df_export[col_real] - df_export[col_optimo]
 
-            columnas_nuevas.extend([col_real, col_optimo, col_necesidad])
+            # Agregar columna Despacho vacía
+            df_export[col_despacho] = ''
+
+            columnas_nuevas.extend([col_real, col_optimo, col_necesidad, col_despacho])
 
         # Reordenar columnas
         df_export = df_export[columnas_nuevas]
@@ -13202,7 +13206,8 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 col_mapping[col_real] = col_idx
                 col_mapping[f'Óptimo {bodega}'] = col_idx + 1
                 col_mapping[f'Necesidad {bodega}'] = col_idx + 2
-                col_idx += 3  # Ahora son 3 columnas por bodega: Real, Óptimo, Necesidad
+                col_mapping[f'Despacho {bodega}'] = col_idx + 3
+                col_idx += 4  # Ahora son 4 columnas por bodega: Real, Óptimo, Necesidad, Despacho
             
             # 1. FORMATEAR ENCABEZADOS PRINCIPALES
             # Fila 1: Información + Bodegas
@@ -13213,10 +13218,10 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.alignment = align_center
                 cell.border = border
             
-            # Agregar encabezados de bodegas (fusionar celdas para Real + Óptimo + Necesidad)
+            # Agregar encabezados de bodegas (fusionar celdas para Real + Óptimo + Necesidad + Despacho)
             for i, bodega in enumerate(bodegas):
-                start_col = 8 + (i * 3)  # Ahora son 3 columnas por bodega
-                end_col = start_col + 2  # Abarcar 3 columnas
+                start_col = 8 + (i * 4)  # Ahora son 4 columnas por bodega
+                end_col = start_col + 3  # Abarcar 4 columnas
 
                 # Fusionar celdas para la bodega
                 worksheet.merge_cells(start_row=1, start_column=start_col, end_row=1, end_column=end_col)
@@ -13244,12 +13249,13 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.alignment = align_center
                 cell.border = border
             
-            # Color de fondo para columna Necesidad
+            # Color de fondo para columna Necesidad y Despacho
             fill_subheader_necesidad = PatternFill(start_color='6C757D', end_color='6C757D', fill_type='solid')  # Gris
+            fill_subheader_despacho = PatternFill(start_color='FFC107', end_color='FFC107', fill_type='solid')  # Amarillo/Naranja
 
-            # Sub-encabezados Real/Óptimo/Necesidad
+            # Sub-encabezados Real/Óptimo/Necesidad/Despacho
             for i, bodega in enumerate(bodegas):
-                start_col = 8 + (i * 3)  # Ahora son 3 columnas por bodega
+                start_col = 8 + (i * 4)  # Ahora son 4 columnas por bodega
 
                 # Columna Real
                 cell_real = worksheet.cell(row=2, column=start_col)
@@ -13274,6 +13280,14 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell_necesidad.fill = fill_subheader_necesidad
                 cell_necesidad.alignment = align_center
                 cell_necesidad.border = border
+
+                # Columna Despacho
+                cell_despacho = worksheet.cell(row=2, column=start_col + 3)
+                cell_despacho.value = "Despacho"
+                cell_despacho.font = font_subheader
+                cell_despacho.fill = fill_subheader_despacho
+                cell_despacho.alignment = align_center
+                cell_despacho.border = border
             
             # 3. FORMATEAR DATOS Y APLICAR SEMÁFORO
             total_rows = worksheet.max_row
@@ -13303,13 +13317,15 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 
                 # Formatear columnas de bodegas con semáforo
                 for i, bodega in enumerate(bodegas):
-                    col_real = 8 + (i * 3)  # Ahora son 3 columnas por bodega
+                    col_real = 8 + (i * 4)  # Ahora son 4 columnas por bodega
                     col_optimo = col_real + 1
                     col_necesidad = col_real + 2
+                    col_despacho = col_real + 3
 
                     cell_real = worksheet.cell(row=row_num, column=col_real)
                     cell_optimo = worksheet.cell(row=row_num, column=col_optimo)
                     cell_necesidad = worksheet.cell(row=row_num, column=col_necesidad)
+                    cell_despacho = worksheet.cell(row=row_num, column=col_despacho)
 
                     if es_fila_total:
                         # Fila TOTAL: fondo negro
@@ -13319,6 +13335,8 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                         cell_optimo.fill = fill_total
                         cell_necesidad.font = font_total
                         cell_necesidad.fill = fill_total
+                        cell_despacho.font = font_total
+                        cell_despacho.fill = fill_total
 
                         # Fórmulas SUBTOTALES (109 = SUMA ignorando filtros)
                         # La fórmula abarca desde fila 3 hasta la fila anterior al TOTAL
@@ -13329,6 +13347,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                         cell_real.value = f'=SUBTOTAL(109,{col_letter_real}3:{col_letter_real}{row_num - 1})'
                         cell_optimo.value = f'=SUBTOTAL(109,{col_letter_optimo}3:{col_letter_optimo}{row_num - 1})'
                         cell_necesidad.value = f'=SUBTOTAL(109,{col_letter_necesidad}3:{col_letter_necesidad}{row_num - 1})'
+                        cell_despacho.value = ''  # Columna Despacho vacía en TOTAL
                     else:
                         # Datos normales: aplicar semáforo solo a columna Real
                         try:
@@ -13352,21 +13371,35 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                             cell_necesidad.value = necesidad
                             cell_necesidad.fill = fill_optimo  # Fondo gris claro
 
+                            # Columna Despacho: vacía con fondo gris claro
+                            cell_despacho.value = ''
+                            cell_despacho.fill = fill_optimo
+
                         except:
                             # En caso de error, usar colores por defecto
                             cell_necesidad.value = 0
                             cell_necesidad.fill = fill_optimo
+                            cell_despacho.value = ''
+                            cell_despacho.fill = fill_optimo
 
                         cell_real.font = font_normal
                         cell_optimo.font = font_normal
                         cell_necesidad.font = font_normal
+                        cell_despacho.font = font_normal
 
                     cell_real.alignment = align_center
                     cell_optimo.alignment = align_center
                     cell_necesidad.alignment = align_center
+                    cell_despacho.alignment = align_center
                     cell_real.border = border
                     cell_optimo.border = border
                     cell_necesidad.border = border
+                    cell_despacho.border = border
+
+                    # Aplicar formato de miles a columnas numéricas
+                    cell_real.number_format = '#,##0'
+                    cell_optimo.number_format = '#,##0'
+                    cell_necesidad.number_format = '#,##0'
             
             # 4. AGREGAR FILAS DE MÉTRICAS (FALTANTE y % CUMPLIMIENTO)
             # Fila vacía después de TOTAL
@@ -13386,9 +13419,10 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
 
             # Agregar fórmulas para cada bodega
             for i, bodega in enumerate(bodegas):
-                col_real = 8 + (i * 3)
+                col_real = 8 + (i * 4)  # Ahora son 4 columnas por bodega
                 col_optimo = col_real + 1
                 col_necesidad = col_real + 2
+                col_despacho = col_real + 3
 
                 col_letter_real = get_column_letter(col_real)
                 col_letter_optimo = get_column_letter(col_optimo)
@@ -13400,6 +13434,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell_faltante.font = Font(name='Arial', size=10, bold=True, color='FF0000')
                 cell_faltante.alignment = align_center
                 cell_faltante.border = border
+                cell_faltante.number_format = '#,##0'
 
                 # Celda % CUMPLIMIENTO: (Celdas verdes / Total celdas) (en columna Necesidad)
                 # Lógica del semáforo:
@@ -13435,8 +13470,8 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 worksheet.column_dimensions[col_letter].width = width
 
             # Columnas de bodegas (más estrechas) - ahora empiezan desde columna 8
-            # Ahora son 3 columnas por bodega: Real, Óptimo, Necesidad
-            for i in range(len(bodegas) * 3):
+            # Ahora son 4 columnas por bodega: Real, Óptimo, Necesidad, Despacho
+            for i in range(len(bodegas) * 4):
                 col_letter = get_column_letter(8 + i)
                 worksheet.column_dimensions[col_letter].width = 10
 
@@ -13488,7 +13523,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             # Datos de la tabla resumen (una fila por bodega)
             for i, bodega in enumerate(bodegas):
                 data_row = header_row_resumen + 1 + i
-                col_necesidad = 8 + (i * 3) + 2  # Columna Necesidad de esta bodega
+                col_necesidad = 8 + (i * 4) + 2  # Columna Necesidad de esta bodega (ahora son 4 columnas por bodega)
                 col_letter_necesidad = get_column_letter(col_necesidad)
 
                 # Columna 1: Nombre de la bodega
@@ -13503,6 +13538,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell_faltante_resumen.font = Font(name='Arial', size=10, bold=True, color='FF0000')
                 cell_faltante_resumen.alignment = align_center
                 cell_faltante_resumen.border = border
+                cell_faltante_resumen.number_format = '#,##0'
 
                 # Columna 3: % CUMPLIMIENTO (referencia a la celda ya calculada)
                 cell_cumplimiento_resumen = worksheet.cell(row=data_row, column=3)
@@ -13531,6 +13567,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             cell_total_faltante.fill = PatternFill(start_color='C00000', end_color='C00000', fill_type='solid')
             cell_total_faltante.alignment = align_center
             cell_total_faltante.border = border
+            cell_total_faltante.number_format = '#,##0'
 
             # Columna 3: TOTAL % CUMPLIMIENTO (celdas verdes / total celdas de columnas Real)
             # Construir fórmula que abarque todas las columnas Real y Óptimo
@@ -13538,7 +13575,7 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
             partes_denominador = []
 
             for i in range(len(bodegas)):
-                col_real = 8 + (i * 3)
+                col_real = 8 + (i * 4)  # Ahora son 4 columnas por bodega
                 col_optimo = col_real + 1
                 col_letter_real = get_column_letter(col_real)
                 col_letter_optimo = get_column_letter(col_optimo)
