@@ -10502,16 +10502,16 @@ def procesar_stock_mvps_guatemala(df_stock: pd.DataFrame) -> pd.DataFrame:
             print(f"ERROR GUATEMALA: Columna faltante: {col}")
             return pd.DataFrame()
     
-    # Obtener bodegas de Guatemala
+    # Obtener bodegas de Guatemala (sin NE Plaza Videre)
     bodegas_guatemala = [
         "NE Oakland", "NE Cayala", "NE Miraflores", "NE Portales", "NE InterXela",
         "NE Metronorte", "NE Concepcion", "NE Interplaza Escuintla", "NE Pradera Huehuetenango",
         "NE Naranjo", "NE Metrocentro Outlet", "NE Vistares", "NE Peri Roosvelt",
         "NE Outlet Santa clara", "NE Plaza Magdalena", "NE Pradera Chiquimula",
         "NE Pradera Escuintla", "NE Paseo Antigua", "NE Pradera Xela", "NE Chimaltenango",
-        "NE Plaza Videre", "NE Metroplaza Jutiapa", "NE Puerto Barrios"
+        "NE Metroplaza Jutiapa", "NE Puerto Barrios"
     ]
-    
+
     # Filtrar solo bodegas de Guatemala
     df_mvp_guatemala = df_mvp[df_mvp['Bodega'].isin(bodegas_guatemala)].copy()
     
@@ -12333,16 +12333,16 @@ def procesar_archivo_optimos_gt(df_optimos: pd.DataFrame) -> Dict[str, Dict[str,
             print("No hay columnas disponibles")
             return {}
     
-    # Obtener bodegas de Guatemala
+    # Obtener bodegas de Guatemala (sin NE Plaza Videre)
     bodegas_guatemala = [
         "NE Oakland", "NE Cayala", "NE Miraflores", "NE Portales", "NE InterXela",
         "NE Metronorte", "NE Concepcion", "NE Interplaza Escuintla", "NE Pradera Huehuetenango",
         "NE Naranjo", "NE Metrocentro Outlet", "NE Vistares", "NE Peri Roosvelt",
         "NE Outlet Santa clara", "NE Plaza Magdalena", "NE Pradera Chiquimula",
         "NE Pradera Escuintla", "NE Paseo Antigua", "NE Pradera Xela", "NE Chimaltenango",
-        "NE Plaza Videre", "NE Metroplaza Jutiapa", "NE Puerto Barrios"
+        "NE Metroplaza Jutiapa", "NE Puerto Barrios"
     ]
-    
+
     # Mapear columnas de archivo con bodegas (nombres similares)
     def encontrar_bodega_similar(col_name: str) -> str:
         """Encuentra la bodega más similar basada en nombres"""
@@ -12412,19 +12412,18 @@ def procesar_archivo_optimos_gt(df_optimos: pd.DataFrame) -> Dict[str, Dict[str,
 def calcular_color_semaforo_mvp(real: float, optimo: float) -> str:
     """
     Calcula el color del semáforo basado en cumplimiento del óptimo
-    Verde: Stock real >= Stock óptimo
+    Verde: Stock real >= Stock óptimo, O cuando Óptimo = 0 y Real >= 0
     Amarillo: Stock real < Stock óptimo pero >= 80% del óptimo
     Rojo: Stock real < 80% del óptimo
     """
     if optimo == 0:
-        # Aplicar misma lógica cuando stock óptimo = 0
-        if real == 0:
-            return "#d4edda"  # Verde - cumple perfectamente (ambos son 0)
+        # Cuando óptimo es 0, cualquier valor de stock real >= 0 es verde
+        if real >= 0:
+            return "#d4edda"  # Verde - óptimo es 0, cualquier stock real es válido
         else:
-            # Cualquier stock real > 0 cuando óptimo = 0 es desviación significativa
-            return "#f8d7da"  # Rojo - no debería tener stock
-    
-    # Nueva lógica basada en cumplimiento
+            return "#f8d7da"  # Rojo - stock negativo (caso edge)
+
+    # Lógica basada en cumplimiento cuando óptimo > 0
     if real >= optimo:
         return "#d4edda"  # Verde - cumple o supera el óptimo
     elif real >= optimo * 0.8:  # 80% o más del óptimo
@@ -13404,14 +13403,15 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
 
                 # Celda % CUMPLIMIENTO: (Celdas verdes / Total celdas) (en columna Necesidad)
                 # Lógica del semáforo:
-                # - Verde: (Real >= Óptimo Y Óptimo > 0) O (Real = 0 Y Óptimo = 0)
+                # - Verde: (Real >= Óptimo Y Óptimo > 0) O (Óptimo = 0 Y Real >= 0)
                 # - Total: todas las celdas
                 cell_cumplimiento = worksheet.cell(row=fila_cumplimiento, column=col_necesidad)
                 rango_real = f'{col_letter_real}3:{col_letter_real}{total_rows - 1}'
                 rango_optimo = f'{col_letter_optimo}3:{col_letter_optimo}{total_rows - 1}'
                 # Fórmula: Celdas verdes / Total celdas
-                # Verde = (Real >= Óptimo Y Óptimo > 0) + (Real = 0 Y Óptimo = 0)
-                formula_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+(({rango_real}=0)*({rango_optimo}=0)))*1)'
+                # Verde = (Real >= Óptimo Y Óptimo > 0) + (Óptimo = 0 Y Real >= 0)
+                # Como Real siempre es >= 0, cuando Óptimo = 0 siempre es verde
+                formula_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+({rango_optimo}=0))*1)'
                 formula_total = f'COUNTA({rango_real})'
                 cell_cumplimiento.value = f'=IF({formula_total}>0,{formula_verde}/{formula_total},0)'
                 cell_cumplimiento.font = Font(name='Arial', size=10, bold=True, color='0066CC')
@@ -13546,8 +13546,9 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 rango_real = f'{col_letter_real}3:{col_letter_real}{total_rows - 1}'
                 rango_optimo = f'{col_letter_optimo}3:{col_letter_optimo}{total_rows - 1}'
 
-                # Numerador: celdas verdes (Real >= Óptimo AND Óptimo > 0) OR (Real = 0 AND Óptimo = 0)
-                parte_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+(({rango_real}=0)*({rango_optimo}=0)))*1)'
+                # Numerador: celdas verdes (Real >= Óptimo AND Óptimo > 0) OR (Óptimo = 0 AND Real >= 0)
+                # Como Real siempre es >= 0, cuando Óptimo = 0 siempre es verde
+                parte_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+({rango_optimo}=0))*1)'
                 partes_numerador.append(parte_verde)
 
                 # Denominador: total de celdas en columna Real
