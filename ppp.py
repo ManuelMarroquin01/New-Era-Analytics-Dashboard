@@ -13460,7 +13460,117 @@ def exportar_mvp_excel_con_colores(tabla_mvp: pd.DataFrame, columnas_real: List[
                 cell.font = Font(name='Arial', size=10)
                 cell.fill = fill
                 cell.border = border
-        
+
+            # 7. AGREGAR TABLA RESUMEN POR BODEGA
+            # Ubicar tabla resumen después de la leyenda (con espacio de separación)
+            tabla_resumen_row = leyenda_row + 6  # 2 filas de espacio después de la leyenda
+
+            # Título de la tabla resumen
+            cell_titulo_resumen = worksheet.cell(row=tabla_resumen_row, column=1, value="TABLA RESUMEN POR BODEGA")
+            cell_titulo_resumen.font = Font(name='Arial', size=12, bold=True, color='FFFFFF')
+            cell_titulo_resumen.fill = PatternFill(start_color='000000', end_color='000000', fill_type='solid')
+            cell_titulo_resumen.alignment = align_center
+            worksheet.merge_cells(start_row=tabla_resumen_row, start_column=1, end_row=tabla_resumen_row, end_column=3)
+            for col in range(1, 4):
+                worksheet.cell(row=tabla_resumen_row, column=col).border = border
+
+            # Encabezados de la tabla resumen
+            headers_resumen = ['Bodega', 'FALTANTE', '% CUMPLIMIENTO']
+            header_row_resumen = tabla_resumen_row + 1
+
+            for col_idx, header in enumerate(headers_resumen, start=1):
+                cell = worksheet.cell(row=header_row_resumen, column=col_idx, value=header)
+                cell.font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+                cell.fill = PatternFill(start_color='333333', end_color='333333', fill_type='solid')
+                cell.alignment = align_center
+                cell.border = border
+
+            # Datos de la tabla resumen (una fila por bodega)
+            for i, bodega in enumerate(bodegas):
+                data_row = header_row_resumen + 1 + i
+                col_necesidad = 8 + (i * 3) + 2  # Columna Necesidad de esta bodega
+                col_letter_necesidad = get_column_letter(col_necesidad)
+
+                # Columna 1: Nombre de la bodega
+                cell_bodega = worksheet.cell(row=data_row, column=1, value=bodega)
+                cell_bodega.font = Font(name='Arial', size=10, bold=True)
+                cell_bodega.alignment = align_left
+                cell_bodega.border = border
+
+                # Columna 2: FALTANTE (referencia a la celda ya calculada)
+                cell_faltante_resumen = worksheet.cell(row=data_row, column=2)
+                cell_faltante_resumen.value = f'={col_letter_necesidad}{fila_faltante}'
+                cell_faltante_resumen.font = Font(name='Arial', size=10, bold=True, color='FF0000')
+                cell_faltante_resumen.alignment = align_center
+                cell_faltante_resumen.border = border
+
+                # Columna 3: % CUMPLIMIENTO (referencia a la celda ya calculada)
+                cell_cumplimiento_resumen = worksheet.cell(row=data_row, column=3)
+                cell_cumplimiento_resumen.value = f'={col_letter_necesidad}{fila_cumplimiento}'
+                cell_cumplimiento_resumen.font = Font(name='Arial', size=10, bold=True, color='0066CC')
+                cell_cumplimiento_resumen.alignment = align_center
+                cell_cumplimiento_resumen.border = border
+                cell_cumplimiento_resumen.number_format = '0.0%'
+
+            # Fila TOTAL de la tabla resumen
+            total_row_resumen = header_row_resumen + 1 + len(bodegas)
+
+            # Columna 1: Etiqueta "TOTAL"
+            cell_total_label = worksheet.cell(row=total_row_resumen, column=1, value="TOTAL")
+            cell_total_label.font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+            cell_total_label.fill = PatternFill(start_color='000000', end_color='000000', fill_type='solid')
+            cell_total_label.alignment = align_center
+            cell_total_label.border = border
+
+            # Columna 2: TOTAL FALTANTE (suma de todos los faltantes)
+            primera_fila_datos = header_row_resumen + 1
+            ultima_fila_datos = header_row_resumen + len(bodegas)
+            cell_total_faltante = worksheet.cell(row=total_row_resumen, column=2)
+            cell_total_faltante.value = f'=SUM(B{primera_fila_datos}:B{ultima_fila_datos})'
+            cell_total_faltante.font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+            cell_total_faltante.fill = PatternFill(start_color='C00000', end_color='C00000', fill_type='solid')
+            cell_total_faltante.alignment = align_center
+            cell_total_faltante.border = border
+
+            # Columna 3: TOTAL % CUMPLIMIENTO (celdas verdes / total celdas de columnas Real)
+            # Construir fórmula que abarque todas las columnas Real y Óptimo
+            partes_numerador = []
+            partes_denominador = []
+
+            for i in range(len(bodegas)):
+                col_real = 8 + (i * 3)
+                col_optimo = col_real + 1
+                col_letter_real = get_column_letter(col_real)
+                col_letter_optimo = get_column_letter(col_optimo)
+
+                rango_real = f'{col_letter_real}3:{col_letter_real}{total_rows - 1}'
+                rango_optimo = f'{col_letter_optimo}3:{col_letter_optimo}{total_rows - 1}'
+
+                # Numerador: celdas verdes (Real >= Óptimo AND Óptimo > 0) OR (Real = 0 AND Óptimo = 0)
+                parte_verde = f'SUMPRODUCT((({rango_real}>={rango_optimo})*({rango_optimo}>0)+(({rango_real}=0)*({rango_optimo}=0)))*1)'
+                partes_numerador.append(parte_verde)
+
+                # Denominador: total de celdas en columna Real
+                parte_total = f'COUNTA({rango_real})'
+                partes_denominador.append(parte_total)
+
+            formula_numerador = '+'.join(partes_numerador)
+            formula_denominador = '+'.join(partes_denominador)
+            formula_total_cumplimiento = f'=IF(({formula_denominador})>0,({formula_numerador})/({formula_denominador}),0)'
+
+            cell_total_cumplimiento = worksheet.cell(row=total_row_resumen, column=3)
+            cell_total_cumplimiento.value = formula_total_cumplimiento
+            cell_total_cumplimiento.font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+            cell_total_cumplimiento.fill = PatternFill(start_color='0066CC', end_color='0066CC', fill_type='solid')
+            cell_total_cumplimiento.alignment = align_center
+            cell_total_cumplimiento.border = border
+            cell_total_cumplimiento.number_format = '0.0%'
+
+            # Ajustar anchos de columnas para la tabla resumen
+            worksheet.column_dimensions['A'].width = 25  # Bodega necesita más espacio
+            worksheet.column_dimensions['B'].width = 15  # FALTANTE
+            worksheet.column_dimensions['C'].width = 18  # % CUMPLIMIENTO
+
         # Retornar datos del archivo
         output.seek(0)
         return output.getvalue()
